@@ -2,7 +2,7 @@
   "name": "Catalogo Sorpresine",
   "short_name": "Sorpresine",
   "description": "Gestisci la tua collezione di sorpresine Kinder",
-  "start_url": "/index.html",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ff0000",
