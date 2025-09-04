@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statistiche - Catalogo Collezioni</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>Catalogo Collezioni</header>
+  <div class="container">
+    <h1>📊 Statistiche della Collezione</h1>
+    
+    <!-- Dashboard Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-info">
+          <h3 id="total-series">-</h3>
+          <p>Serie Totali</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-info">
+          <h3 id="total-items">-</h3>
+          <p>Oggetti Totali</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <h3 id="owned-items">-</h3>
+          <p>Oggetti Posseduti</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">❌</div>
+        <div class="stat-info">
+          <h3 id="missing-items">-</h3>
+          <p>Oggetti Mancanti</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-info">
+          <h3 id="total-value">-</h3>
+          <p>Valore Stimato</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">📈</div>
+        <div class="stat-info">
+          <h3 id="completion-rate">-</h3>
+          <p>% Completamento</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Grafici -->
+    <div class="charts-section">
+      <div class="chart-container">
+        <h2>📊 Completamento per Serie</h2>
+        <div id="completion-chart" class="chart-content">
+          <div class="spinner"></div>
+          <p>Caricamento grafico...</p>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <h2>🌍 Serie per Nazione</h2>
+        <div id="nations-chart" class="chart-content">
+          <div class="spinner"></div>
+          <p>Caricamento grafico...</p>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <h2>📅 Serie per Anno</h2>
+        <div id="years-chart" class="chart-content">
+          <div class="spinner"></div>
+          <p>Caricamento grafico...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <nav class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <span class="icon">🏠</span>
+      <span class="label">Home</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="add.html" class="nav-item">
+      <span class="icon">➕</span>
+      <span class="label">Aggiungi</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="collection.html" class="nav-item">
+      <span class="icon">📦</span>
+      <span class="label">Collezione</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="stats.html" class="nav-item active">
+      <span class="icon">📊</span>
+      <span class="label">Statistiche</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="wishlist.html" class="nav-item">
+      <span class="icon">💝</span>
+      <span class="label">Wishlist</span>
+      <span class="ripple"></span>
+    </a>
+  </nav>
+  
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="stats.js" defer></script>
+</body>
+</html>

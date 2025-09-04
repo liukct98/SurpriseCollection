@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>Benvenuto,  <span id="user-name">...</span></header>
+  <div class="container">
+    <h1>La tua collezione</h1>
+    <div class="home-buttons">
+      <button onclick="location.href='add.html'" class="btn-main">➕ Aggiungi Serie</button>
+      <button onclick="location.href='collection.html'" class="btn-main">📦 Visualizza Collezione</button>
+      <button onclick="location.href='stats.html'" class="btn-main">📊 Statistiche</button>
+      <button onclick="location.href='wishlist.html'" class="btn-main">💝 Lista Desideri</button>
+      <button id="logout-btn" class="btn-main">🔓 Logout</button>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="home.html" class="nav-item active">
+      <span class="icon">🏠</span>
+      <span class="label">Home</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="add.html" class="nav-item">
+      <span class="icon">➕</span>
+      <span class="label">Aggiungi</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="collection.html" class="nav-item">
+      <span class="icon">📦</span>
+      <span class="label">Collezione</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="stats.html" class="nav-item">
+      <span class="icon">📊</span>
+      <span class="label">Statistiche</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="wishlist.html" class="nav-item">
+      <span class="icon">💝</span>
+      <span class="label">Wishlist</span>
+      <span class="ripple"></span>
+    </a>
+  </nav>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    // =============================
+    // Inizializzazione Supabase
+    // =============================
+    const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      const { error } = await supabase.auth.signOut();
+      if (!error) location.href = 'index.html';
+      else alert("Errore logout: " + error.message);
+    });
+
+    // Mostra username utente loggato
+    async function showUserName() {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error(error);
+        return;
+      }
+      if (data.user) {
+        try {
+          // Cerca lo username nella tabella users
+          const { data: userProfile, error: profileError } = await supabase
+            .from('users')
+            .select('username')
+            .eq('mail', data.user.email)
+            .single();
+          
+          if (userProfile && userProfile.username) {
+            document.getElementById('user-name').textContent = userProfile.username;
+          } else {
+            // Fallback all'email se non trova lo username
+            document.getElementById('user-name').textContent = data.user.email;
+          }
+        } catch (err) {
+          // Fallback all'email in caso di errore
+          document.getElementById('user-name').textContent = data.user.email;
+        }
+      }
+    }
+    showUserName();
+  </script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modifica Oggetto</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>Modifica Oggetto</header>
+  <div class="container">
+    <h1>Modifica Oggetto</h1>
+    <form id="edit-item-form">
+      <label>Serie: 
+        <div id="serie-container">
+          <span id="serie-name">Caricamento...</span>
+        </div>
+      </label>
+      <label>Numero: <input type="number" id="numero" placeholder="Numero oggetto" required></label>
+      <label>Nome: <input type="text" id="nome_oggetto" placeholder="Nome oggetto"></label>
+      <label>Accessori: <input type="text" id="accessori" placeholder="Accessori"></label>
+      <label>Valore: <input type="number" step="0.01" id="valore" placeholder="Valore (€)"></label>
+      <label>Foto: <input type="file" id="foto" accept="image/*"></label>
+      <button type="submit">Salva Modifiche</button>
+    </form>
+    
+    <div id="edit-message"></div>
+  </div>
+  
+  <nav class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <span class="icon">🏠</span>
+      <span class="label">Home</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="collection.html" class="nav-item">
+      <span class="icon">📦</span>
+      <span class="label">Collezione</span>
+      <span class="ripple"></span>
+    </a>
+  </nav>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    // =============================
+    // Inizializzazione Supabase
+    // =============================
+    const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
+    const supa = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Ottieni i parametri dall'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const itemId = urlParams.get('id');
+    const serieId = urlParams.get('serie_id');
+
+    if (!itemId || !serieId) {
+      alert('❌ Parametri mancanti');
+      window.location.href = 'collection.html';
+    }
+
+    // =============================
+    // VERIFICA SESSIONE
+    // =============================
+    async function checkAuth() {
+      const { data: { session } } = await supa.auth.getSession();
+      if (!session) {
+        alert("Devi fare login!");
+        window.location.href = "index.html";
+        return null;
+      }
+      return session.user;
+    }
+
+    // =============================
+    // CARICAMENTO DATI
+    // =============================
+    async function loadData() {
+      try {
+        // Carica i dati della serie
+        const { data: serie, error: serieError } = await supa
+          .from('series')
+          .select('*')
+          .eq('id', serieId)
+          .single();
+
+        if (serieError) throw serieError;
+
+        // Mostra il nome della serie
+        document.getElementById('serie-name').textContent = `${serie.nome} (${serie.anno})`;
+
+        // Carica i dati dell'oggetto
+        const { data: item, error: itemError } = await supa
+          .from('item')
+          .select('*')
+          .eq('id', itemId)
+          .single();
+
+        if (itemError) throw itemError;
+
+        // Popola il form con i dati dell'oggetto
+        document.getElementById('nome_oggetto').value = item.nome || '';
+        document.getElementById('numero').value = item.numero || '';
+        document.getElementById('accessori').value = item.accessori || '';
+        document.getElementById('valore').value = item.valore || '';
+        
+        // La foto viene gestita solo se già presente (non possiamo precompilare un file input)
+        
+      } catch (error) {
+        console.error('Errore caricamento dati:', error);
+        alert('❌ Errore nel caricamento: ' + error.message);
+        window.location.href = `serie.html?id=${serieId}`;
+      }
+    }
+
+    // =============================
+    // UPLOAD FOTO
+    // =============================
+    async function uploadFoto(file) {
+      const fileName = `${Date.now()}_${file.name}`;
+      const { data, error } = await supa.storage
+        .from('item-photos')
+        .upload(fileName, file);
+      
+      if (error) throw error;
+      
+      const { data: { publicUrl } } = supa.storage
+        .from('item-photos')
+        .getPublicUrl(fileName);
+      
+      return publicUrl;
+    }
+
+    // =============================
+    // GESTIONE FORM
+    // =============================
+    document.getElementById('edit-item-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const messageDiv = document.getElementById('edit-message');
+      
+      try {
+        messageDiv.innerHTML = '⏳ Salvataggio modifiche...';
+        messageDiv.className = 'loading';
+
+        const formData = {
+          nome: document.getElementById('nome_oggetto').value.trim(),
+          numero: parseInt(document.getElementById('numero').value),
+          accessori: document.getElementById('accessori').value.trim(),
+          valore: parseFloat(document.getElementById('valore').value) || null,
+        };
+
+        // Validazione
+        if (!formData.nome) {
+          throw new Error('Il nome è obbligatorio');
+        }
+
+        if (formData.numero < 1) {
+          throw new Error('Il numero deve essere almeno 1');
+        }
+
+        // Controlla se il numero è già usato
+        const { data: existingItem } = await supa
+          .from('item')
+          .select('id')
+          .eq('serie_id', serieId)
+          .eq('numero', formData.numero)
+          .neq('id', itemId)
+          .single();
+
+        if (existingItem) {
+          throw new Error(`Il numero ${formData.numero} è già utilizzato`);
+        }
+
+        // Gestione foto se presente
+        const fotoFile = document.getElementById('foto').files[0];
+        if (fotoFile) {
+          messageDiv.innerHTML = '📸 Caricamento foto...';
+          const fotoUrl = await uploadFoto(fotoFile);
+          formData.foto = fotoUrl;
+        }
+
+        // Aggiorna l'oggetto
+        const { error } = await supa
+          .from('item')
+          .update(formData)
+          .eq('id', itemId);
+
+        if (error) throw error;
+
+        messageDiv.innerHTML = '✅ Oggetto aggiornato con successo!';
+        messageDiv.className = 'success';
+
+        setTimeout(() => {
+          window.location.href = `serie.html?id=${serieId}`;
+        }, 2000);
+
+      } catch (error) {
+        console.error('Errore aggiornamento:', error);
+        messageDiv.innerHTML = '❌ Errore: ' + error.message;
+        messageDiv.className = 'error';
+      }
+    });
+
+    // =============================
+    // INIZIALIZZAZIONE
+    // =============================
+    window.addEventListener('load', async () => {
+      const user = await checkAuth();
+      if (user) {
+        await loadData();
+      }
+    });
+  </script>
+</body>
+</html>

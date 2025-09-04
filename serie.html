@@ -1,0 +1,56 @@
+  <!DOCTYPE html>
+  <html lang="it">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serie</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <header>Serie: <span id="serie-title">...</span></header>
+
+    <div class="container">      
+      <h2>Collezione</h2>
+      <div id="items-list">
+        <div class="spinner"></div>
+        <p style="text-align:center;">Caricamento oggetti...</p>
+      </div>
+    </div>
+
+    <nav class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <span class="icon">🏠</span>
+      <span class="label">Home</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="addItem.html" class="nav-item">
+      <span class="icon">➕</span>
+      <span class="label">Aggiungi</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="collection.html" class="nav-item">
+      <span class="icon">📦</span>
+      <span class="label">Collezione</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="stats.html" class="nav-item">
+      <span class="icon">📊</span>
+      <span class="label">Statistiche</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="wishlist.html" class="nav-item">
+      <span class="icon">💝</span>
+      <span class="label">Wishlist</span>
+      <span class="ripple"></span>
+    </a>
+  </nav>
+
+    <div id="lightbox" class="lightbox">
+      <img id="lightbox-img" src="" alt="Foto oggetto">
+    </div>
+
+    <!-- Supabase JS e serie.js -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="serie.js" defer></script>
+  </body>
+  </html>

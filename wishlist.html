@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wishlist - Catalogo Collezioni</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>Catalogo Collezioni</header>
+  <div class="container">
+    <h1>💝 Lista Desideri</h1>
+    <p class="page-subtitle">Gli oggetti che vuoi aggiungere alla tua collezione</p>
+    
+    <!-- Filtri e ricerca wishlist -->
+    <div class="wishlist-controls">
+      <div class="search-bar">
+        <input type="text" id="wishlist-search" placeholder="🔍 Cerca oggetti mancanti..." />
+        <button id="clear-wishlist-search" class="clear-btn">✕</button>
+      </div>
+      
+      <div class="wishlist-filters">
+        <select id="priority-filter" class="filter-select">
+          <option value="">Tutte le priorità</option>
+          <option value="alta">🔴 Alta priorità</option>
+          <option value="media">🟡 Media priorità</option>
+          <option value="bassa">🟢 Bassa priorità</option>
+        </select>
+        
+        <select id="wishlist-sort" class="filter-select">
+          <option value="priority">Ordina per priorità</option>
+          <option value="name">Ordina per nome</option>
+          <option value="series">Ordina per serie</option>
+          <option value="price">Ordina per prezzo</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Lista wishlist -->
+    <div id="wishlist-list">
+      <div class="spinner"></div>
+      <p style="text-align:center;">Caricamento wishlist...</p>
+    </div>
+  </div>
+  
+  <nav class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <span class="icon">🏠</span>
+      <span class="label">Home</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="add.html" class="nav-item">
+      <span class="icon">➕</span>
+      <span class="label">Aggiungi</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="collection.html" class="nav-item">
+      <span class="icon">📦</span>
+      <span class="label">Collezione</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="stats.html" class="nav-item">
+      <span class="icon">📊</span>
+      <span class="label">Statistiche</span>
+      <span class="ripple"></span>
+    </a>
+    <a href="wishlist.html" class="nav-item active">
+      <span class="icon">💝</span>
+      <span class="label">Wishlist</span>
+      <span class="ripple"></span>
+    </a>
+  </nav>
+  
+  <!-- Modal per modificare note wishlist -->
+  <div id="wishlist-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>✏️ Modifica Note Oggetto</h2>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="wishlist-form">
+          <input type="hidden" id="edit-item-id">
+          
+          <div class="form-group">
+            <label>🎯 Oggetto</label>
+            <div id="item-display" class="item-display-info"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="wishlist-description">📝 Note personali</label>
+            <textarea id="wishlist-description" name="description" placeholder="Dove trovarlo, note, osservazioni..."></textarea>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wishlist-price">💰 Prezzo stimato</label>
+              <input type="number" id="wishlist-price" name="price" placeholder="0.00" step="0.01" min="0">
+            </div>
+            
+            <div class="form-group">
+              <label for="wishlist-priority">⚡ Priorità</label>
+              <select id="wishlist-priority" name="priority" required>
+                <option value="media">🟡 Media</option>
+                <option value="alta">🔴 Alta</option>
+                <option value="bassa">🟢 Bassa</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="wishlist-url">🔗 Link dove acquistare (opzionale)</label>
+            <input type="url" id="wishlist-url" name="url" placeholder="https://...">
+          </div>
+          
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="cancel-wishlist">Annulla</button>
+            <button type="submit" class="btn-primary">� Salva Modifiche</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="wishlist.js" defer></script>
+</body>
+</html>

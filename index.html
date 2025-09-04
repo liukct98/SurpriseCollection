@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Catalogo Collezioni</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>Catalogo Collezioni</header>
+  <div class="container">
+    <div class="auth-container">
+      <h1>🔐 Accedi al tuo catalogo</h1>
+      <p class="auth-subtitle">Inserisci le tue credenziali per continuare</p>
+      
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label for="username">👤 Username o Email</label>
+          <input type="text" id="username" autocomplete="username" placeholder="Inserisci username o email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">🔒 Password</label>
+          <input type="password" id="password" autocomplete="current-password" placeholder="Inserisci la password" required>
+        </div>
+
+        <button type="submit" class="btn-primary">🚀 Accedi</button>
+      </form>
+
+      <div id="login-message" class="message"></div>
+
+      <div class="auth-link">
+        <p>Non hai un account? <a href="register.html" class="link-primary">📝 Registrati</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="login.js"></script>
+</body>
+</html>

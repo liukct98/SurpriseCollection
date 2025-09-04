@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrazione - Catalogo Collezioni</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>Catalogo Collezioni</header>
+  <div class="container">
+    <div class="auth-container">
+      <h1>📝 Crea il tuo account</h1>
+      <p class="auth-subtitle">Inizia a catalogare le tue collezioni</p>
+      
+      <form id="register-form" class="auth-form">
+        <div class="form-group">
+          <label for="username">👤 Username</label>
+          <input type="text" id="username" autocomplete="username" placeholder="Scegli un username" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">📧 Email</label>
+          <input type="email" id="email" autocomplete="email" placeholder="Inserisci la tua email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">🔒 Password</label>
+          <input type="password" id="password" autocomplete="new-password" placeholder="Crea una password" required>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm-password">🔒 Conferma Password</label>
+          <input type="password" id="confirm-password" autocomplete="new-password" placeholder="Ripeti la password" required>
+        </div>
+
+        <button type="submit" class="btn-primary">🚀 Registrati</button>
+      </form>
+
+      <div id="register-message" class="message"></div>
+
+      <div class="auth-link">
+        <p>Hai già un account? <a href="index.html" class="link-primary">🔐 Accedi</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    // =============================
+    // Inizializzazione Supabase
+    // =============================
+    const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // =============================
+    // GESTIONE REGISTRAZIONE
+    // =============================
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      const messageDiv = document.getElementById('register-message');
+      
+      // Reset messaggi precedenti
+      messageDiv.innerHTML = '';
+      messageDiv.className = '';
+      
+      // Validazione username
+      if (username.length < 3) {
+        messageDiv.innerHTML = '❌ Lo username deve essere di almeno 3 caratteri';
+        messageDiv.className = 'error';
+        return;
+      }
+      
+      // Validazione password
+      if (password.length < 6) {
+        messageDiv.innerHTML = '❌ La password deve essere di almeno 6 caratteri';
+        messageDiv.className = 'error';
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        messageDiv.innerHTML = '❌ Le password non coincidono';
+        messageDiv.className = 'error';
+        return;
+      }
+      
+      try {
+        messageDiv.innerHTML = '⏳ Controllo disponibilità username...';
+        messageDiv.className = 'loading';
+        
+        // Controlla se lo username è già in uso
+        const { data: existingUsername, error: usernameError } = await supabase
+          .from('users')
+          .select('username')
+          .eq('username', username)
+          .single();
+        
+        if (existingUsername) {
+          messageDiv.innerHTML = '❌ Username già in uso, scegline un altro';
+          messageDiv.className = 'error';
+          return;
+        }
+        
+        // Controlla se l'email è già in uso
+        const { data: existingEmail, error: emailError } = await supabase
+          .from('users')
+          .select('mail')
+          .eq('mail', email)
+          .single();
+        
+        if (existingEmail) {
+          messageDiv.innerHTML = '❌ Email già registrata, <a href="index.html">accedi</a>';
+          messageDiv.className = 'error';
+          return;
+        }
+        
+        messageDiv.innerHTML = '⏳ Registrazione in corso...';
+        messageDiv.className = 'loading';
+        
+        // Registra l'utente in Supabase Auth
+        const { data, error } = await supabase.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: {
+              username: username
+            }
+          }
+        });
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data.user) {
+          // Salva il profilo utente nella tabella users
+          const { error: profileError } = await supabase
+            .from('users')
+            .insert([
+              {
+                mail: email,
+                username: username
+              }
+            ]);
+          
+          if (profileError) {
+            console.error('Errore salvataggio profilo:', profileError);
+            messageDiv.innerHTML = '⚠️ Registrazione completata ma errore nel salvataggio del profilo: ' + profileError.message;
+            messageDiv.className = 'error';
+            return;
+          }
+          
+          messageDiv.innerHTML = '✅ Registrazione completata! Ora puoi accedere con username o email.';
+          messageDiv.className = 'success';
+          
+          // Reindirizza al login dopo 3 secondi
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 3000);
+        }
+        
+      } catch (error) {
+        console.error('Errore registrazione:', error);
+        
+        let errorMessage = '❌ Errore durante la registrazione: ';
+        
+        switch (error.message) {
+          case 'User already registered':
+            errorMessage += 'Questo indirizzo email è già registrato. <a href="index.html">Accedi</a>';
+            break;
+          case 'Invalid email':
+            errorMessage += 'Indirizzo email non valido';
+            break;
+          case 'Password should be at least 6 characters':
+            errorMessage += 'La password deve essere di almeno 6 caratteri';
+            break;
+          default:
+            errorMessage += error.message;
+        }
+        
+        messageDiv.innerHTML = errorMessage;
+        messageDiv.className = 'error';
+      }
+    });
+    
+    // =============================
+    // CONTROLLO SESSIONE ESISTENTE
+    // =============================
+    window.addEventListener('load', async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        window.location.href = 'home.html';
+      }
+    });
+  </script>
+</body>
+</html>
