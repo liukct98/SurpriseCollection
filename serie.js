@@ -68,10 +68,13 @@ async function loadCurrentSerie() {
   }
 
   // Aggiorna il link "Aggiungi" per includere l'ID della serie
-  const addLink = document.querySelector('a[href="addItem.html"]');
+  const addLink = document.querySelector('a[href="./addItem.html"]');
+  console.log("🔍 Link trovato:", addLink);
   if (addLink) {
     addLink.href = `./addItem.html?serie_id=${serieId}`;
     console.log("🔗 Link Aggiungi aggiornato:", addLink.href);
+  } else {
+    console.error("❌ Link ./addItem.html non trovato!");
   }
 
   console.log("✅ Serie caricata:", serie);
