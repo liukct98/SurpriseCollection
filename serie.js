@@ -1,7 +1,5 @@
 // =========================
-// INIZIALIZZAZIONE SU    console.error("Errore nel caricamento della serie:", error);
-    alert("Errore nel caricamento della serie");
-    window.location.href = "./home.html";ASE
+// INIZIALIZZAZIONE SUPABASE
 // =========================
 console.log("🚀 Script serie.js caricato!");
 
@@ -18,9 +16,9 @@ async function checkAuth() {
     data: { session },
   } = await supa.auth.getSession();
 
-  if (!user) {
+  if (!session) {
     alert("Sessione scaduta. Verrai reindirizzato al login.");
-    window.location.href = "./home.html";
+    window.location.href = "./index.html";
     return;
   }
 
