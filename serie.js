@@ -41,7 +41,7 @@ async function loadCurrentSerie() {
   const serieId = getSerieIdFromUrl();
   if (!serieId) {
     alert("❌ ID serie mancante nell'URL!");
-    window.location.href = "home.html";
+    window.location.href = "./home.html";
     return null;
   }
 
@@ -51,7 +51,7 @@ async function loadCurrentSerie() {
   if (error) {
     console.error("❌ Errore caricamento serie:", error.message);
     alert("❌ Serie non trovata!");
-    window.location.href = "home.html";
+    window.location.href = "./home.html";
     return null;
   }
 

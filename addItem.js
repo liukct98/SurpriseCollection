@@ -18,7 +18,7 @@ async function checkAuth() {
 
   if (!session) {
     alert("Devi fare login!");
-    window.location.href = "index.html";
+    window.location.href = "./index.html";
     return null;
   }
 
@@ -50,7 +50,7 @@ async function setupSerieSelection() {
     if (error) {
       console.error("❌ Errore caricamento serie:", error.message);
       alert("❌ Serie non trovata!");
-      window.location.href = "home.html";
+      window.location.href = "./home.html";
       return false;
     }
     
