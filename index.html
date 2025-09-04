@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Catalogo Collezioni</title>
   <link rel="stylesheet" href="style.css">
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ff0000">
 </head>
 <body>
   <header>Catalogo Collezioni</header>
@@ -34,6 +37,16 @@
       </div>
     </div>
   </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker registrato', reg))
+        .catch(err => console.error('Errore Service Worker', err));
+        });
+    }
+  </script>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="login.js"></script>
