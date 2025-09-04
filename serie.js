@@ -1,5 +1,7 @@
 // =========================
-// INIZIALIZZAZIONE SUPABASE
+// INIZIALIZZAZIONE SU    console.error("Errore nel caricamento della serie:", error);
+    alert("Errore nel caricamento della serie");
+    window.location.href = "./home.html";ASE
 // =========================
 console.log("🚀 Script serie.js caricato!");
 
@@ -16,10 +18,10 @@ async function checkAuth() {
     data: { session },
   } = await supa.auth.getSession();
 
-  if (!session) {
-    alert("Devi fare login!");
-    window.location.href = "index.html";
-    return null;
+  if (!user) {
+    alert("Sessione scaduta. Verrai reindirizzato al login.");
+    window.location.href = "./home.html";
+    return;
   }
 
   console.log("✅ Utente loggato:", session.user.email);
@@ -70,7 +72,7 @@ async function loadCurrentSerie() {
   // Aggiorna il link "Aggiungi" per includere l'ID della serie
   const addLink = document.querySelector('a[href="addItem.html"]');
   if (addLink) {
-    addLink.href = `addItem.html?serie_id=${serieId}`;
+    addLink.href = `./addItem.html?serie_id=${serieId}`;
     console.log("🔗 Link Aggiungi aggiornato:", addLink.href);
   }
 
@@ -131,7 +133,7 @@ async function loadCollection() {
     }
 
     if (items.length === 0) {
-      seriesList.innerHTML = `<p>Nessun oggetto presente in questa serie. <a href='addItem.html?serie_id=${serieId}'>Aggiungi il primo oggetto!</a></p>`;
+      seriesList.innerHTML = `<p>Nessun oggetto presente in questa serie. <a href='./addItem.html?serie_id=${serieId}'>Aggiungi il primo oggetto!</a></p>`;
     } else {
       seriesList.innerHTML = items.map((i, index) => {
         // Usa il campo wishlist direttamente dalla tabella item
@@ -244,7 +246,7 @@ async function editSerie() {
   if (!serieId) return;
   
   // Redirect alla pagina di modifica serie (da creare)
-  window.location.href = `editSerie.html?id=${serieId}`;
+  window.location.href = `./editSerie.html?id=${serieId}`;
 }
 
 async function deleteSerie() {
@@ -281,7 +283,7 @@ async function deleteSerie() {
   }
   
   alert("✅ Serie eliminata correttamente!");
-  window.location.href = "collection.html";
+  window.location.href = "./collection.html";
 }
 
 // =========================
@@ -290,7 +292,7 @@ async function deleteSerie() {
 async function editItem(itemId) {
   // Redirect alla pagina di modifica oggetto (da creare)
   const serieId = getSerieIdFromUrl();
-  window.location.href = `editItem.html?id=${itemId}&serie_id=${serieId}`;
+  window.location.href = `./editItem.html?id=${itemId}&serie_id=${serieId}`;
 }
 
 async function deleteItem(itemId, itemName) {

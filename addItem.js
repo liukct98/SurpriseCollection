@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Se siamo venuti da una serie specifica, torniamo lì
         const serieIdFromUrl = getSerieIdFromUrl();
         if (serieIdFromUrl) {
-          window.location.href = `serie.html?id=${serieIdFromUrl}`;
+          window.location.href = `./serie.html?id=${serieIdFromUrl}`;
         } else {
           itemForm.reset();
           await setupSerieSelection(); // Ricarica le serie nel select

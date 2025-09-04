@@ -77,7 +77,7 @@ async function loadCollection() {
 
     // cliccando su una serie -> vai alla pagina serie.html?id=...
     serieDiv.addEventListener("click", () => {
-      window.location.href = `serie.html?id=${serie.id}`;
+      window.location.href = `./serie.html?id=${serie.id}`;
     });
 
     seriesList.appendChild(serieDiv);

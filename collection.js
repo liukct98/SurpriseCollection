@@ -170,7 +170,7 @@ function displayFilteredSeries() {
   
   seriesList.innerHTML = filteredSeries.map((serie, index) => `
     <div class="serie fade-in" style="animation-delay: ${0.1 * index}s;">
-      <div onclick="window.location.href='serie.html?id=${serie.id}'" style="cursor: pointer;">
+      <div onclick="window.location.href='./serie.html?id=${serie.id}'" style="cursor: pointer;">
         <h2>${serie.nome} (${serie.anno})</h2>
         <div class="serie-info">
           <p><strong>📍 Nazione:</strong> ${serie.nazione || 'Non specificata'}</p>
@@ -301,7 +301,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 // FUNZIONI MODIFICA/ELIMINAZIONE DA COLLECTION
 // =========================
 async function editSerieFromCollection(serieId) {
-  window.location.href = `editSerie.html?id=${serieId}`;
+  window.location.href = `./editSerie.html?id=${serieId}`;
 }
 
 async function deleteSerieFromCollection(serieId, serieName) {
