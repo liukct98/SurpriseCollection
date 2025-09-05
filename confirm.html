@@ -2,7 +2,16 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta n            statusDiv.inner          statusDiv.innerHTML = `
+            <h1>✅ Account confermato!</h1>
+            <p>Il tuo account è stato confermato con successo.</p>
+            <p>Ora puoi effettuare il login con le tue credenziali.</p>
+            <button onclick="location.href='index.html'" class="btn-primary">🔐 Vai al Login</button>
+          `             <h1>✅ Account confermato!</h1>
+              <p>Il tuo account è stato confermato con successo.</p>
+              <p>Ora puoi effettuare il login con le tue credenziali.</p>
+              <button onclick="location.href='index.html'" class="btn-primary">🔐 Vai al Login</button>
+            `rt" content="width=device-width, initial-scale=1.0">
   <title>Conferma Account - Catalogo Collezioni</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
@@ -75,18 +84,13 @@
             statusDiv.innerHTML = `
               <h1>✅ Account confermato!</h1>
               <p>Il tuo account è stato confermato con successo.</p>
-              <p>Ora puoi accedere alla tua collezione.</p>
-              <button onclick="location.href='home.html'" class="btn-primary">🚀 Vai alla Home</button>
+              <p>Ora puoi effettuare il login con le tue credenziali.</p>
+              <button onclick="location.href='index.html'" class="btn-primary">� Vai al Login</button>
             `
-            
-            // Salva l'utente nel localStorage
-            if (data.user) {
-              localStorage.setItem('supabase.auth.token', JSON.stringify(data))
-            }
             
             // Reindirizza automaticamente dopo 3 secondi
             setTimeout(() => {
-              window.location.href = 'home.html'
+              window.location.href = 'index.html'
             }, 3000)
           }
         } else if (accessToken || token) {
@@ -102,12 +106,12 @@
           statusDiv.innerHTML = `
             <h1>✅ Account confermato!</h1>
             <p>Il tuo account è stato confermato con successo.</p>
-            <p>Ora puoi accedere alla tua collezione.</p>
-            <button onclick="location.href='home.html'" class="btn-primary">🚀 Vai alla Home</button>
+            <p>Ora puoi effettuare il login con le tue credenziali.</p>
+            <button onclick="location.href='index.html'" class="btn-primary">� Vai al Login</button>
           `
           
           setTimeout(() => {
-            window.location.href = 'home.html'
+            window.location.href = 'index.html'
           }, 3000)
         } else {
           statusDiv.innerHTML = `
