@@ -1,4 +1,149 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#ff0000" rx="50"/>
-  <text x="256" y="320" font-family="Arial, sans-serif" font-size="280" text-anchor="middle" fill="white">🎁</text>
+  <!-- Sfondo con gradiente -->
+  <defs>
+    <linearGradient id="bg512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#F7931E;stop-opacity:1" />
+      <stop offset="60%" style="stop-color:#FFD23F;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFF3A0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="eggWhite512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="40%" style="stop-color:#F8F9FA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E8E9EA;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="eggRed512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF4757;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#E74C3C;stop-opacity:1" />
+      <stop offset="65%" style="stop-color:#C0392B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A93226;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="shine512" cx="30%" cy="25%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#FFFFFF;stop-opacity:0.7" />
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
+    </radialGradient>
+    <radialGradient id="mainShine512" cx="35%" cy="30%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.95" />
+      <stop offset="40%" style="stop-color:#FFFFFF;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
+    </radialGradient>
+    <linearGradient id="shadowGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#000000;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:0.1" />
+    </linearGradient>
+    <pattern id="dots512" patternUnits="userSpaceOnUse" width="16" height="16">
+      <circle cx="8" cy="8" r="2" fill="#FFFFFF" opacity="0.12"/>
+    </pattern>
+    <pattern id="redDots512" patternUnits="userSpaceOnUse" width="20" height="20">
+      <circle cx="10" cy="10" r="1.5" fill="#FFFFFF" opacity="0.08"/>
+    </pattern>
+  </defs>
+  
+  <!-- Sfondo arrotondato -->
+  <rect width="512" height="512" fill="url(#bg512)" rx="102"/>
+  
+  <!-- Decorazioni elaborate di sfondo -->
+  <circle cx="80" cy="100" r="25" fill="#FFFFFF" opacity="0.08"/>
+  <circle cx="430" cy="120" r="18" fill="#FFFFFF" opacity="0.06"/>
+  <circle cx="90" cy="410" r="22" fill="#FFFFFF" opacity="0.09"/>
+  <circle cx="420" cy="380" r="15" fill="#FFFFFF" opacity="0.07"/>
+  <circle cx="70" cy="300" r="12" fill="#FFFFFF" opacity="0.05"/>
+  <circle cx="440" cy="280" r="10" fill="#FFFFFF" opacity="0.04"/>
+  
+  <!-- Ombra dell'uovo multipla per profondità -->
+  <ellipse cx="262" cy="265" rx="125" ry="158" fill="url(#shadowGrad512)"/>
+  <ellipse cx="260" cy="262" rx="123" ry="156" fill="#000000" opacity="0.2"/>
+  <ellipse cx="258" cy="260" rx="122" ry="154" fill="#000000" opacity="0.15"/>
+  
+  <!-- Corpo dell'uovo - parte bianca superiore -->
+  <ellipse cx="256" cy="256" rx="120" ry="152" fill="url(#eggWhite512)"/>
+  
+  <!-- Texture elaborata sulla parte bianca -->
+  <ellipse cx="256" cy="230" rx="105" ry="130" fill="url(#dots512)"/>
+  
+  <!-- Parte rossa/arancione inferiore -->
+  <ellipse cx="256" cy="305" rx="120" ry="103" fill="url(#eggRed512)"/>
+  
+  <!-- Texture sulla parte rossa -->
+  <ellipse cx="256" cy="320" rx="100" ry="85" fill="url(#redDots512)"/>
+  
+  <!-- Separazione ondulata elaborata -->
+  <path d="M 136 256 Q 151 244 166 256 T 196 256 Q 211 244 226 256 T 256 256 Q 271 244 286 256 T 316 256 Q 331 244 346 256 T 376 256" stroke="#FFFFFF" stroke-width="8" fill="none" opacity="0.9"/>
+  <path d="M 136 256 Q 151 248 166 256 T 196 256 Q 211 248 226 256 T 256 256 Q 271 248 286 256 T 316 256 Q 331 248 346 256 T 376 256" stroke="#FFD700" stroke-width="4" fill="none" opacity="0.7"/>
+  <path d="M 136 256 Q 151 251 166 256 T 196 256 Q 211 251 226 256 T 256 256 Q 271 251 286 256 T 316 256 Q 331 251 346 256 T 376 256" stroke="#FFF3CD" stroke-width="2" fill="none" opacity="0.5"/>
+  
+  <!-- Pattern decorativi sulla parte rossa -->
+  <path d="M 170 330 Q 200 320 230 330 T 290 330 Q 320 320 350 330" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.25"/>
+  <path d="M 160 350 Q 200 340 240 350 T 320 350 Q 360 340 380 350" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.2"/>
+  <path d="M 180 370 Q 220 360 260 370 T 340 370" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.15"/>
+  
+  <!-- Highlight principale super elaborato -->
+  <ellipse cx="220" cy="190" rx="45" ry="65" fill="url(#mainShine512)"/>
+  <ellipse cx="215" cy="185" rx="35" ry="50" fill="#FFFFFF" opacity="0.7"/>
+  <ellipse cx="210" cy="180" rx="25" ry="38" fill="#FFFFFF" opacity="0.85"/>
+  <ellipse cx="205" cy="175" rx="18" ry="28" fill="#FFFFFF" opacity="0.95"/>
+  
+  <!-- Highlight secondari elaborati -->
+  <ellipse cx="305" cy="220" rx="18" ry="25" fill="#FFFFFF" opacity="0.5"/>
+  <ellipse cx="300" cy="215" rx="12" ry="18" fill="#FFFFFF" opacity="0.6"/>
+  <ellipse cx="185" cy="240" rx="12" ry="18" fill="#FFFFFF" opacity="0.4"/>
+  <ellipse cx="320" cy="340" rx="10" ry="12" fill="#FFFFFF" opacity="0.3"/>
+  <ellipse cx="200" cy="350" rx="8" ry="10" fill="#FFFFFF" opacity="0.25"/>
+  
+  <!-- Riflessi sui bordi elaborati -->
+  <path d="M 145 150 Q 145 200 145 250 T 145 320 Q 145 350 145 380" stroke="#FFFFFF" stroke-width="4" fill="none" opacity="0.25"/>
+  <path d="M 367 150 Q 367 200 367 250 T 367 320 Q 367 350 367 380" stroke="#000000" stroke-width="3" fill="none" opacity="0.2"/>
+  
+  <!-- Riflessi interni -->
+  <path d="M 170 180 Q 170 220 170 260" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.15"/>
+  <path d="M 342 180 Q 342 220 342 260" stroke="#000000" stroke-width="1.5" fill="none" opacity="0.1"/>
+  
+  <!-- Stelle decorative super elaborate -->
+  <g transform="translate(90,120)">
+    <path d="M 0 -8 L 2.4 -2.4 L 8 0 L 2.4 2.4 L 0 8 L -2.4 2.4 L -8 0 L -2.4 -2.4 Z" fill="#FFFFFF" opacity="0.9"/>
+    <path d="M 0 -6 L 1.8 -1.8 L 6 0 L 1.8 1.8 L 0 6 L -1.8 1.8 L -6 0 L -1.8 -1.8 Z" fill="#FFD700" opacity="0.8"/>
+    <circle cx="0" cy="0" r="3" fill="#FFF3CD" opacity="0.6"/>
+  </g>
+  
+  <g transform="translate(420,140)">
+    <path d="M 0 -6 L 1.8 -1.8 L 6 0 L 1.8 1.8 L 0 6 L -1.8 1.8 L -6 0 L -1.8 -1.8 Z" fill="#FFFFFF" opacity="0.8"/>
+    <circle cx="0" cy="0" r="2" fill="#FFD700" opacity="0.6"/>
+  </g>
+  
+  <g transform="translate(110,420)">
+    <path d="M 0 -7 L 2.1 -2.1 L 7 0 L 2.1 2.1 L 0 7 L -2.1 2.1 L -7 0 L -2.1 -2.1 Z" fill="#FFFFFF" opacity="0.85"/>
+    <path d="M 0 -5 L 1.5 -1.5 L 5 0 L 1.5 1.5 L 0 5 L -1.5 1.5 L -5 0 L -1.5 -1.5 Z" fill="#FFD700" opacity="0.7"/>
+  </g>
+  
+  <g transform="translate(400,380)">
+    <path d="M 0 -5 L 1.5 -1.5 L 5 0 L 1.5 1.5 L 0 5 L -1.5 1.5 L -5 0 L -1.5 -1.5 Z" fill="#FFFFFF" opacity="0.7"/>
+  </g>
+  
+  <!-- Scintille e particelle magiche -->
+  <circle cx="150" cy="160" r="4" fill="#FFD700" opacity="0.9"/>
+  <circle cx="360" cy="180" r="3" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="140" cy="370" r="4" fill="#FFD700" opacity="0.7"/>
+  <circle cx="370" cy="350" r="3" fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="180" cy="450" r="3.5" fill="#FFD700" opacity="0.8"/>
+  <circle cx="350" cy="430" r="2.5" fill="#FFFFFF" opacity="0.7"/>
+  
+  <!-- Effetto magico con piccole luci sparse -->
+  <circle cx="120" cy="200" r="2" fill="#FFD700" opacity="0.95"/>
+  <circle cx="380" cy="280" r="1.5" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="130" cy="340" r="2.5" fill="#FFD700" opacity="0.8"/>
+  <circle cx="390" cy="220" r="1.8" fill="#FFFFFF" opacity="0.7"/>
+  <circle cx="160" cy="120" r="2" fill="#FFF3CD" opacity="0.85"/>
+  <circle cx="340" cy="140" r="1.5" fill="#FFFFFF" opacity="0.75"/>
+  
+  <!-- Effetto brillantezza generale potenziato -->
+  <rect width="512" height="512" fill="url(#shine512)" rx="102"/>
+  
+  <!-- Dettagli finali micro-texture -->
+  <circle cx="240" cy="200" r="3" fill="#FFFFFF" opacity="0.25"/>
+  <circle cx="270" cy="180" r="2" fill="#FFFFFF" opacity="0.2"/>
+  <circle cx="220" cy="220" r="2.5" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="290" cy="340" r="3" fill="#FFFFFF" opacity="0.15"/>
+  <circle cx="220" cy="360" r="2" fill="#FFFFFF" opacity="0.12"/>
+  <circle cx="280" cy="320" r="2.5" fill="#FFFFFF" opacity="0.18"/>
 </svg>

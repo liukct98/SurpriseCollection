@@ -93,6 +93,69 @@
       }
     }
     showUserName();
+    
+    // =============================
+    // PWA Install Prompt
+    // =============================
+    let deferredPrompt;
+    let installButton;
+
+    // Controlla se l'app è già installata
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      console.log('App già installata');
+    } else {
+      // Crea il bottone di installazione
+      createInstallButton();
+    }
+
+    function createInstallButton() {
+      installButton = document.createElement('button');
+      installButton.textContent = '📱 Installa App';
+      installButton.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        z-index: 1000;
+        transition: transform 0.3s ease;
+      `;
+      
+      installButton.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log('Install prompt result:', outcome);
+          deferredPrompt = null;
+        } else {
+          // Fallback per browser che non supportano il prompt automatico
+          alert('Per installare l\'app:\n\niOS: Tocca il pulsante Condividi e seleziona "Aggiungi alla schermata Home"\n\nAndroid: Apri il menu del browser e seleziona "Installa app" o "Aggiungi alla schermata Home"');
+        }
+        installButton.style.display = 'none';
+      });
+      
+      document.body.appendChild(installButton);
+    }
+
+    // Event listener per il prompt di installazione nativo
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('Install prompt available');
+    });
+
+    // Nasconde il bottone se l'app viene installata
+    window.addEventListener('appinstalled', (evt) => {
+      console.log('App installata con successo');
+      if (installButton) installButton.style.display = 'none';
+    });
   </script>
 
   <script>
