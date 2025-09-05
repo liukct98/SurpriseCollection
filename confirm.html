@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conferma Account - Catalogo Collezioni</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FF6B35">
+  
+  <!-- Apple PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Sorpresine">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
+</head>
+<body>
+  <header>Catalogo Collezioni</header>
+  <div class="container">
+    <div class="auth-container">
+      <div id="confirmation-status">
+        <div class="spinner"></div>
+        <h1>🔄 Conferma in corso...</h1>
+        <p>Stiamo verificando il tuo account...</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2'
+    
+    const supabaseUrl = 'https://ksypexyadycktzbfllfd.supabase.co'
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE'
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    async function handleEmailConfirmation() {
+      const statusDiv = document.getElementById('confirmation-status')
+      
+      try {
+        // Ottieni i parametri dall'URL
+        const urlParams = new URLSearchParams(window.location.search)
+        const token = urlParams.get('token')
+        const type = urlParams.get('type')
+        
+        if (type === 'signup' && token) {
+          // Conferma la registrazione
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: token,
+            type: 'signup'
+          })
+          
+          if (error) {
+            statusDiv.innerHTML = `
+              <h1>❌ Errore di conferma</h1>
+              <p>Si è verificato un errore durante la conferma dell'account.</p>
+              <p class="error-detail">${error.message}</p>
+              <button onclick="location.href='index.html'" class="btn-primary">🔙 Torna al Login</button>
+            `
+          } else {
+            statusDiv.innerHTML = `
+              <h1>✅ Account confermato!</h1>
+              <p>Il tuo account è stato confermato con successo.</p>
+              <p>Ora puoi accedere alla tua collezione.</p>
+              <button onclick="location.href='index.html'" class="btn-primary">🚀 Accedi</button>
+            `
+          }
+        } else {
+          statusDiv.innerHTML = `
+            <h1>⚠️ Link non valido</h1>
+            <p>Il link di conferma non è valido o è scaduto.</p>
+            <button onclick="location.href='index.html'" class="btn-primary">🔙 Torna al Login</button>
+          `
+        }
+      } catch (error) {
+        statusDiv.innerHTML = `
+          <h1>❌ Errore</h1>
+          <p>Si è verificato un errore imprevisto.</p>
+          <button onclick="location.href='index.html'" class="btn-primary">🔙 Torna al Login</button>
+        `
+      }
+    }
+
+    // Avvia la conferma quando la pagina è caricata
+    handleEmailConfirmation()
+  </script>
+</body>
+</html>
