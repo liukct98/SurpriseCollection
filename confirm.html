@@ -40,19 +40,28 @@
       const statusDiv = document.getElementById('confirmation-status')
       
       try {
-        // Ottieni i parametri dall'URL
+        // Controlla se ci sono parametri di autenticazione nell'URL
         const urlParams = new URLSearchParams(window.location.search)
-        const token = urlParams.get('token')
-        const type = urlParams.get('type')
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
         
-        if (type === 'signup' && token) {
-          // Conferma la registrazione
-          const { data, error } = await supabase.auth.verifyOtp({
-            token_hash: token,
-            type: 'signup'
+        // Ottieni i token dalla hash o dalla query string
+        const accessToken = hashParams.get('access_token') || urlParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token') || urlParams.get('refresh_token')
+        const type = hashParams.get('type') || urlParams.get('type')
+        
+        console.log('URL completo:', window.location.href)
+        console.log('Access token:', accessToken)
+        console.log('Type:', type)
+        
+        if (accessToken && type === 'signup') {
+          // Imposta la sessione con i token ricevuti
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
           })
           
           if (error) {
+            console.error('Errore durante la conferma:', error)
             statusDiv.innerHTML = `
               <h1>❌ Errore di conferma</h1>
               <p>Si è verificato un errore durante la conferma dell'account.</p>
@@ -60,31 +69,56 @@
               <button onclick="location.href='index.html'" class="btn-primary">🔙 Torna al Login</button>
             `
           } else {
+            console.log('Conferma riuscita:', data)
             statusDiv.innerHTML = `
               <h1>✅ Account confermato!</h1>
               <p>Il tuo account è stato confermato con successo.</p>
               <p>Ora puoi accedere alla tua collezione.</p>
-              <button onclick="location.href='index.html'" class="btn-primary">🚀 Accedi</button>
+              <button onclick="location.href='home.html'" class="btn-primary">🚀 Vai alla Home</button>
             `
+            
+            // Salva l'utente nel localStorage
+            if (data.user) {
+              localStorage.setItem('supabase.auth.token', JSON.stringify(data))
+            }
+            
+            // Reindirizza automaticamente dopo 3 secondi
+            setTimeout(() => {
+              window.location.href = 'home.html'
+            }, 3000)
           }
+        } else if (accessToken) {
+          // Altri tipi di conferma
+          statusDiv.innerHTML = `
+            <h1>✅ Autenticazione completata!</h1>
+            <p>Accesso effettuato con successo.</p>
+            <button onclick="location.href='home.html'" class="btn-primary">🚀 Vai alla Home</button>
+          `
+          
+          setTimeout(() => {
+            window.location.href = 'home.html'
+          }, 2000)
         } else {
           statusDiv.innerHTML = `
             <h1>⚠️ Link non valido</h1>
             <p>Il link di conferma non è valido o è scaduto.</p>
+            <p>Se hai problemi, prova a registrarti nuovamente.</p>
             <button onclick="location.href='index.html'" class="btn-primary">🔙 Torna al Login</button>
           `
         }
       } catch (error) {
+        console.error('Errore imprevisto:', error)
         statusDiv.innerHTML = `
           <h1>❌ Errore</h1>
           <p>Si è verificato un errore imprevisto.</p>
+          <p class="error-detail">${error.message}</p>
           <button onclick="location.href='index.html'" class="btn-primary">🔙 Torna al Login</button>
         `
       }
     }
 
     // Avvia la conferma quando la pagina è caricata
-    handleEmailConfirmation()
+    document.addEventListener('DOMContentLoaded', handleEmailConfirmation)
   </script>
 </body>
 </html>
