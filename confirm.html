@@ -48,12 +48,14 @@
         const accessToken = hashParams.get('access_token') || urlParams.get('access_token')
         const refreshToken = hashParams.get('refresh_token') || urlParams.get('refresh_token')
         const type = hashParams.get('type') || urlParams.get('type')
+        const token = urlParams.get('token') || hashParams.get('token')
         
         console.log('URL completo:', window.location.href)
         console.log('Access token:', accessToken)
         console.log('Type:', type)
+        console.log('Token:', token)
         
-        if (accessToken && type === 'signup') {
+        if (accessToken && (type === 'signup' || type === 'email' || type === 'confirmation')) {
           // Imposta la sessione con i token ricevuti
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -87,17 +89,26 @@
               window.location.href = 'home.html'
             }, 3000)
           }
-        } else if (accessToken) {
-          // Altri tipi di conferma
+        } else if (accessToken || token) {
+          // Altri tipi di conferma o token diversi
+          if (accessToken) {
+            // Imposta la sessione se abbiamo un access token
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken
+            })
+          }
+          
           statusDiv.innerHTML = `
-            <h1>✅ Autenticazione completata!</h1>
-            <p>Accesso effettuato con successo.</p>
+            <h1>✅ Account confermato!</h1>
+            <p>Il tuo account è stato confermato con successo.</p>
+            <p>Ora puoi accedere alla tua collezione.</p>
             <button onclick="location.href='home.html'" class="btn-primary">🚀 Vai alla Home</button>
           `
           
           setTimeout(() => {
             window.location.href = 'home.html'
-          }, 2000)
+          }, 3000)
         } else {
           statusDiv.innerHTML = `
             <h1>⚠️ Link non valido</h1>
