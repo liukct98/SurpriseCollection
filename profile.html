@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Anti-cache headers -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Il mio Profilo</title>
+  <link rel="stylesheet" href="style.css?v=3.0&t=1725819700">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#667eea">
+  
+  <!-- Supabase deve essere caricato per primo -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <!-- App JS con timestamp per forzare reload -->
+  <script src="app.js?v=3.0&t=1725819700&bust=cache"></script>
+</head>
+<body>
+  <!-- Navbar Moderna -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <span class="nav-logo">🎁</span>
+        <span class="nav-title">Sorpresine</span>
+      </div>
+      
+      <div class="nav-menu">
+        <button class="nav-item" onclick="location.href='home.html'" title="Dashboard">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Home</span>
+        </button>
+        <button class="nav-profile active" title="Il mio Profilo">
+          <div class="profile-avatar">
+            <span id="user-initials">?</span>
+          </div>
+          <span class="profile-name" id="nav-user-name">Profilo</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Header Profilo -->
+    <div class="profile-header">
+      <div class="profile-avatar-large">
+        <span id="profile-initials">?</span>
+      </div>
+      <div class="profile-info">
+        <h1 id="profile-username">Caricamento...</h1>
+        <p id="profile-email">email@example.com</p>
+        <div class="profile-badges">
+          <span class="badge collector">Collezionista</span>
+          <span class="badge" id="admin-badge" style="display: none;">Admin</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistiche Profilo -->
+    <div class="profile-stats-section">
+      <h2>📊 Le tue Statistiche</h2>
+      <div class="stats-grid-profile">
+        <div class="stat-card-profile primary">
+          <div class="stat-icon-large">📦</div>
+          <div class="stat-content">
+            <span class="stat-number-large" id="total-series">-</span>
+            <span class="stat-label-large">Serie Possedute</span>
+            <div class="stat-progress">
+              <div class="progress-bar" id="series-progress"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stat-card-profile secondary">
+          <div class="stat-icon-large">🎯</div>
+          <div class="stat-content">
+            <span class="stat-number-large" id="total-items">-</span>
+            <span class="stat-label-large">Sorpresine Totali</span>
+            <div class="stat-progress">
+              <div class="progress-bar" id="items-progress"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stat-card-profile success">
+          <div class="stat-icon-large">✅</div>
+          <div class="stat-content">
+            <span class="stat-number-large" id="completed-series">-</span>
+            <span class="stat-label-large">Serie Complete</span>
+            <div class="stat-progress">
+              <div class="progress-bar" id="completion-progress"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stat-card-profile accent">
+          <div class="stat-icon-large">💝</div>
+          <div class="stat-content">
+            <span class="stat-number-large" id="wishlist-count">-</span>
+            <span class="stat-label-large">In Lista Desideri</span>
+            <div class="stat-progress">
+              <div class="progress-bar" id="wishlist-progress"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Azioni Rapide -->
+    <div class="profile-actions-section">
+      <h2>⚡ Azioni Rapide</h2>
+      <div class="profile-quick-actions">
+        <button onclick="location.href='collection.html'" class="profile-action-btn primary">
+          <div class="action-icon">📦</div>
+          <div class="action-content">
+            <h3>Gestisci Collezione</h3>
+            <p>Visualizza e modifica le tue serie</p>
+          </div>
+          <div class="action-arrow">→</div>
+        </button>
+        
+        <button onclick="location.href='catalog.html'" class="profile-action-btn secondary">
+          <div class="action-icon">📖</div>
+          <div class="action-content">
+            <h3>Esplora Catalogo</h3>
+            <p>Scopri nuove serie da aggiungere</p>
+          </div>
+          <div class="action-arrow">→</div>
+        </button>
+        
+        <button onclick="location.href='wishlist.html'" class="profile-action-btn accent">
+          <div class="action-icon">💝</div>
+          <div class="action-content">
+            <h3>Lista Desideri</h3>
+            <p>Gestisci le serie che vuoi</p>
+          </div>
+          <div class="action-arrow">→</div>
+        </button>
+        
+        <button onclick="location.href='stats.html'" class="profile-action-btn info">
+          <div class="action-icon">📊</div>
+          <div class="action-content">
+            <h3>Statistiche Dettagliate</h3>
+            <p>Analisi approfondita della collezione</p>
+          </div>
+          <div class="action-arrow">→</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sezione Account -->
+    <div class="account-section">
+      <h2>⚙️ Impostazioni Account</h2>
+      <div class="account-options">
+        <div class="account-option">
+          <div class="option-icon">👤</div>
+          <div class="option-content">
+            <h3>Informazioni Personali</h3>
+            <p>Email: <span id="account-email">caricamento...</span></p>
+          </div>
+        </div>
+        
+        <div class="account-option">
+          <div class="option-icon">🔔</div>
+          <div class="option-content">
+            <h3>Notifiche</h3>
+            <p>Gestisci le tue preferenze di notifica</p>
+          </div>
+          <button class="option-btn">Configura</button>
+        </div>
+        
+        <div class="account-option">
+          <div class="option-icon">💾</div>
+          <div class="option-content">
+            <h3>Backup Dati</h3>
+            <p>Esporta la tua collezione</p>
+          </div>
+          <button class="option-btn" onclick="exportData()">Esporta</button>
+        </div>
+        
+        <div class="account-option danger">
+          <div class="option-icon">🔓</div>
+          <div class="option-content">
+            <h3>Logout</h3>
+            <p>Disconnettiti dal tuo account</p>
+          </div>
+          <button class="option-btn danger" onclick="logoutUser()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    console.log('🔄 Profile.html - JavaScript inline caricato');
+    
+    // ============= INIZIALIZZAZIONE =============
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log('✅ Profile page - DOM loaded');
+      
+      try {
+        // Verifica autenticazione
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error || !user) {
+          console.log('❌ Utente non autenticato, reindirizzo...');
+          window.location.href = 'index.html';
+          return;
+        }
+        
+        console.log('✅ Utente autenticato:', user.email);
+        
+        // Carica dati profilo
+        await loadProfileData(user);
+        
+        // Carica statistiche
+        await loadProfileStats(user);
+        
+      } catch (error) {
+        console.error('❌ Errore inizializzazione profilo:', error);
+        alert('Errore nel caricamento del profilo');
+      }
+    });
+
+    // ============= CARICAMENTO DATI =============
+    async function loadProfileData(user) {
+      try {
+        // Aggiorna informazioni base
+        const email = user.email;
+        const username = email.split('@')[0];
+        const initials = username.slice(0, 2).toUpperCase();
+        
+        document.getElementById('profile-username').textContent = username;
+        document.getElementById('profile-email').textContent = email;
+        document.getElementById('account-email').textContent = email;
+        document.getElementById('profile-initials').textContent = initials;
+        document.getElementById('user-initials').textContent = initials;
+        document.getElementById('nav-user-name').textContent = username;
+        
+        // Controlla se è admin
+        const adminEmails = ['liukct@gmail.com', 'marcellink892@gmail.com'];
+        if (adminEmails.includes(email)) {
+          document.getElementById('admin-badge').style.display = 'inline-block';
+        }
+        
+      } catch (error) {
+        console.error('Errore caricamento dati profilo:', error);
+      }
+    }
+
+    async function loadProfileStats(user) {
+      try {
+        // Carica serie possedute
+        const { data: userSeries, error: seriesError } = await supabase
+          .from('serie')
+          .select('*, items(*)')
+          .eq('user_id', user.id);
+
+        if (seriesError) throw seriesError;
+
+        // Calcola statistiche
+        const totalSeries = userSeries.length;
+        let totalItems = 0;
+        let completedSeries = 0;
+
+        userSeries.forEach(serie => {
+          totalItems += serie.items.length;
+          
+          // Serie completa se ha almeno 1 item e il numero di items = n_pezzi
+          if (serie.items.length > 0 && serie.n_pezzi && serie.items.length >= serie.n_pezzi) {
+            completedSeries++;
+          }
+        });
+
+        // Carica lista desideri
+        const { data: wishlistItems, error: wishlistError } = await supabase
+          .from('wishlist')
+          .select('id')
+          .eq('user_id', user.id);
+
+        if (wishlistError) throw wishlistError;
+
+        const wishlistCount = wishlistItems.length;
+
+        // Aggiorna interfaccia con animazioni
+        updateStatWithAnimation('total-series', totalSeries);
+        updateStatWithAnimation('total-items', totalItems);
+        updateStatWithAnimation('completed-series', completedSeries);
+        updateStatWithAnimation('wishlist-count', wishlistCount);
+
+        // Aggiorna progress bars
+        updateProgressBars(totalSeries, totalItems, completedSeries, wishlistCount);
+
+      } catch (error) {
+        console.error('Errore caricamento statistiche:', error);
+        // Mostra valori di default
+        document.getElementById('total-series').textContent = '0';
+        document.getElementById('total-items').textContent = '0';
+        document.getElementById('completed-series').textContent = '0';
+        document.getElementById('wishlist-count').textContent = '0';
+      }
+    }
+
+    // ============= FUNZIONI HELPER =============
+    function updateStatWithAnimation(elementId, newValue) {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+      
+      const currentValue = parseInt(element.textContent) || 0;
+      
+      if (currentValue === newValue) {
+        element.textContent = newValue;
+        return;
+      }
+      
+      const duration = 1000;
+      const startTime = Date.now();
+      const difference = newValue - currentValue;
+      
+      function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(currentValue + difference * easeOut);
+        
+        element.textContent = current;
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      }
+      
+      animate();
+    }
+
+    function updateProgressBars(series, items, completed, wishlist) {
+      // Progress bars basate su valori relativi
+      const maxSeries = Math.max(series, 10);
+      const maxItems = Math.max(items, 50);
+      
+      setTimeout(() => {
+        document.getElementById('series-progress').style.width = `${(series / maxSeries) * 100}%`;
+        document.getElementById('items-progress').style.width = `${(items / maxItems) * 100}%`;
+        document.getElementById('completion-progress').style.width = series > 0 ? `${(completed / series) * 100}%` : '0%';
+        document.getElementById('wishlist-progress').style.width = `${Math.min((wishlist / 20) * 100, 100)}%`;
+      }, 500);
+    }
+
+    // ============= AZIONI =============
+    async function logoutUser() {
+      if (confirm('Sei sicuro di voler effettuare il logout?')) {
+        try {
+          await supabase.auth.signOut();
+          window.location.href = 'index.html';
+        } catch (error) {
+          console.error('Errore logout:', error);
+          alert('Errore durante il logout');
+        }
+      }
+    }
+
+    async function exportData() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Carica tutti i dati dell'utente
+        const { data: userSeries } = await supabase
+          .from('serie')
+          .select('*, items(*)')
+          .eq('user_id', user.id);
+
+        const { data: wishlistItems } = await supabase
+          .from('wishlist')
+          .select('*')
+          .eq('user_id', user.id);
+
+        const exportData = {
+          user: {
+            email: user.email,
+            export_date: new Date().toISOString()
+          },
+          series: userSeries,
+          wishlist: wishlistItems
+        };
+
+        // Crea e scarica file JSON
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sorpresine_backup_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+        alert('✅ Backup completato e scaricato!');
+
+      } catch (error) {
+        console.error('Errore export:', error);
+        alert('❌ Errore durante l\'export dei dati');
+      }
+    }
+  </script>
+</body>
+</html>

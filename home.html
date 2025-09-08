@@ -27,15 +27,43 @@
   <script src="app.js?v=2.0&t=1725819600&bust=cache"></script>
 </head>
 <body>
-  <header>Benvenuto,  <span id="user-name">...</span></header>
+  <!-- Navbar Moderna -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <span class="nav-logo">🎁</span>
+        <span class="nav-title">Catalogando</span>
+      </div>
+      
+      <div class="nav-menu">
+        <button class="nav-profile" onclick="location.href='profile.html'" title="Il mio Profilo">
+          <div class="profile-avatar">
+            <span id="user-initials">?</span>
+          </div>
+          <span class="profile-name" id="nav-user-name">Utente</span>
+        </button>
+      </div>
+    </div>
+
+  </nav>
   <div class="container">
-    <h1>La tua collezione</h1>
+    
+    <h1>Esplora e Gestisci</h1>
     <div class="home-buttons">
-      <button onclick="location.href='collection.html'" class="btn-main">📦 Visualizza Collezione</button>
-      <button onclick="location.href='catalog.html'" class="btn-main">📖 Esplora Catalogo</button>
-      <button onclick="location.href='stats.html'" class="btn-main">📊 Statistiche</button>
-      <button onclick="location.href='wishlist.html'" class="btn-main">💝 Lista Desideri</button>
-      <button id="logout-btn" class="btn-main">🔓 Logout</button>
+       <button onclick="location.href='collection.html'" class="quick-btn accent">
+          <div class="quick-icon">📦</div>
+          <div class="quick-content">
+            <h3> Visualizza Collezione</h3>
+          </div>
+        </button>  
+      
+      <button onclick="location.href='catalog.html'" class="quick-btn secondary">
+          <div class="quick-icon">📖</div>
+          <div class="quick-content">
+            <h3>Esplora Catalogo</h3>
+            <p>Scopri nuove serie da collezionare</p>
+          </div>
+        </button>
     </div>
 
     <!-- Sezione Gestione Catalogo Generale -->
@@ -93,13 +121,56 @@
           </div>
           
           <div class="form-group">
-            <label for="serie-immagine">URL Immagine Copertina</label>
-            <input type="url" id="serie-immagine" placeholder="https://...">
+            <label for="serie-immagine">Foto:</label>
+            <input type="file" id="serie-immagine" accept="image/*">
           </div>
           
           <div class="form-actions">
             <button type="button" onclick="hideAddSerieForm()" class="btn-secondary">Annulla</button>
             <button type="submit" class="btn-primary">💾 Salva Serie</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Form per modificare serie del catalogo -->
+      <div id="edit-serie-form" class="add-serie-form hidden">
+        <div class="form-header">
+          <h3>✏️ Modifica Serie del Catalogo</h3>
+          <button onclick="hideEditSerieForm()" class="btn-close">✕</button>
+        </div>
+        
+        <form id="edit-catalog-serie-form" class="admin-form">
+          <input type="hidden" id="edit-serie-id">
+          
+          <div class="form-group">
+            <label for="edit-serie-nome">Nome Serie *</label>
+            <input type="text" id="edit-serie-nome" required placeholder="es. Sorpresine Kinder - I Puffi">
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-serie-anno">Anno</label>
+            <input type="number" id="edit-serie-anno" placeholder="es. 1983" min="1950" max="2030">
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-serie-nazione">Nazione</label>
+            <input type="text" id="edit-serie-nazione" placeholder="es. Italia">
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-serie-pezzi">Numero Pezzi</label>
+            <input type="number" id="edit-serie-pezzi" placeholder="es. 10" min="1">
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-serie-immagine">Foto:</label>
+            <input type="file" id="edit-serie-immagine" accept="image/*">
+            <small id="current-image-info" class="text-muted"></small>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" onclick="hideEditSerieForm()" class="btn-secondary">Annulla</button>
+            <button type="submit" class="btn-primary">💾 Salva Modifiche</button>
           </div>
         </form>
       </div>
@@ -110,21 +181,6 @@
     <a href="home.html" class="nav-item active">
       <span class="icon">🏠</span>
       <span class="label">Home</span>
-      <span class="ripple"></span>
-    </a>
-    <a href="add.html" class="nav-item">
-      <span class="icon">➕</span>
-      <span class="label">Aggiungi</span>
-      <span class="ripple"></span>
-    </a>
-    <a href="collection.html" class="nav-item">
-      <span class="icon">📦</span>
-      <span class="label">Collezione</span>
-      <span class="ripple"></span>
-    </a>
-    <a href="catalog.html" class="nav-item">
-      <span class="icon">📖</span>
-      <span class="label">Catalogo</span>
       <span class="ripple"></span>
     </a>
     <a href="stats.html" class="nav-item">
@@ -143,13 +199,6 @@
     // LOGICA INLINE PER BYPASSARE CACHE
     console.log('🔄 JavaScript inline - nessun cache possibile');
     
-    // Logout
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-      const { error } = await supabase.auth.signOut();
-      if (!error) location.href = 'index.html';
-      else alert("Errore logout: " + error.message);
-    });
-
     // Controlla accesso admin - VERSIONE INLINE
     function checkAdminAccess(userEmail) {
       console.log('✅ Funzione checkAdminAccess INLINE - userEmail:', userEmail);
@@ -195,17 +244,24 @@
             .single();
           
           if (userProfile && userProfile.username) {
-            document.getElementById('user-name').textContent = userProfile.username;
+            const username = userProfile.username;
+            const initials = username.slice(0, 2).toUpperCase();
+            document.getElementById('nav-user-name').textContent = username;
+            document.getElementById('user-initials').textContent = initials;
           } else {
             // Fallback: usa la parte prima della @ dell'email
             const displayName = data.user.email.split('@')[0];
-            document.getElementById('user-name').textContent = displayName;
+            const initials = displayName.slice(0, 2).toUpperCase();
+            document.getElementById('nav-user-name').textContent = displayName;
+            document.getElementById('user-initials').textContent = initials;
           }
         } catch (err) {
           console.error('Errore caricamento profilo utente:', err);
           // Fallback: usa la parte prima della @ dell'email
           const displayName = data.user.email.split('@')[0];
-          document.getElementById('user-name').textContent = displayName;
+          const initials = displayName.slice(0, 2).toUpperCase();
+          document.getElementById('nav-user-name').textContent = displayName;
+          document.getElementById('user-initials').textContent = initials;
         }
         
         // Controlla se è admin e mostra sezione gestione catalogo
@@ -323,6 +379,15 @@
     function hideAddSerieForm() {
       document.getElementById('add-serie-form').classList.add('hidden');
       document.getElementById('catalog-serie-form').reset();
+    }
+
+    function showEditSerieForm() {
+      document.getElementById('edit-serie-form').classList.remove('hidden');
+    }
+
+    function hideEditSerieForm() {
+      document.getElementById('edit-serie-form').classList.add('hidden');
+      document.getElementById('edit-catalog-serie-form').reset();
     }
 
     async function loadCatalogSeries() {
@@ -508,9 +573,44 @@
       }
     }
 
-    function editCatalogSerie(serieId) {
-      // Per ora rimanda alla gestione oggetti, in futuro si può implementare editing inline
-      manageCatalogItems(serieId);
+    async function editCatalogSerie(serieId) {
+      try {
+        // Carica i dati della serie
+        const { data: serie, error } = await supabase
+          .from('catalog_series')
+          .select('*')
+          .eq('id', serieId)
+          .single();
+
+        if (error) throw error;
+
+        if (!serie) {
+          alert('❌ Serie non trovata');
+          return;
+        }
+
+        // Popola il form con i dati esistenti
+        document.getElementById('edit-serie-id').value = serie.id;
+        document.getElementById('edit-serie-nome').value = serie.nome || '';
+        document.getElementById('edit-serie-anno').value = serie.anno || '';
+        document.getElementById('edit-serie-nazione').value = serie.nazione || '';
+        document.getElementById('edit-serie-pezzi').value = serie.n_pezzi || '';
+        
+        // Mostra info sull'immagine corrente
+        const currentImageInfo = document.getElementById('current-image-info');
+        if (serie.immagine_copertina) {
+          currentImageInfo.textContent = '📸 Immagine corrente presente. Scegli un nuovo file per sostituirla.';
+        } else {
+          currentImageInfo.textContent = '📷 Nessuna immagine corrente. Scegli un file per aggiungerne una.';
+        }
+
+        // Mostra il form
+        showEditSerieForm();
+
+      } catch (error) {
+        console.error('Errore caricamento serie per modifica:', error);
+        alert(`❌ Errore nel caricamento: ${error.message}`);
+      }
     }
 
     function manageCatalogItems(serieId) {
@@ -520,17 +620,18 @@
 
     // Gestione form aggiunta serie
     document.addEventListener('DOMContentLoaded', () => {
-      const form = document.getElementById('catalog-serie-form');
-      if (form) {
-        form.addEventListener('submit', async (e) => {
+      const addForm = document.getElementById('catalog-serie-form');
+      if (addForm) {
+        addForm.addEventListener('submit', async (e) => {
           e.preventDefault();
           
+          const fileInput = document.getElementById('serie-immagine');
           const formData = {
             nome: document.getElementById('serie-nome').value.trim(),
             anno: parseInt(document.getElementById('serie-anno').value) || null,
             nazione: document.getElementById('serie-nazione').value.trim() || null,
             n_pezzi: parseInt(document.getElementById('serie-pezzi').value) || null,
-            immagine_copertina: document.getElementById('serie-immagine').value.trim() || null
+            immagineFile: fileInput.files[0] || null
           };
 
           if (!formData.nome) {
@@ -539,9 +640,39 @@
           }
 
           try {
+            let immagineUrl = null;
+            
+            // Se c'è un file immagine, caricalo su Supabase Storage
+            if (formData.immagineFile) {
+              const fileName = `catalog_series/${formData.nome}_${Date.now()}.${formData.immagineFile.name.split('.').pop()}`;
+              
+              const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('Foto')
+                .upload(fileName, formData.immagineFile);
+                
+              if (uploadError) {
+                console.error('Errore upload immagine:', uploadError);
+                alert('⚠️ Errore nel caricamento dell\'immagine, procedo senza immagine');
+              } else {
+                // Ottieni l'URL pubblico dell'immagine
+                const { data: { publicUrl } } = supabase.storage
+                  .from('Foto')
+                  .getPublicUrl(fileName);
+                immagineUrl = publicUrl;
+              }
+            }
+            
+            const serieData = {
+              nome: formData.nome,
+              anno: formData.anno,
+              nazione: formData.nazione,
+              n_pezzi: formData.n_pezzi,
+              immagine_copertina: immagineUrl
+            };
+            
             const { error } = await supabase
               .from('catalog_series')
-              .insert([formData]);
+              .insert([serieData]);
 
             if (error) throw error;
 
@@ -559,6 +690,210 @@
           }
         });
       }
+
+      // Gestione form modifica serie
+      const editForm = document.getElementById('edit-catalog-serie-form');
+      if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const serieId = document.getElementById('edit-serie-id').value;
+          const fileInput = document.getElementById('edit-serie-immagine');
+          const formData = {
+            nome: document.getElementById('edit-serie-nome').value.trim(),
+            anno: parseInt(document.getElementById('edit-serie-anno').value) || null,
+            nazione: document.getElementById('edit-serie-nazione').value.trim() || null,
+            n_pezzi: parseInt(document.getElementById('edit-serie-pezzi').value) || null,
+            immagineFile: fileInput.files[0] || null
+          };
+
+          if (!formData.nome) {
+            alert('⚠️ Il nome della serie è obbligatorio');
+            return;
+          }
+
+          try {
+            let updateData = {
+              nome: formData.nome,
+              anno: formData.anno,
+              nazione: formData.nazione,
+              n_pezzi: formData.n_pezzi
+            };
+            
+            // Se c'è un nuovo file immagine, caricalo
+            if (formData.immagineFile) {
+              const fileName = `catalog_series/${formData.nome}_${Date.now()}.${formData.immagineFile.name.split('.').pop()}`;
+              
+              const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('Foto')
+                .upload(fileName, formData.immagineFile);
+                
+              if (uploadError) {
+                console.error('Errore upload immagine:', uploadError);
+                alert('⚠️ Errore nel caricamento dell\'immagine, procedo senza modificare l\'immagine');
+              } else {
+                // Ottieni l'URL pubblico dell'immagine
+                const { data: { publicUrl } } = supabase.storage
+                  .from('Foto')
+                  .getPublicUrl(fileName);
+                updateData.immagine_copertina = publicUrl;
+              }
+            }
+            
+            const { error } = await supabase
+              .from('catalog_series')
+              .update(updateData)
+              .eq('id', serieId);
+
+            if (error) throw error;
+
+            alert(`✅ Serie "${formData.nome}" modificata con successo!`);
+            hideEditSerieForm();
+            
+            // Se il manager è aperto, aggiorna la lista
+            if (!document.getElementById('catalog-manager').classList.contains('hidden')) {
+              await loadCatalogSeries();
+            }
+
+          } catch (error) {
+            console.error('Errore modifica serie:', error);
+            alert(`❌ Errore nella modifica: ${error.message}`);
+          }
+        });
+      }
+    });
+
+    // ============= FUNZIONI PROFILO =============
+    
+    // Carica le statistiche del profilo
+    async function loadProfileStats() {
+      try {
+        const user = supabase.auth.getUser ? (await supabase.auth.getUser()).data.user : null;
+        if (!user) return;
+
+        // Carica serie possedute
+        const { data: userSeries, error: seriesError } = await supabase
+          .from('serie')
+          .select('*, items(*)')
+          .eq('user_id', user.id);
+
+        if (seriesError) throw seriesError;
+
+        // Calcola statistiche
+        const totalSeries = userSeries.length;
+        let totalItems = 0;
+        let completedSeries = 0;
+
+        userSeries.forEach(serie => {
+          totalItems += serie.items.length;
+          
+          // Serie completa se ha almeno 1 item e il numero di items = n_pezzi
+          if (serie.items.length > 0 && serie.n_pezzi && serie.items.length >= serie.n_pezzi) {
+            completedSeries++;
+          }
+        });
+
+        // Carica lista desideri
+        const { data: wishlistItems, error: wishlistError } = await supabase
+          .from('wishlist')
+          .select('id')
+          .eq('user_id', user.id);
+
+        if (wishlistError) throw wishlistError;
+
+        const wishlistCount = wishlistItems.length;
+
+        // Aggiorna l'interfaccia con animazioni
+        updateStatWithAnimation('total-series', totalSeries);
+        updateStatWithAnimation('total-items', totalItems);
+        updateStatWithAnimation('completed-series', completedSeries);
+        updateStatWithAnimation('wishlist-count', wishlistCount);
+
+      } catch (error) {
+        console.error('Errore caricamento statistiche profilo:', error);
+        // Mostra valori di default in caso di errore
+        document.getElementById('total-series').textContent = '0';
+        document.getElementById('total-items').textContent = '0';
+        document.getElementById('completed-series').textContent = '0';
+        document.getElementById('wishlist-count').textContent = '0';
+      }
+    }
+
+    // Aggiorna un numero con animazione
+    function updateStatWithAnimation(elementId, newValue) {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+      
+      const currentValue = parseInt(element.textContent) || 0;
+      
+      if (currentValue === newValue) {
+        element.textContent = newValue;
+        return;
+      }
+      
+      // Aggiungi classe di animazione
+      element.classList.add('updating');
+      
+      const duration = 800;
+      const startTime = Date.now();
+      const difference = newValue - currentValue;
+      
+      function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(currentValue + difference * easeOut);
+        
+        element.textContent = current;
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // Rimuovi classe di animazione quando finito
+          setTimeout(() => {
+            element.classList.remove('updating');
+          }, 100);
+        }
+      }
+      
+      animate();
+    }
+
+    // Rende la funzione disponibile globalmente per essere chiamata da altre pagine
+    window.refreshProfileStats = loadProfileStats;
+
+    // Gestione logout dal profilo
+    document.addEventListener('DOMContentLoaded', () => {
+      const profileLogoutBtn = document.getElementById('profile-logout-btn');
+      if (profileLogoutBtn) {
+        profileLogoutBtn.addEventListener('click', async () => {
+          if (confirm('Sei sicuro di voler effettuare il logout?')) {
+            try {
+              await supabase.auth.signOut();
+              window.location.href = 'index.html';
+            } catch (error) {
+              console.error('Errore logout:', error);
+              alert('Errore durante il logout');
+            }
+          }
+        });
+      }
+      
+      // Carica le statistiche del profilo all'avvio
+      loadProfileStats();
+      
+      // Aggiorna le statistiche quando la pagina diventa visibile
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          loadProfileStats();
+        }
+      });
+      
+      // Aggiorna le statistiche quando la finestra torna in focus
+      window.addEventListener('focus', () => {
+        loadProfileStats();
+      });
     });
   </script>
 

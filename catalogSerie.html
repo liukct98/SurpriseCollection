@@ -63,8 +63,8 @@
           </div>
           
           <div class="form-group">
-            <label for="item-immagine">URL Immagine</label>
-            <input type="url" id="item-immagine" placeholder="https://...">
+            <label for="item-immagine">Foto:</label>
+            <input type="file" id="item-immagine" accept="image/*">
           </div>
           
           <div class="form-actions">
@@ -72,6 +72,61 @@
             <button type="submit" class="btn-primary">💾 Salva Oggetto</button>
           </div>
         </form>
+      </div>
+      
+      <!-- Form modifica oggetto -->
+      <div id="edit-item-form" class="add-item-form hidden">
+        <div class="form-header">
+          <h3>✏️ Modifica Oggetto della Serie</h3>
+          <button onclick="hideEditItemForm()" class="btn-close">✕</button>
+        </div>
+        
+        <form id="edit-item-form-element" class="admin-form">
+          <input type="hidden" id="edit-item-id">
+          
+          <div class="form-group">
+            <label for="edit-item-numero">Numero *</label>
+            <input type="text" id="edit-item-numero" required placeholder="es. 1, 2, 3...">
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-item-nome">Nome Oggetto *</label>
+            <input type="text" id="edit-item-nome" required placeholder="es. Puffo Grande">
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-item-accessori">Accessori</label>
+            <input type="text" id="edit-item-accessori" placeholder="es. Cappello, Bastone">
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-item-immagine">Foto:</label>
+            <input type="file" id="edit-item-immagine" accept="image/*">
+            <small id="edit-current-image-info" class="text-muted"></small>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" onclick="hideEditItemForm()" class="btn-secondary">Annulla</button>
+            <button type="submit" class="btn-primary">💾 Salva Modifiche</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal per visualizzare immagine ingrandita -->
+  <div id="image-modal" class="image-modal hidden" onclick="closeImageModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="modal-title">Foto Oggetto</h3>
+        <button onclick="closeImageModal()" class="btn-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <img id="modal-image" src="" alt="Foto oggetto" class="modal-img">
+        <div id="modal-info" class="modal-item-info">
+          <p id="modal-item-name"></p>
+          <p id="modal-item-accessories"></p>
+        </div>
       </div>
     </div>
   </div>

@@ -10,6 +10,11 @@ const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 let currentUser = null;
+let allCatalogSeries = []; // Memorizza tutte le serie per il filtraggio
+let currentSearch = "";
+let currentYearFilter = "";
+let currentNationFilter = "";
+let currentSort = "nome";
 
 // =============================================
 // FUNZIONI BASE
@@ -42,7 +47,14 @@ async function loadCatalog() {
 
     if (error) throw error;
 
-    displayCatalog(catalogSeries || []);
+    // Memorizza tutte le serie per il filtraggio
+    allCatalogSeries = catalogSeries || [];
+    
+    // Popola i filtri
+    populateFilters();
+    
+    // Mostra le serie filtrate
+    displayFilteredCatalog();
     
   } catch (error) {
     console.error("Errore caricamento catalogo:", error);
@@ -60,32 +72,40 @@ function displayCatalog(series) {
   
   if (series.length === 0) {
     container.innerHTML = `
-      <div class="empty">
-        <h3>📭 Catalogo vuoto</h3>
-        <p>Nessuna serie disponibile al momento.</p>
+      <div class="empty-state">
+        <h3>� Nessuna serie trovata</h3>
+        <p>Nessuna serie corrisponde ai filtri attuali.</p>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = series.map(serie => `
-    <div class="serie-card">
-      <h3>${serie.nome}</h3>
-      <div class="serie-info">
-        ${serie.anno ? `<p><strong>Anno:</strong> ${serie.anno}</p>` : ''}
-        ${serie.nazione ? `<p><strong>Nazione:</strong> ${serie.nazione}</p>` : ''}
-        ${serie.n_pezzi ? `<p><strong>Pezzi:</strong> ${serie.n_pezzi}</p>` : ''}
+  container.innerHTML = series.map((serie, index) => `
+    <div class="serie fade-in" style="animation-delay: ${0.1 * index}s;">
+      <div onclick="viewDetails('${serie.id}')" style="cursor: pointer;">
+        <h2>${serie.nome} (${serie.anno || 'N/A'})</h2>
+        <div class="serie-info">
+          <p><strong>📍 Nazione:</strong> ${serie.nazione || 'Non specificata'}</p>
+          <p><strong>🎯 Oggetti previsti:</strong> ${serie.n_pezzi || 0}</p>
+          ${serie.immagine_copertina ? `
+            <div class="serie-preview-image">
+              <img src="${serie.immagine_copertina}" alt="${serie.nome}" loading="lazy">
+            </div>
+          ` : ''}
+          <div class="sync-indicator">
+            <small class="sync-info">📖 Aggiungi alla tua collezione per iniziare a collezionare</small>
+          </div>
+        </div>
       </div>
-      <div class="serie-actions">
-        <button onclick="addToCollection('${serie.id}')" class="btn-primary">
-          ➕ Aggiungi alla Collezione
-        </button>
-        <button onclick="viewDetails('${serie.id}')" class="btn-secondary">
-          👁️ Dettagli
-        </button>
+      <div class="serie-actions" onclick="event.stopPropagation();">
+        <button onclick="addToCollection('${serie.id}')" class="btn-primary">➕ Aggiungi alla Collezione</button>
+        <button onclick="viewDetails('${serie.id}')" class="btn-secondary">👁️ Dettagli</button>
       </div>
     </div>
   `).join('');
+  
+  // Aggiorna il contatore
+  updateResultsCount(series.length);
 }
 
 async function addToCollection(catalogSeriesId) {
@@ -101,7 +121,22 @@ async function addToCollection(catalogSeriesId) {
 
     if (catalogError) throw catalogError;
 
-    // 2. Aggiungi la serie alla collezione personale
+    // 2. Controlla se la serie è già nella collezione dell'utente
+    const { data: existingSerie, error: checkError } = await supabase
+      .from("series")
+      .select("id")
+      .eq("catalog_series_id", catalogSeriesId)
+      .eq("user_id", currentUser.id)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') throw checkError;
+
+    if (existingSerie) {
+      alert("⚠️ Serie già presente nella tua collezione!");
+      return;
+    }
+
+    // 3. Aggiungi la serie alla collezione personale CON riferimento al catalogo
     const { data: newSerie, error: serieError } = await supabase
       .from("series")
       .insert({
@@ -109,8 +144,9 @@ async function addToCollection(catalogSeriesId) {
         anno: catalogSerie.anno,
         nazione: catalogSerie.nazione,
         n_pezzi: catalogSerie.n_pezzi,
-        user_id: currentUser.id
-        // Rimosso catalog_series_id - non dovrebbe esistere nella tabella series
+        immagine_copertina: catalogSerie.immagine_copertina,
+        user_id: currentUser.id,
+        catalog_series_id: catalogSeriesId // 🔄 Collegamento per sincronizzazione automatica
       })
       .select()
       .single();
@@ -123,7 +159,7 @@ async function addToCollection(catalogSeriesId) {
       throw serieError;
     }
 
-    // 3. Copia gli oggetti dal catalogo alla collezione personale
+    // 4. Copia gli oggetti dal catalogo alla collezione personale CON riferimenti
     const { data: catalogItems, error: itemsError } = await supabase
       .from("catalog_items")
       .select("*")
@@ -136,9 +172,10 @@ async function addToCollection(catalogSeriesId) {
         numero: item.numero,
         nome: item.nome,
         accessori: item.accessori,
+        immagine_riferimento: item.immagine_riferimento,
         serie_id: newSerie.id,
         user_id: currentUser.id,
-        // Rimosso catalog_series_id - non dovrebbe esistere nella tabella item
+        catalog_item_id: item.id, // 🔄 Collegamento per sincronizzazione automatica
         mancante: true,
         wishlist: false
       }));
@@ -150,7 +187,7 @@ async function addToCollection(catalogSeriesId) {
       if (insertError) throw insertError;
     }
 
-    alert(`✅ Serie "${catalogSerie.nome}" aggiunta alla collezione!`);
+    alert(`✅ Serie "${catalogSerie.nome}" aggiunta alla collezione!\\n\\n🔄 La serie si aggiornerà automaticamente quando vengono modificati i dati nel catalogo generale.`);
 
   } catch (error) {
     console.error("Errore aggiunta serie:", error);
@@ -177,4 +214,143 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Carica il catalogo
   await loadCatalog();
+  
+  // Inizializza i filtri
+  setupFilterListeners();
 });
+
+// =================================
+// FUNZIONI FILTRI
+// =================================
+
+function populateFilters() {
+  const yearFilter = document.getElementById("filter-year");
+  const nationFilter = document.getElementById("filter-nation");
+  
+  if (!yearFilter || !nationFilter) return;
+  
+  // Anni unici
+  const years = [...new Set(allCatalogSeries.map(s => s.anno).filter(Boolean))].sort((a, b) => b - a);
+  yearFilter.innerHTML = '<option value="">Tutti gli anni</option>' + 
+    years.map(year => `<option value="${year}">${year}</option>`).join("");
+  
+  // Nazioni uniche
+  const nations = [...new Set(allCatalogSeries.map(s => s.nazione).filter(Boolean))].sort();
+  nationFilter.innerHTML = '<option value="">Tutte le nazioni</option>' + 
+    nations.map(nation => `<option value="${nation}">${nation}</option>`).join("");
+}
+
+function displayFilteredCatalog() {
+  let filteredSeries = [...allCatalogSeries];
+  
+  // Filtro per ricerca
+  if (currentSearch) {
+    filteredSeries = filteredSeries.filter(serie => 
+      serie.nome.toLowerCase().includes(currentSearch.toLowerCase()) ||
+      (serie.nazione && serie.nazione.toLowerCase().includes(currentSearch.toLowerCase()))
+    );
+  }
+  
+  // Filtro per anno
+  if (currentYearFilter) {
+    filteredSeries = filteredSeries.filter(serie => serie.anno == currentYearFilter);
+  }
+  
+  // Filtro per nazione
+  if (currentNationFilter) {
+    filteredSeries = filteredSeries.filter(serie => serie.nazione === currentNationFilter);
+  }
+  
+  // Ordinamento
+  filteredSeries.sort((a, b) => {
+    switch (currentSort) {
+      case "anno":
+        return (b.anno || 0) - (a.anno || 0);
+      case "nazione":
+        return (a.nazione || "").localeCompare(b.nazione || "");
+      case "n_pezzi":
+        return (b.n_pezzi || 0) - (a.n_pezzi || 0);
+      case "nome":
+      default:
+        return a.nome.localeCompare(b.nome);
+    }
+  });
+  
+  displayCatalog(filteredSeries);
+}
+
+function updateResultsCount(count) {
+  const resultsCount = document.getElementById("results-count");
+  if (resultsCount) {
+    const total = allCatalogSeries.length;
+    resultsCount.textContent = `${count} di ${total} serie`;
+  }
+}
+
+function setupFilterListeners() {
+  const searchInput = document.getElementById("search-input");
+  const yearFilter = document.getElementById("filter-year");
+  const nationFilter = document.getElementById("filter-nation");
+  const sortSelect = document.getElementById("sort-by");
+  const resetBtn = document.getElementById("reset-filters");
+  const toggleBtn = document.getElementById("toggle-filters");
+  const filtersContainer = document.getElementById("filters-container");
+  
+  // Toggle filtri
+  if (toggleBtn && filtersContainer) {
+    toggleBtn.addEventListener("click", () => {
+      const isHidden = filtersContainer.style.display === "none";
+      filtersContainer.style.display = isHidden ? "block" : "none";
+      toggleBtn.textContent = isHidden ? "🔧 Nascondi Filtri" : "🔧 Mostra Filtri";
+    });
+  }
+  
+  // Ricerca
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      currentSearch = e.target.value;
+      displayFilteredCatalog();
+    });
+  }
+  
+  // Filtro anno
+  if (yearFilter) {
+    yearFilter.addEventListener("change", (e) => {
+      currentYearFilter = e.target.value;
+      displayFilteredCatalog();
+    });
+  }
+  
+  // Filtro nazione
+  if (nationFilter) {
+    nationFilter.addEventListener("change", (e) => {
+      currentNationFilter = e.target.value;
+      displayFilteredCatalog();
+    });
+  }
+  
+  // Ordinamento
+  if (sortSelect) {
+    sortSelect.addEventListener("change", (e) => {
+      currentSort = e.target.value;
+      displayFilteredCatalog();
+    });
+  }
+  
+  // Reset filtri
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      if (searchInput) searchInput.value = "";
+      if (yearFilter) yearFilter.value = "";
+      if (nationFilter) nationFilter.value = "";
+      if (sortSelect) sortSelect.value = "nome";
+      
+      currentSearch = "";
+      currentYearFilter = "";
+      currentNationFilter = "";
+      currentSort = "nome";
+      
+      displayFilteredCatalog();
+    });
+  }
+}

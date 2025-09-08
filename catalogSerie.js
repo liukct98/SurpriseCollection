@@ -29,7 +29,7 @@ async function checkAdminAccess() {
     }
     
     // Lista degli admin autorizzati
-    const adminEmails = ['liukct@gmail.com', 'NUOVA_EMAIL_ADMIN@example.com'];
+    const adminEmails = ['liukct@gmail.com', 'marcellink892@gmail.com'];
     
     if (adminEmails.includes(user.email) || adminEmails.includes(user.email.trim())) {
       console.log('✅ Admin riconosciuto:', user.email);
@@ -101,6 +101,15 @@ function hideAddItemForm() {
   document.getElementById('item-form').reset();
 }
 
+function showEditItemForm() {
+  document.getElementById('edit-item-form').classList.remove('hidden');
+}
+
+function hideEditItemForm() {
+  document.getElementById('edit-item-form').classList.add('hidden');
+  document.getElementById('edit-item-form-element').reset();
+}
+
 // =================================
 // DATA FUNCTIONS
 // =================================
@@ -161,12 +170,24 @@ async function loadItems() {
           <h4>#${item.numero} - ${item.nome}</h4>
           ${isAdmin ? `
           <div class="item-actions">
+            <button onclick="editItem('${item.id}')" class="btn-edit" title="Modifica">✏️</button>
             <button onclick="deleteItem('${item.id}', '${item.nome}')" class="btn-delete" title="Elimina">🗑️</button>
           </div>
           ` : ''}
         </div>
         ${item.accessori ? `<p class="item-accessori">🎁 ${item.accessori}</p>` : ''}
-        ${item.immagine_riferimento ? `<img src="${item.immagine_riferimento}" alt="${item.nome}" class="item-image">` : ''}
+        ${item.immagine_riferimento ? `
+          <div class="item-image-container" onclick="showImageModal('${item.immagine_riferimento}', '${item.nome}', '${item.accessori || ''}')">
+            <img src="${item.immagine_riferimento}" alt="${item.nome}" class="item-image clickable">
+            <div class="image-overlay">
+              <span class="zoom-icon">🔍</span>
+            </div>
+          </div>
+        ` : `
+          <div class="no-image-placeholder">
+            📷 Nessuna foto disponibile
+          </div>
+        `}
       </div>
     `).join('');  } catch (error) {
     console.error('Errore caricamento oggetti:', error);
@@ -205,6 +226,50 @@ async function deleteItem(itemId, itemName) {
   }
 }
 
+async function editItem(itemId) {
+  if (!isAdmin) {
+    alert('❌ Accesso non autorizzato');
+    return;
+  }
+  
+  try {
+    // Carica i dati dell'oggetto
+    const { data: item, error } = await supabase
+      .from('catalog_items')
+      .select('*')
+      .eq('id', itemId)
+      .single();
+
+    if (error) throw error;
+
+    if (!item) {
+      alert('❌ Oggetto non trovato');
+      return;
+    }
+
+    // Popola il form con i dati esistenti
+    document.getElementById('edit-item-id').value = item.id;
+    document.getElementById('edit-item-numero').value = item.numero || '';
+    document.getElementById('edit-item-nome').value = item.nome || '';
+    document.getElementById('edit-item-accessori').value = item.accessori || '';
+    
+    // Mostra info sull'immagine corrente
+    const currentImageInfo = document.getElementById('edit-current-image-info');
+    if (item.immagine_riferimento) {
+      currentImageInfo.textContent = '📸 Immagine corrente presente. Scegli un nuovo file per sostituirla.';
+    } else {
+      currentImageInfo.textContent = '📷 Nessuna immagine corrente. Scegli un file per aggiungerne una.';
+    }
+
+    // Mostra il form
+    showEditItemForm();
+
+  } catch (error) {
+    console.error('Errore caricamento oggetto per modifica:', error);
+    alert(`❌ Errore nel caricamento: ${error.message}`);
+  }
+}
+
 async function addItem(formData) {
   if (!isAdmin) {
     alert('❌ Accesso non autorizzato');
@@ -212,6 +277,28 @@ async function addItem(formData) {
   }
   
   try {
+    let immagineUrl = null;
+    
+    // Se c'è un file immagine, caricalo su Supabase Storage
+    if (formData.immagineFile) {
+      const fileName = `catalog_items/${currentSerieId}_${formData.numero}_${Date.now()}.${formData.immagineFile.name.split('.').pop()}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('Foto')
+        .upload(fileName, formData.immagineFile);
+        
+      if (uploadError) {
+        console.error('Errore upload immagine:', uploadError);
+        alert('⚠️ Errore nel caricamento dell\'immagine, procedo senza immagine');
+      } else {
+        // Ottieni l'URL pubblico dell'immagine
+        const { data: { publicUrl } } = supabase.storage
+          .from('Foto')
+          .getPublicUrl(fileName);
+        immagineUrl = publicUrl;
+      }
+    }
+    
     const { error } = await supabase
       .from('catalog_items')
       .insert([{
@@ -219,7 +306,7 @@ async function addItem(formData) {
         numero: formData.numero,
         nome: formData.nome,
         accessori: formData.accessori || null,
-        immagine_riferimento: formData.immagine || null
+        immagine_riferimento: immagineUrl
       }]);
       
     if (error) throw error;
@@ -241,11 +328,12 @@ async function addItem(formData) {
 function handleFormSubmit(e) {
   e.preventDefault();
   
+  const fileInput = document.getElementById('item-immagine');
   const formData = {
     numero: document.getElementById('item-numero').value.trim(),
     nome: document.getElementById('item-nome').value.trim(),
     accessori: document.getElementById('item-accessori').value.trim(),
-    immagine: document.getElementById('item-immagine').value.trim()
+    immagineFile: fileInput.files[0] || null // File invece di URL
   };
   
   if (!formData.numero || !formData.nome) {
@@ -287,5 +375,116 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('item-form');
   if (form) {
     form.addEventListener('submit', handleFormSubmit);
+  }
+  
+  // Gestore del form di modifica oggetto
+  const editForm = document.getElementById('edit-item-form-element');
+  if (editForm) {
+    editForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!isAdmin) {
+        alert('❌ Accesso non autorizzato');
+        return;
+      }
+      
+      const itemId = document.getElementById('edit-item-id').value;
+      const fileInput = document.getElementById('edit-item-immagine');
+      const formData = {
+        numero: document.getElementById('edit-item-numero').value.trim(),
+        nome: document.getElementById('edit-item-nome').value.trim(),
+        accessori: document.getElementById('edit-item-accessori').value.trim(),
+        immagineFile: fileInput.files[0] || null
+      };
+      
+      if (!formData.numero || !formData.nome) {
+        alert('⚠️ Numero e nome sono obbligatori');
+        return;
+      }
+      
+      try {
+        let updateData = {
+          numero: formData.numero,
+          nome: formData.nome,
+          accessori: formData.accessori || null
+        };
+        
+        // Se c'è un nuovo file immagine, caricalo
+        if (formData.immagineFile) {
+          const fileName = `catalog_items/${currentSerieId}_${formData.numero}_${Date.now()}.${formData.immagineFile.name.split('.').pop()}`;
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('Foto')
+            .upload(fileName, formData.immagineFile);
+            
+          if (uploadError) {
+            console.error('Errore upload immagine:', uploadError);
+            alert('⚠️ Errore nel caricamento dell\'immagine, procedo senza modificare l\'immagine');
+          } else {
+            // Ottieni l'URL pubblico dell'immagine
+            const { data: { publicUrl } } = supabase.storage
+              .from('Foto')
+              .getPublicUrl(fileName);
+            updateData.immagine_riferimento = publicUrl;
+          }
+        }
+        
+        const { error } = await supabase
+          .from('catalog_items')
+          .update(updateData)
+          .eq('id', itemId);
+          
+        if (error) throw error;
+        
+        alert(`✅ Oggetto "${formData.nome}" modificato con successo!`);
+        hideEditItemForm();
+        await loadItems();
+        
+      } catch (error) {
+        console.error('Errore modifica oggetto:', error);
+        alert(`❌ Errore nella modifica: ${error.message}`);
+      }
+    });
+  }
+});
+
+// =================================
+// IMAGE MODAL FUNCTIONS
+// =================================
+
+function showImageModal(imageUrl, itemName, itemAccessories) {
+  const modal = document.getElementById('image-modal');
+  const modalImage = document.getElementById('modal-image');
+  const modalTitle = document.getElementById('modal-title');
+  const modalItemName = document.getElementById('modal-item-name');
+  const modalItemAccessories = document.getElementById('modal-item-accessories');
+  
+  // Imposta il contenuto del modal
+  modalImage.src = imageUrl;
+  modalTitle.textContent = `Foto: ${itemName}`;
+  modalItemName.textContent = `📦 ${itemName}`;
+  
+  if (itemAccessories && itemAccessories !== 'null' && itemAccessories !== '') {
+    modalItemAccessories.textContent = `🎁 Accessori: ${itemAccessories}`;
+    modalItemAccessories.style.display = 'block';
+  } else {
+    modalItemAccessories.style.display = 'none';
+  }
+  
+  // Mostra il modal
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden'; // Previene lo scroll della pagina
+}
+
+function closeImageModal() {
+  const modal = document.getElementById('image-modal');
+  modal.classList.add('hidden');
+  document.body.style.overflow = 'auto'; // Ripristina lo scroll della pagina
+}
+
+// Chiudi il modal con il tasto ESC
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeImageModal();
   }
 });

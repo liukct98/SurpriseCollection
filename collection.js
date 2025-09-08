@@ -42,7 +42,7 @@ async function loadCollectionSeries() {
   console.log("📦 Caricamento serie dal database...");
   const { data: series, error } = await supa
     .from("series")
-    .select("*")
+    .select("*, catalog_series_id")
     .order("anno", { ascending: false });
 
   console.log("Risultato query series:", { data: series, error });
@@ -176,6 +176,17 @@ function displayFilteredSeries() {
           <p><strong>📍 Nazione:</strong> ${serie.nazione || 'Non specificata'}</p>
           <p><strong>🎯 Oggetti previsti:</strong> ${serie.n_pezzi || serie.n_oggetti || 0}</p>
           <p><strong>📦 Oggetti posseduti:</strong> ${serie.itemCount}</p>
+          ${serie.catalog_series_id ? `
+            <div class="sync-indicator">
+              <span class="sync-badge">🔄 Sincronizzata con catalogo</span>
+              <small class="sync-info">Questa serie si aggiorna automaticamente quando cambia il catalogo generale</small>
+            </div>
+          ` : `
+            <div class="sync-indicator">
+              <span class="manual-badge">✏️ Serie personale</span>
+              <small class="sync-info">Serie creata manualmente, non sincronizzata con il catalogo</small>
+            </div>
+          `}
           <div class="progress-bar">
             <div class="progress-fill" style="width: ${((serie.itemCount / (serie.n_pezzi || serie.n_oggetti || 1)) * 100).toFixed(1)}%"></div>
           </div>
