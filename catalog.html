@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogo Generale - Sorpresine</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📖 Catalogo Generale</h1>
+            <p>Esplora tutte le serie disponibili e aggiungile alla tua collezione</p>
+        </header>
+
+        <main class="main-content">
+            <div id="catalog-container" class="catalog-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Caricamento catalogo...</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <a href="home.html" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="catalog.html" class="nav-item active">
+                <span class="nav-icon">📖</span>
+                <span class="nav-label">Catalogo</span>
+            </a>
+            <a href="collection.html" class="nav-item">
+                <span class="nav-icon">📦</span>
+                <span class="nav-label">Collezione</span>
+            </a>
+            <a href="wishlist.html" class="nav-item">
+                <span class="nav-icon">⭐</span>
+                <span class="nav-label">Wishlist</span>
+            </a>
+            <a href="stats.html" class="nav-item">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Statistiche</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Script -->
+    <script src="catalog.js"></script>
+</body>
+</html>

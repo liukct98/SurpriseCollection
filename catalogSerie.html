@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oggetti Serie - Catalogo</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FF6B35">
+  
+  <!-- Apple PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Sorpresine">
+  <link rel="apple-touch-icon" href="icon-180.png">
+</head>
+<body>
+  <header>� Oggetti Serie Catalogo</header>
+  
+  <div class="container">
+    <div class="back-button">
+      <button onclick="goBack()" class="btn-secondary">← Torna Indietro</button>
+    </div>
+    
+    <h1 id="serie-title">Gestione Oggetti Serie</h1>
+    
+    <!-- Lista oggetti - sempre visibile -->
+    <div id="items-list" class="items-admin-list">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Caricamento oggetti...</p>
+      </div>
+    </div>
+    
+    <!-- Sezione Admin - solo per admin -->
+    <div class="admin-section">
+      <div class="admin-buttons">
+        <button onclick="showAddItemForm()" class="btn-admin">➕ Aggiungi Oggetto</button>
+        <button onclick="loadItems()" class="btn-admin">🔄 Aggiorna Lista</button>
+      </div>
+      
+      <!-- Form aggiunta oggetto -->
+      <div id="add-item-form" class="add-item-form hidden">
+        <div class="form-header">
+          <h3>➕ Aggiungi Oggetto alla Serie</h3>
+          <button onclick="hideAddItemForm()" class="btn-close">✕</button>
+        </div>
+        
+        <form id="item-form" class="admin-form">
+          <div class="form-group">
+            <label for="item-numero">Numero *</label>
+            <input type="text" id="item-numero" required placeholder="es. 1, 2, 3...">
+          </div>
+          
+          <div class="form-group">
+            <label for="item-nome">Nome Oggetto *</label>
+            <input type="text" id="item-nome" required placeholder="es. Puffo Grande">
+          </div>
+          
+          <div class="form-group">
+            <label for="item-accessori">Accessori</label>
+            <input type="text" id="item-accessori" placeholder="es. Cappello, Bastone">
+          </div>
+          
+          <div class="form-group">
+            <label for="item-immagine">URL Immagine</label>
+            <input type="url" id="item-immagine" placeholder="https://...">
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" onclick="hideAddItemForm()" class="btn-secondary">Annulla</button>
+            <button type="submit" class="btn-primary">💾 Salva Oggetto</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="catalogSerie.js"></script>
+</body>
+</html>

@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Anti-cache headers -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Home</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.0&t=1725819600">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FF6B35">
   
@@ -16,17 +20,89 @@
   <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
   <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
   <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
+  
+  <!-- Supabase deve essere caricato per primo -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <!-- App JS con timestamp per forzare reload -->
+  <script src="app.js?v=2.0&t=1725819600&bust=cache"></script>
 </head>
 <body>
   <header>Benvenuto,  <span id="user-name">...</span></header>
   <div class="container">
     <h1>La tua collezione</h1>
     <div class="home-buttons">
-      <button onclick="location.href='add.html'" class="btn-main">➕ Aggiungi Serie</button>
       <button onclick="location.href='collection.html'" class="btn-main">📦 Visualizza Collezione</button>
+      <button onclick="location.href='catalog.html'" class="btn-main">📖 Esplora Catalogo</button>
       <button onclick="location.href='stats.html'" class="btn-main">📊 Statistiche</button>
       <button onclick="location.href='wishlist.html'" class="btn-main">💝 Lista Desideri</button>
       <button id="logout-btn" class="btn-main">🔓 Logout</button>
+    </div>
+
+    <!-- Sezione Gestione Catalogo Generale -->
+    <div class="admin-section">
+      <h2>🛠️ Gestione Catalogo Generale</h2>
+      <p class="admin-description">Amministra le serie disponibili nel catalogo pubblico</p>
+      
+      <div class="admin-buttons">
+        <button onclick="showCatalogManager()" class="btn-admin">📋 Visualizza Catalogo</button>
+        <button onclick="showAddSerieForm()" class="btn-admin">➕ Aggiungi Serie al Catalogo</button>
+        <button onclick="refreshCatalogData()" class="btn-admin">🔄 Aggiorna Dati</button>
+      </div>
+
+      <!-- Area per visualizzare/gestire il catalogo -->
+      <div id="catalog-manager" class="catalog-manager hidden">
+        <div class="manager-header">
+          <h3>📖 Serie nel Catalogo Generale</h3>
+          <button onclick="hideCatalogManager()" class="btn-close">✕</button>
+        </div>
+        
+        <div id="catalog-series-list" class="series-admin-list">
+          <div class="loading">
+            <div class="spinner"></div>
+            <p>Caricamento catalogo...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form per aggiungere nuova serie al catalogo -->
+      <div id="add-serie-form" class="add-serie-form hidden">
+        <div class="form-header">
+          <h3>➕ Aggiungi Serie al Catalogo</h3>
+          <button onclick="hideAddSerieForm()" class="btn-close">✕</button>
+        </div>
+        
+        <form id="catalog-serie-form" class="admin-form">
+          <div class="form-group">
+            <label for="serie-nome">Nome Serie *</label>
+            <input type="text" id="serie-nome" required placeholder="es. Sorpresine Kinder - I Puffi">
+          </div>
+          
+          <div class="form-group">
+            <label for="serie-anno">Anno</label>
+            <input type="number" id="serie-anno" placeholder="es. 1983" min="1950" max="2030">
+          </div>
+          
+          <div class="form-group">
+            <label for="serie-nazione">Nazione</label>
+            <input type="text" id="serie-nazione" placeholder="es. Italia">
+          </div>
+          
+          <div class="form-group">
+            <label for="serie-pezzi">Numero Pezzi</label>
+            <input type="number" id="serie-pezzi" placeholder="es. 10" min="1">
+          </div>
+          
+          <div class="form-group">
+            <label for="serie-immagine">URL Immagine Copertina</label>
+            <input type="url" id="serie-immagine" placeholder="https://...">
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" onclick="hideAddSerieForm()" class="btn-secondary">Annulla</button>
+            <button type="submit" class="btn-primary">💾 Salva Serie</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -46,6 +122,11 @@
       <span class="label">Collezione</span>
       <span class="ripple"></span>
     </a>
+    <a href="catalog.html" class="nav-item">
+      <span class="icon">📖</span>
+      <span class="label">Catalogo</span>
+      <span class="ripple"></span>
+    </a>
     <a href="stats.html" class="nav-item">
       <span class="icon">📊</span>
       <span class="label">Statistiche</span>
@@ -58,15 +139,10 @@
     </a>
   </nav>
 
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
-    // =============================
-    // Inizializzazione Supabase
-    // =============================
-    const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
+    // LOGICA INLINE PER BYPASSARE CACHE
+    console.log('🔄 JavaScript inline - nessun cache possibile');
+    
     // Logout
     document.getElementById('logout-btn').addEventListener('click', async () => {
       const { error } = await supabase.auth.signOut();
@@ -74,14 +150,42 @@
       else alert("Errore logout: " + error.message);
     });
 
-    // Mostra username utente loggato
+    // Controlla accesso admin - VERSIONE INLINE
+    function checkAdminAccess(userEmail) {
+      console.log('✅ Funzione checkAdminAccess INLINE - userEmail:', userEmail);
+      const adminSection = document.querySelector('.admin-section');
+      
+      // Lista degli admin autorizzati
+      const adminEmails = ['liukct@gmail.com', 'marcellink892@gmail.com'];
+
+      if (adminEmails.includes(userEmail) || adminEmails.includes(userEmail.trim())) {
+        console.log('✅ Admin riconosciuto INLINE per:', userEmail);
+        adminSection.style.display = 'block';
+        adminSection.style.border = '3px solid green'; // Indicatore visivo
+      } else {
+        console.log('ℹ️ Accesso normale INLINE per:', userEmail);
+        adminSection.style.display = 'none';
+      }
+    }
+
+    // Mostra username utente loggato - VERSIONE INLINE
     async function showUserName() {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error(error);
+      console.log('🔄 showUserName INLINE - controllo utente autenticato...');
+      
+      // Verifica che Supabase sia disponibile
+      if (!window.supabase) {
+        console.error('Supabase non è disponibile!');
         return;
       }
+      
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error('Errore getUser:', error);
+        return;
+      }
+      
       if (data.user) {
+        console.log('✅ Utente loggato INLINE:', data.user.email);
         try {
           // Cerca lo username nella tabella users
           const { data: userProfile, error: profileError } = await supabase
@@ -93,29 +197,56 @@
           if (userProfile && userProfile.username) {
             document.getElementById('user-name').textContent = userProfile.username;
           } else {
-            // Fallback all'email se non trova lo username
-            document.getElementById('user-name').textContent = data.user.email;
+            // Fallback: usa la parte prima della @ dell'email
+            const displayName = data.user.email.split('@')[0];
+            document.getElementById('user-name').textContent = displayName;
           }
         } catch (err) {
-          // Fallback all'email in caso di errore
-          document.getElementById('user-name').textContent = data.user.email;
+          console.error('Errore caricamento profilo utente:', err);
+          // Fallback: usa la parte prima della @ dell'email
+          const displayName = data.user.email.split('@')[0];
+          document.getElementById('user-name').textContent = displayName;
         }
+        
+        // Controlla se è admin e mostra sezione gestione catalogo
+        checkAdminAccess(data.user.email);
+      } else {
+        console.log('Nessun utente loggato');
       }
     }
-    showUserName();
-    
+
+    // Aspetta che Supabase sia pronto e controlla autenticazione
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('🔄 DOMContentLoaded INLINE');
+      // Aspetta un momento per assicurarsi che Supabase sia pronto
+      setTimeout(async () => {
+        try {
+          await showUserName();
+        } catch (error) {
+          console.error('Errore nel controllo utente:', error);
+        }
+      }, 2000);
+      
+      // Inizializza PWA dopo il caricamento
+      initializePWA();
+    });
+
     // =============================
-    // PWA Install Prompt
+    // PWA Install Prompt - VERSIONE INLINE
     // =============================
     let deferredPrompt;
     let installButton;
 
-    // Controlla se l'app è già installata
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-      console.log('App già installata');
-    } else {
-      // Crea il bottone di installazione
-      createInstallButton();
+    function initializePWA() {
+      console.log('🔄 Inizializzazione PWA INLINE');
+      
+      // Controlla se l'app è già installata
+      if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+        console.log('✅ App già installata');
+      } else {
+        // Crea il bottone di installazione
+        createInstallButton();
+      }
     }
 
     function createInstallButton() {
@@ -146,25 +277,288 @@
           deferredPrompt = null;
         } else {
           // Fallback per browser che non supportano il prompt automatico
-          alert('Per installare l\'app:\n\niOS: Tocca il pulsante Condividi e seleziona "Aggiungi alla schermata Home"\n\nAndroid: Apri il menu del browser e seleziona "Installa app" o "Aggiungi alla schermata Home"');
+          alert('Per installare l\'app:\\n\\niOS: Tocca il pulsante Condividi e seleziona "Aggiungi alla schermata Home"\\n\\nAndroid: Apri il menu del browser e seleziona "Installa app" o "Aggiungi alla schermata Home"');
         }
         installButton.style.display = 'none';
       });
       
       document.body.appendChild(installButton);
+      console.log('✅ Bottone installazione PWA aggiunto');
     }
 
     // Event listener per il prompt di installazione nativo
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      console.log('Install prompt available');
+      console.log('✅ Install prompt disponibile');
     });
 
     // Nasconde il bottone se l'app viene installata
     window.addEventListener('appinstalled', (evt) => {
-      console.log('App installata con successo');
+      console.log('✅ App installata con successo');
       if (installButton) installButton.style.display = 'none';
+    });
+  </script>   
+  
+  <!-- Script gestione catalogo -->
+  <script>
+    // =============================
+    // GESTIONE CATALOGO GENERALE
+    // =============================
+    
+    async function showCatalogManager() {
+      const manager = document.getElementById('catalog-manager');
+      manager.classList.remove('hidden');
+      await loadCatalogSeries();
+    }
+
+    function hideCatalogManager() {
+      document.getElementById('catalog-manager').classList.add('hidden');
+    }
+
+    function showAddSerieForm() {
+      document.getElementById('add-serie-form').classList.remove('hidden');
+    }
+
+    function hideAddSerieForm() {
+      document.getElementById('add-serie-form').classList.add('hidden');
+      document.getElementById('catalog-serie-form').reset();
+    }
+
+    async function loadCatalogSeries() {
+      const container = document.getElementById('catalog-series-list');
+      
+      try {
+        container.innerHTML = `
+          <div class="loading">
+            <div class="spinner"></div>
+            <p>Caricamento catalogo...</p>
+          </div>
+        `;
+
+        const { data: series, error } = await supabase
+          .from('catalog_series')
+          .select('*')
+          .order('nome');
+
+        if (error) throw error;
+
+        if (!series || series.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <h4>📭 Catalogo vuoto</h4>
+              <p>Nessuna serie nel catalogo generale. Aggiungine una!</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = series.map(serie => `
+          <div class="serie-admin-card" data-id="${serie.id}">
+            <div class="serie-admin-header">
+              <h4>${serie.nome}</h4>
+              <div class="serie-admin-actions">
+                <button onclick="editCatalogSerie('${serie.id}')" class="btn-edit" title="Modifica">✏️</button>
+                <button onclick="deleteCatalogSerie('${serie.id}', '${serie.nome}')" class="btn-delete" title="Elimina">🗑️</button>
+              </div>
+            </div>
+            <div class="serie-admin-info">
+              ${serie.anno ? `<span class="info-tag">📅 ${serie.anno}</span>` : ''}
+              ${serie.nazione ? `<span class="info-tag">🌍 ${serie.nazione}</span>` : ''}
+              ${serie.n_pezzi ? `<span class="info-tag">🧩 ${serie.n_pezzi} pezzi</span>` : ''}
+            </div>
+            <div class="serie-admin-stats">
+              <button onclick="manageCatalogItems('${serie.id}')" class="btn-items">📦 Gestisci Oggetti</button>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        console.error('Errore caricamento catalogo:', error);
+        container.innerHTML = `
+          <div class="error-state">
+            <h4>⚠️ Errore</h4>
+            <p>${error.message}</p>
+            <button onclick="loadCatalogSeries()" class="btn-retry">🔄 Riprova</button>
+          </div>
+        `;
+      }
+    }
+
+    async function refreshCatalogData() {
+      if (document.getElementById('catalog-manager').classList.contains('hidden')) {
+        alert('ℹ️ Apri prima la visualizzazione del catalogo');
+        return;
+      }
+      await loadCatalogSeries();
+      alert('✅ Dati del catalogo aggiornati!');
+    }
+
+    async function deleteCatalogSerie(serieId, serieName) {
+      if (!confirm(`⚠️ Sei sicuro di voler eliminare "${serieName}" dal catalogo generale?\\n\\nQuesta azione eliminerà anche tutti gli oggetti associati dalle collezioni degli utenti e dalle wishlist.\\n\\nQuesta operazione NON PUÒ essere annullata!`)) {
+        return;
+      }
+
+      try {
+        console.log(`🗑️ Eliminazione serie ${serieId} iniziata...`);
+        
+        // 1. Prima elimina tutti gli oggetti dal catalogo generale
+        console.log('🗑️ Eliminazione oggetti catalog_items...');
+        const { error: catalogItemsError } = await supabase
+          .from('catalog_items')
+          .delete()
+          .eq('catalog_series_id', serieId);
+
+        if (catalogItemsError) {
+          console.error('Errore eliminazione catalog_items:', catalogItemsError);
+          throw catalogItemsError;
+        }
+
+        // 2. Trova tutte le serie personali che potrebbero essere collegate (per nome)
+        console.log('🔍 Ricerca serie personali collegate...');
+        const { data: personalSeries, error: findError } = await supabase
+          .from('series')
+          .select('id, nome')
+          .eq('nome', serieName);
+
+        if (findError) {
+          console.error('Errore ricerca serie personali:', findError);
+        }
+
+        // 3. Per ogni serie personale trovata, elimina nella sequenza corretta
+        if (personalSeries && personalSeries.length > 0) {
+          console.log(`🗑️ Gestione eliminazione per ${personalSeries.length} serie personali...`);
+          
+          for (const serie of personalSeries) {
+            console.log(`🗑️ Eliminazione oggetti per serie: ${serie.nome} (ID: ${serie.id})`);
+            
+            // 3a. Prima trova tutti gli oggetti di questa serie
+            const { data: serieItems, error: itemsError } = await supabase
+              .from('item')
+              .select('id')
+              .eq('serie_id', serie.id);
+
+            if (itemsError) {
+              console.error('Errore ricerca oggetti:', itemsError);
+              continue; // Continua con la prossima serie
+            }
+
+            // 3b. Per ogni oggetto, elimina prima dalle wishlist
+            if (serieItems && serieItems.length > 0) {
+              console.log(`🗑️ Eliminazione da wishlist per ${serieItems.length} oggetti...`);
+              
+              for (const item of serieItems) {
+                const { error: wishlistError } = await supabase
+                  .from('wishlist')
+                  .delete()
+                  .eq('item_id', item.id);
+                
+                if (wishlistError) {
+                  console.error(`Errore eliminazione wishlist per item ${item.id}:`, wishlistError);
+                  // Non blocchiamo per questo errore
+                }
+              }
+              
+              // 3c. Ora elimina gli oggetti dalla collezione personale
+              console.log(`🗑️ Eliminazione ${serieItems.length} oggetti personali...`);
+              const { error: deleteItemsError } = await supabase
+                .from('item')
+                .delete()
+                .eq('serie_id', serie.id);
+              
+              if (deleteItemsError) {
+                console.error('Errore eliminazione oggetti personali:', deleteItemsError);
+                throw deleteItemsError;
+              }
+            }
+            
+            // 3d. Infine elimina la serie personale
+            console.log(`🗑️ Eliminazione serie personale: ${serie.nome}`);
+            const { error: deleteSerieError } = await supabase
+              .from('series')
+              .delete()
+              .eq('id', serie.id);
+            
+            if (deleteSerieError) {
+              console.error('Errore eliminazione serie personale:', deleteSerieError);
+              throw deleteSerieError;
+            }
+          }
+        }
+
+        // 4. Infine elimina la serie dal catalogo generale
+        console.log('🗑️ Eliminazione serie dal catalogo generale...');
+        const { error: catalogSerieError } = await supabase
+          .from('catalog_series')
+          .delete()
+          .eq('id', serieId);
+
+        if (catalogSerieError) {
+          console.error('Errore eliminazione catalog_series:', catalogSerieError);
+          throw catalogSerieError;
+        }
+
+        console.log('✅ Eliminazione completata con successo!');
+        alert(`✅ Serie "${serieName}" eliminata completamente dal sistema!\\n\\n- Rimossa dal catalogo generale\\n- Rimossa dalle collezioni degli utenti\\n- Rimossa dalle wishlist`);
+        await loadCatalogSeries();
+
+      } catch (error) {
+        console.error('Errore eliminazione serie:', error);
+        alert(`❌ Errore nell'eliminazione: ${error.message}\\n\\nControlla la console per maggiori dettagli.`);
+      }
+    }
+
+    function editCatalogSerie(serieId) {
+      // Per ora rimanda alla gestione oggetti, in futuro si può implementare editing inline
+      manageCatalogItems(serieId);
+    }
+
+    function manageCatalogItems(serieId) {
+      // Apri una nuova pagina per gestire gli oggetti della serie
+      window.open(`catalogSerie.html?id=${serieId}&mode=admin`, '_blank');
+    }
+
+    // Gestione form aggiunta serie
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('catalog-serie-form');
+      if (form) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const formData = {
+            nome: document.getElementById('serie-nome').value.trim(),
+            anno: parseInt(document.getElementById('serie-anno').value) || null,
+            nazione: document.getElementById('serie-nazione').value.trim() || null,
+            n_pezzi: parseInt(document.getElementById('serie-pezzi').value) || null,
+            immagine_copertina: document.getElementById('serie-immagine').value.trim() || null
+          };
+
+          if (!formData.nome) {
+            alert('⚠️ Il nome della serie è obbligatorio');
+            return;
+          }
+
+          try {
+            const { error } = await supabase
+              .from('catalog_series')
+              .insert([formData]);
+
+            if (error) throw error;
+
+            alert(`✅ Serie "${formData.nome}" aggiunta al catalogo!`);
+            hideAddSerieForm();
+            
+            // Se il manager è aperto, aggiorna la lista
+            if (!document.getElementById('catalog-manager').classList.contains('hidden')) {
+              await loadCatalogSeries();
+            }
+
+          } catch (error) {
+            console.error('Errore aggiunta serie:', error);
+            alert(`❌ Errore nell'aggiunta: ${error.message}`);
+          }
+        });
+      }
     });
   </script>
 

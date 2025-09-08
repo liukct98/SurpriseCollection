@@ -7,23 +7,25 @@ const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
 
 console.log("🔧 Tentativo di creare client Supabase...");
-console.log("Supabase global object:", typeof supabase !== 'undefined' ? supabase : "NON DEFINITO!");
+console.log("Supabase global object:", typeof window.supabase !== 'undefined' ? window.supabase : "NON DEFINITO!");
 
-if (typeof supabase === 'undefined') {
+if (typeof window.supabase === 'undefined') {
   console.error("❌ ERRORE: La libreria Supabase non è caricata!");
 } else {
   console.log("✅ Libreria Supabase caricata correttamente");
 }
 
-const supa = supabase.createClient(supabaseUrl, supabaseKey);
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // =========================
 // VERIFICA SESSIONE
 // =========================
 async function checkAuth() {
+  console.log("🔍 Controllo sessione...");
   const {
     data: { session },
-  } = await supa.auth.getSession();
+    error,
+  } = await supabase.auth.getSession();
 
   if (!session) {
     alert("Devi fare login!");
@@ -47,7 +49,7 @@ async function loadCollection() {
     <p style="text-align:center;">Caricamento collezione...</p>
   `;
 
-  const { data: series, error } = await supa
+  const { data: series, error } = await supabase
     .from("series")
     .select("*")
     .order("anno", { ascending: false });
@@ -83,7 +85,7 @@ async function loadCollection() {
     seriesList.appendChild(serieDiv);
 
     // carica items della serie
-    const { data: items, error: itemError } = await supa
+    const { data: items, error: itemError } = await supabase
       .from("item")
       .select("*")
       .eq("serie_id", serie.id);
@@ -132,7 +134,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const n_pezzi = document.getElementById("n_pezzi").value;
       const nazione = document.getElementById("nazione").value;
 
-      const { error } = await supa
+      const { error } = await supabase
         .from("series")
         .insert([{ nome, anno, n_pezzi, nazione }]);
 
@@ -162,18 +164,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (fotoInput.files.length > 0) {
         const file = fotoInput.files[0];
         const filePath = `${Date.now()}_${file.name}`;
-        const { error: uploadError } = await supa.storage
+        const { error: uploadError } = await supabase.storage
           .from("Foto")
           .upload(filePath, file);
         if (uploadError) {
           alert("❌ Errore upload: " + uploadError.message);
           return;
         }
-        const { data } = supa.storage.from("Foto").getPublicUrl(filePath);
+        const { data } = supabase.storage.from("Foto").getPublicUrl(filePath);
         fotoUrl = data.publicUrl;
       }
 
-      const { error } = await supa
+      const { error } = await supabase
         .from("item")
         .insert([{ numero, nome, accessori, valore, foto: fotoUrl, serie_id }]);
 

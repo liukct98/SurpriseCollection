@@ -7,15 +7,15 @@ const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
 
 console.log("🔧 Tentativo di creare client Supabase...");
-console.log("Supabase global object:", typeof supabase !== 'undefined' ? supabase : "NON DEFINITO!");
+console.log("Supabase global object:", typeof window.supabase !== 'undefined' ? window.supabase : "NON DEFINITO!");
 
-if (typeof supabase === 'undefined') {
+if (typeof window.supabase === 'undefined') {
   console.error("❌ ERRORE: La libreria Supabase non è caricata!");
 } else {
   console.log("✅ Libreria Supabase caricata correttamente");
 }
 
-const supa = supabase.createClient(supabaseUrl, supabaseKey);
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("login-form");
@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!usernameOrEmail.includes('@')) {
         try {
           // Cerca l'email associata allo username nella tabella users
-          const { data: userProfile, error: profileError } = await supa
+          const { data: userProfile, error: profileError } = await supabase
             .from('users')
             .select('mail')
             .eq('username', usernameOrEmail)
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      const { data, error } = await supa.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password: password,
       });
