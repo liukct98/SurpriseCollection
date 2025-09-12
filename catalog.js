@@ -169,10 +169,10 @@ async function addToCollection(catalogSeriesId) {
 
     if (catalogItems && catalogItems.length > 0) {
       const userItems = catalogItems.map(item => ({
-        numero: item.numero,
+  numero: String(item.numero),
         nome: item.nome,
         accessori: item.accessori,
-        immagine_riferimento: item.immagine_riferimento,
+  immagine_riferimento: item.immagine_riferimento,
         serie_id: newSerie.id,
         user_id: currentUser.id,
         catalog_item_id: item.id, // 🔄 Collegamento per sincronizzazione automatica
@@ -187,7 +187,7 @@ async function addToCollection(catalogSeriesId) {
       if (insertError) throw insertError;
     }
 
-    alert(`✅ Serie "${catalogSerie.nome}" aggiunta alla collezione!\\n\\n🔄 La serie si aggiornerà automaticamente quando vengono modificati i dati nel catalogo generale.`);
+    alert(`✅ Serie "${catalogSerie.nome}" aggiunta alla collezione! \n \n🔄 La serie si aggiornerà automaticamente quando vengono modificati i dati nel catalogo generale.`);
 
   } catch (error) {
     console.error("Errore aggiunta serie:", error);

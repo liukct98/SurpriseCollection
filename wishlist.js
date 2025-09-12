@@ -221,7 +221,7 @@ function displayFilteredWishlist() {
           ${getPriorityIcon(item.priority)}
         </div>
         <div class="item-main-info">
-          <h3>${item.name} ${item.numero ? `(#${item.numero})` : ''}</h3>
+          <h3>${item.name} ${item.numero ? `(#${String(item.numero)})` : ''}</h3>
           <p class="item-series">📦 ${item.seriesName}</p>
         </div>
         <div class="item-price">
@@ -266,7 +266,7 @@ function editWishlistItem(itemId) {
   // Popola il form con i dati esistenti
   document.getElementById("edit-item-id").value = itemId;
   document.getElementById("item-display").innerHTML = `
-    <strong>${item.name} (#${item.numero})</strong><br>
+  <strong>${item.name} (#${String(item.numero)})</strong><br>
     <small>📦 ${item.seriesName}</small>
   `;
   document.getElementById("wishlist-description").value = item.description || "";

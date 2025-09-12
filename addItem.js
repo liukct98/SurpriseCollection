@@ -150,8 +150,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       console.log("📦 Dati da inserire:", { numero, nome, accessori, valore, serie_id, user_id });
 
-      let fotoUrl = null;
-      const fotoInput = document.getElementById("foto");
+  let immagineRiferimentoUrl = null;
+  const fotoInput = document.getElementById("foto");
       if (fotoInput.files.length > 0) {
         const file = fotoInput.files[0];
         
@@ -181,12 +181,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         console.log("✅ Upload completato:", uploadData);
         const { data } = supa.storage.from("Foto").getPublicUrl(filePath);
-        fotoUrl = data.publicUrl;
-        console.log("🔗 URL foto:", fotoUrl);
+  immagineRiferimentoUrl = data.publicUrl;
+    console.log("🔗 URL immagine_riferimento:", immagineRiferimentoUrl);
       }
 
       const { error } = await supa.from("item").insert([
-        { numero, nome, accessori, valore, foto: fotoUrl, serie_id, user_id }
+  { numero, nome, accessori, valore, immagine_riferimento: immagineRiferimentoUrl, serie_id, user_id }
       ]);
 
       if (error) {

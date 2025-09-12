@@ -1,10 +1,10 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
   <html lang="it">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Serie</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=3.0&t=20250912">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FF6B35">
     
@@ -18,45 +18,48 @@
     <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
   </head>
   <body>
-    <header>Serie: <span id="serie-title">...</span></header>
+  <header class="main-header">
+    <h1>Serie: <span id="serie-title">...</span></h1>
+  </header>
 
-    <div class="container">      
-      <h2>Collezione</h2>
-      <div id="items-list">
-        <div class="spinner"></div>
-        <p style="text-align:center;">Caricamento oggetti...</p>
+  <main>
+    <section class="collection-section">
+      <div class="collection-card">
+        <h2>Collezione</h2>
+        <div id="items-list">
+          <div class="loading">
+            <div class="spinner"></div>
+            <p>Caricamento oggetti...</p>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
+  </main>
 
-    <nav class="bottom-nav">
-    <a href="./home.html" class="nav-item">
-      <span class="icon">🏠</span>
-      <span class="label">Home</span>
-      <span class="ripple"></span>
-    </a>
-    <a href="./collection.html" class="nav-item">
-      <span class="icon">📦</span>
-      <span class="label">Collezione</span>
-      <span class="ripple"></span>
-    </a>
+  <!-- Lightbox per immagini -->
+  <div id="lightbox" class="lightbox" style="display:none;">
+    <img id="lightbox-img" src="" alt="Foto oggetto">
+  </div>
+
+  <!-- Navbar inferiore -->
+  <nav class="bottom-nav">
+    <button onclick="window.location.href='home.html'" class="nav-btn">🏠 Home</button>
+    <button onclick="window.location.href='collection.html'" class="nav-btn">📦 Collezione</button>
   </nav>
 
-    <div id="lightbox" class="lightbox">
-      <img id="lightbox-img" src="" alt="Foto oggetto">
-    </div>
+  <!-- Scripts -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="utils.js?v=3.0&t=20250912"></script>
+  <script src="serie.js?v=3.0&t=20250912&bust=cache"></script>
 
-    <!-- Supabase JS e serie.js -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="serie.js" defer></script>
-
-    <script>
-      if ('serviceWorker' in navigator) {
-          window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
           .then(reg => console.log('Service Worker registrato', reg))
           .catch(err => console.error('Errore Service Worker', err));
-          });
-      }
-    </script>
+      });
+    }
+  </script>
   </body>
   </html>

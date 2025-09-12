@@ -1,3 +1,5 @@
+// Avvia il controllo autenticazione e caricamento serie/oggetti all'avvio
+window.addEventListener("DOMContentLoaded", checkAuth);
 // =========================
 // INIZIALIZZAZIONE SUPABASE
 // =========================
@@ -9,67 +11,64 @@ const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supa = supabase.createClient(supabaseUrl, supabaseKey);
 
 // =========================
+// FUNZIONE: ottieni id serie da URL
+// =========================
+function getSerieIdFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("serie_id") || params.get("id");
+}
+
+// =========================
 // VERIFICA SESSIONE
 // =========================
 async function checkAuth() {
+  const seriesList = document.getElementById("items-list");
+  if (seriesList) seriesList.innerHTML = `<p style='color:blue;'>[DEBUG] checkAuth chiamata</p>`;
+  console.log("[DEBUG] checkAuth chiamata");
   const {
     data: { session },
   } = await supa.auth.getSession();
 
   if (!session) {
-    alert("Sessione scaduta. Verrai reindirizzato al login.");
-    window.location.href = "./index.html";
+    console.warn("⚠️ Nessuna sessione attiva, redirect al login");
+    const seriesList = document.getElementById("items-list");
+    if (seriesList) seriesList.innerHTML = `<p style='color:red;'>❌ Devi effettuare il login per vedere la serie!</p>`;
+    window.location.href = "./login.html";
     return;
   }
 
-  console.log("✅ Utente loggato:", session.user.email);
-  return session.user;
-}
-
-// =========================
-// FUNZIONI
-// =========================
-
-// Funzione per ottenere l'ID della serie dall'URL
-function getSerieIdFromUrl() {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('id');
-}
-
-// Funzione per caricare e mostrare i dati della serie corrente
-async function loadCurrentSerie() {
   const serieId = getSerieIdFromUrl();
   if (!serieId) {
-    alert("❌ ID serie mancante nell'URL!");
-    window.location.href = "./home.html";
-    return null;
+    console.error("❌ Nessun serieId nell'URL");
+    const seriesList = document.getElementById("items-list");
+    if (seriesList) seriesList.innerHTML = `<p style='color:red;'>❌ ID serie mancante nell'URL!</p>`;
+    return;
   }
 
-  console.log("🔍 Caricamento serie con ID:", serieId);
-  
-  const { data: serie, error } = await supa.from("series").select("*").eq("id", serieId).single();
-  if (error) {
-    console.error("❌ Errore caricamento serie:", error.message);
-    alert("❌ Serie non trovata!");
-    window.location.href = "./home.html";
-    return null;
+  // Carica la serie corrente
+  const { data: serie, error } = await supa
+    .from("series")
+    .select("*")
+    .eq("id", serieId)
+    .single();
+
+  if (error || !serie) {
+    console.error("❌ Errore caricamento serie:", error);
+    const seriesList = document.getElementById("items-list");
+    if (seriesList) seriesList.innerHTML = `<p style='color:red;'>❌ Serie non trovata!</p>`;
+    return;
   }
 
-  // Aggiorna il titolo della pagina
+  // Aggiorna titolo pagina
   const serieTitle = document.getElementById("serie-title");
-  if (serieTitle) {
-    serieTitle.textContent = serie.nome;
-  }
+  if (serieTitle) serieTitle.textContent = serie.nome;
 
-  // Mostra i controlli della serie
+  // Mostra controlli della serie
   const serieControls = document.getElementById("serie-controls");
-  if (serieControls) {
-    serieControls.style.display = "block";
-  }
+  if (serieControls) serieControls.style.display = "block";
 
-  // Aggiorna il link "Aggiungi" per includere l'ID della serie
+  // Aggiorna link "Aggiungi"
   const addLink = document.querySelector('a[href="./addItem.html"]');
-  console.log("🔍 Link trovato:", addLink);
   if (addLink) {
     addLink.href = `./addItem.html?serie_id=${serieId}`;
     console.log("🔗 Link Aggiungi aggiornato:", addLink.href);
@@ -78,270 +77,154 @@ async function loadCurrentSerie() {
   }
 
   console.log("✅ Serie caricata:", serie);
+  // Carica la collezione dopo aver caricato la serie
+  loadCollection();
   return serie;
 }
 
-// Funzione per caricare gli oggetti della serie corrente
+// =========================
+// CARICA COLLEZIONE
+// =========================
 async function loadCollection() {
   const seriesList = document.getElementById("items-list");
-  if (!seriesList) return;
+  if (seriesList) seriesList.innerHTML = `<p style='color:blue;'>[DEBUG] loadCollection chiamata</p>`;
+  console.log("[DEBUG] loadCollection chiamata");
+  if (!seriesList) {
+    console.error("Elemento #items-list non trovato nel DOM");
+    return;
+  }
 
   const serieId = getSerieIdFromUrl();
   if (!serieId) {
     seriesList.innerHTML = `<p>❌ ID serie mancante!</p>`;
+    console.error("ID serie mancante nell'URL");
     return;
   }
 
   seriesList.innerHTML = `<div class="spinner"></div><p>Caricamento oggetti della serie...</p>`;
+  console.log("Inizio caricamento oggetti per serieId:", serieId);
 
   try {
-    // Ottieni l'utente corrente
     const currentUser = await getCurrentUserAsync();
+    console.log("Utente corrente:", currentUser);
     if (!currentUser) {
-      throw new Error('Utente non autenticato');
+      seriesList.innerHTML = `<p style='color:red;'>❌ Utente non autenticato!</p>`;
+      throw new Error("Utente non autenticato");
     }
 
-    // Carica solo gli oggetti di questa serie specifica
     const { data: items, error } = await supa
       .from("item")
       .select("*")
       .eq("serie_id", serieId)
       .order("numero", { ascending: true });
+    console.log("Risposta Supabase items:", items, error);
 
     if (error) {
+      seriesList.innerHTML = `<p style='color:red;'>❌ Errore nella query Supabase: ${error.message}</p>`;
       throw error;
     }
 
-    // Carica le informazioni della wishlist per questi oggetti (solo per dettagli aggiuntivi)
-    const itemIds = items.map(item => item.id);
-    const { data: wishlistDetails, error: wishlistError } = await supa
-      .from("wishlist")
-      .select("item_id, priority, notes, estimated_price, purchase_url")
-      .eq("user_id", currentUser.id)
-      .in("item_id", itemIds);
-
-    if (wishlistError) {
-      console.error('Errore caricamento dettagli wishlist:', wishlistError);
-      // Non bloccare il caricamento se la wishlist fallisce
+    if (!items || items.length === 0) {
+      seriesList.innerHTML = `<p style='color:orange;'>Nessun oggetto presente in questa serie.<br><a href='./addItem.html?serie_id=${serieId}'>Aggiungi il primo oggetto!</a></p>`;
+      console.warn("Nessun oggetto trovato per questa serie.");
+      return;
     }
 
-    // Crea una mappa per accesso rapido ai dettagli wishlist
-    const wishlistDetailsMap = {};
-    if (wishlistDetails) {
-      wishlistDetails.forEach(w => {
-        wishlistDetailsMap[w.item_id] = w;
-      });
-    }
-
-    if (items.length === 0) {
-      seriesList.innerHTML = `<p>Nessun oggetto presente in questa serie. <a href='./addItem.html?serie_id=${serieId}'>Aggiungi il primo oggetto!</a></p>`;
-    } else {
-      seriesList.innerHTML = items.map((i, index) => {
-        // Usa il campo wishlist direttamente dalla tabella item
+    seriesList.innerHTML = items
+      .map((i, index) => {
         const isInWishlist = !!i.wishlist;
         return `
-        <div class="item fade-in ${!i.mancante ? 'item-present' : 'item-missing'}" style="animation-delay: ${0.1 * index}s;">
-          <div class="item-header">
-            <h3>${i.nome} (#${i.numero})</h3>
-            <div class="item-status">
-              <label class="checkbox-container">
-                <input type="checkbox" 
-                       class="item-checkbox" 
-                       data-item-id="${i.id}" 
-                       ${!i.mancante ? 'checked' : ''}>
-                <span class="checkmark"></span>
-                <span class="status-text">${!i.mancante ? 'Presente' : 'Mancante'}</span>
-              </label>
-              ${i.mancante ? `
-                <label class="wishlist-checkbox-container">
-                  <input type="checkbox" 
-                         class="wishlist-checkbox" 
-                         data-item-id="${i.id}"
-                         data-item-name="${i.nome}"
-                         data-item-number="${i.numero}"
-                         ${isInWishlist ? 'checked' : ''}>
-                  <span class="wishlist-checkmark">💝</span>
-                  <span class="wishlist-text">${isInWishlist ? 'In Wishlist' : 'Wishlist'}</span>
+          <div class="item fade-in ${!i.mancante ? "item-present" : "item-missing"}" style="animation-delay:${0.1 * index}s;">
+            <div class="item-header">
+              <h3>${i.nome} (#${i.numero})</h3>
+              <div class="item-status">
+                <label class="checkbox-container">
+                  <input type="checkbox" class="item-checkbox" data-item-id="${i.id}" ${!i.mancante ? "checked" : ""}>
+                  <span class="checkmark"></span>
+                  <span class="status-text">${!i.mancante ? "Presente" : "Mancante"}</span>
                 </label>
-              ` : ''}
+                ${
+                  i.mancante
+                    ? `<label class="wishlist-checkbox-container">
+                        <input type="checkbox" class="wishlist-checkbox" data-item-id="${i.id}" data-item-name="${i.nome}" data-item-number="${i.numero}" ${isInWishlist ? "checked" : ""}>
+                        <span class="wishlist-checkmark">&#x1F49D;</span>
+                        <span class="wishlist-text">${isInWishlist ? "In Wishlist" : "Wishlist"}</span>
+                      </label>`
+                    : ""
+                }
+              </div>
+            </div>
+            <p>${i.accessori || ""}</p>
+            <p>Valore: ${i.valore || "?"}</p>
+            ${i.immagine_riferimento ? `<img src="${i.immagine_riferimento}" alt="${i.nome}" class="item-foto">` : ""}
+            <div class="item-actions">
+              <button class="btn-item-action btn-item-edit" data-action="edit-item" data-id="${i.id}">Modifica</button>
+              <button class="btn-item-action btn-item-delete" data-action="delete-item" data-id="${i.id}" data-name="${i.nome}">Elimina</button>
             </div>
           </div>
-          <p>${i.accessori || ""}</p>
-          <p>Valore: ${i.valore || "?"}</p>
-          ${i.foto ? `<img src="${i.foto}" alt="${i.nome}" class="item-foto">` : ""}
-          <div class="item-actions">
-            <button class="btn-item-action btn-item-edit" data-action="edit-item" data-id="${i.id}">✏️ Modifica</button>
-            <button class="btn-item-action btn-item-delete" data-action="delete-item" data-id="${i.id}" data-name="${i.nome}">🗑️ Elimina</button>
-          </div>
-        </div>
-      `}).join("");
-      
-      // Aggiungi event listeners per i pulsanti degli oggetti
-      setupItemActionButtons();
-      
-      // Aggiungi event listeners per i checkbox
-      setupItemCheckboxes();
-      
-      // Aggiungi event listeners per i checkbox wishlist
-      setupWishlistCheckboxes();
-    }
+        `;
+      })
+      .join("");
 
-    console.log(`✅ Caricati ${items.length} oggetti per la serie ${serieId}`);
-    
+    setupItemActionButtons();
+    setupItemCheckboxes();
+    setupWishlistCheckboxes();
+    console.log("Oggetti caricati e DOM aggiornato.");
   } catch (error) {
-    console.error('Errore caricamento collezione:', error);
-    seriesList.innerHTML = `<p>❌ Errore caricamento oggetti: ${error.message}</p>`;
+    console.error("Errore durante il caricamento della collezione:", error);
+    // seriesList.innerHTML già aggiornato sopra
   }
 }
 
 // =========================
-// EVENT LISTENER DOMContentLoaded
-// =========================
-document.addEventListener("DOMContentLoaded", async () => {
-  // Verifica autenticazione
-  const user = await checkAuth();
-  if (!user) {
-    return;
-  }
-
-  // Carica i dati della serie corrente dall'URL
-  const currentSerie = await loadCurrentSerie();
-  if (!currentSerie) {
-    return;
-  }
-
-  // Carica lista oggetti
-  loadCollection();
-
-  // Event listeners per pulsanti serie
-  const editSerieBtn = document.getElementById("edit-serie-btn");
-  const deleteSerieBtn = document.getElementById("delete-serie-btn");
-  
-  if (editSerieBtn) {
-    editSerieBtn.addEventListener("click", editSerie);
-  }
-  
-  if (deleteSerieBtn) {
-    deleteSerieBtn.addEventListener("click", deleteSerie);
-  }
-
-  // Lightbox click sulle immagini
-  document.addEventListener("click", (e) => {
-    if (e.target.classList.contains("item-foto")) {
-      const lightbox = document.getElementById("lightbox");
-      const lightboxImg = document.getElementById("lightbox-img");
-      lightboxImg.src = e.target.src;
-      lightbox.style.display = "flex";
-    }
-    if (e.target.id === "lightbox" || e.target.id === "lightbox-img") {
-      document.getElementById("lightbox").style.display = "none";
-    }
-  });
-});
-
-// =========================
-// FUNZIONI MODIFICA/ELIMINAZIONE SERIE
+// MODIFICA / ELIMINAZIONE SERIE
 // =========================
 async function editSerie() {
   const serieId = getSerieIdFromUrl();
-  if (!serieId) return;
-  
-  // Redirect alla pagina di modifica serie (da creare)
-  window.location.href = `./editSerie.html?id=${serieId}`;
+  if (serieId) window.location.href = "./editSerie.html?id=" + serieId;
 }
 
 async function deleteSerie() {
   const serieId = getSerieIdFromUrl();
   if (!serieId) return;
-  
-  const confirmDelete = confirm("⚠️ Sei sicuro di voler eliminare questa serie?\n\nATTENZIONE: Verranno eliminati anche tutti gli oggetti al suo interno!");
-  if (!confirmDelete) return;
-  
-  console.log("🗑️ Eliminazione serie:", serieId);
-  
-  // Prima elimina tutti gli oggetti della serie
-  const { error: itemsError } = await supa
-    .from("item")
-    .delete()
-    .eq("serie_id", serieId);
-  
-  if (itemsError) {
-    console.error("❌ Errore eliminazione oggetti:", itemsError);
-    alert("❌ Errore durante l'eliminazione degli oggetti: " + itemsError.message);
-    return;
-  }
-  
-  // Poi elimina la serie
-  const { error: serieError } = await supa
-    .from("series")
-    .delete()
-    .eq("id", serieId);
-  
-  if (serieError) {
-    console.error("❌ Errore eliminazione serie:", serieError);
-    alert("❌ Errore durante l'eliminazione della serie: " + serieError.message);
-    return;
-  }
-  
-  alert("✅ Serie eliminata correttamente!");
-  window.location.href = "./collection.html";
-}
 
-// =========================
-// FUNZIONI MODIFICA/ELIMINAZIONE OGGETTI
-// =========================
-async function editItem(itemId) {
-  // Redirect alla pagina di modifica oggetto (da creare)
-  const serieId = getSerieIdFromUrl();
-  window.location.href = `./editItem.html?id=${itemId}&serie_id=${serieId}`;
-}
-
-async function deleteItem(itemId, itemName) {
-  const confirmDelete = confirm(`⚠️ Sei sicuro di voler eliminare l'oggetto "${itemName}"?`);
+  const confirmDelete = confirm("[ATTENZIONE] Sei sicuro di voler eliminare questa serie?\n\nATTENZIONE: Verranno eliminati anche tutti gli oggetti al suo interno!");
   if (!confirmDelete) return;
-  
-  console.log("🗑️ Eliminazione oggetto:", itemId);
-  
-  const { error } = await supa
-    .from("item")
-    .delete()
-    .eq("id", itemId);
-  
-  if (error) {
-    console.error("❌ Errore eliminazione oggetto:", error);
+
+  console.log("Eliminazione serie:", serieId);
+
+  try {
+    // elimina item
+    const { error: itemsError } = await supa.from("item").delete().eq("serie_id", serieId);
+    if (itemsError) throw itemsError;
+
+    // elimina serie
+  const { error: serieError } = await supa.from("series").delete().eq("id", serieId);
+    if (serieError) throw serieError;
+
+    alert("Serie eliminata correttamente!");
+    window.location.href = "./series.html"; // pagina elenco
+  } catch (error) {
+    console.error("❌ Errore eliminazione:", error);
     alert("❌ Errore durante l'eliminazione: " + error.message);
-    return;
   }
-  
-  alert("✅ Oggetto eliminato correttamente!");
-  
-  // Ricarica la lista degli oggetti
-  loadCollection();
 }
 
 // =========================
 // SETUP ITEM ACTION BUTTONS
 // =========================
 function setupItemActionButtons() {
-  const editButtons = document.querySelectorAll('[data-action="edit-item"]');
-  const deleteButtons = document.querySelectorAll('[data-action="delete-item"]');
-  
-  // Event listeners per pulsanti modifica oggetto
-  editButtons.forEach(button => {
-    button.addEventListener('click', (e) => {
+  document.querySelectorAll('[data-action="edit-item"]').forEach((btn) => {
+    btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const itemId = button.getAttribute('data-id');
-      editItem(itemId);
+      editItem(btn.dataset.id);
     });
   });
-  
-  // Event listeners per pulsanti elimina oggetto
-  deleteButtons.forEach(button => {
-    button.addEventListener('click', (e) => {
+
+  document.querySelectorAll('[data-action="delete-item"]').forEach((btn) => {
+    btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const itemId = button.getAttribute('data-id');
-      const itemName = button.getAttribute('data-name');
-      deleteItem(itemId, itemName);
+      deleteItem(btn.dataset.id, btn.dataset.name);
     });
   });
 }
@@ -350,108 +233,37 @@ function setupItemActionButtons() {
 // SETUP ITEM CHECKBOXES
 // =========================
 function setupItemCheckboxes() {
-  const checkboxes = document.querySelectorAll('.item-checkbox');
-  
-  checkboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', async (e) => {
-      const itemId = checkbox.getAttribute('data-item-id');
+  document.querySelectorAll(".item-checkbox").forEach((checkbox) => {
+    checkbox.addEventListener("change", async () => {
+      const itemId = checkbox.dataset.itemId;
       const isPresent = checkbox.checked;
-      const statusText = checkbox.parentElement.querySelector('.status-text');
-      
+      const statusText = checkbox.closest(".item-header").querySelector(".status-text");
+
       try {
-        // Aggiorna lo stato dell'oggetto nel database
-        const { error } = await supa
-          .from('item')
-          .update({ mancante: !isPresent })
-          .eq('id', itemId);
-        
-        if (error) {
-          throw error;
-        }
-        
-        // Se l'oggetto diventa presente, rimuovilo dalla wishlist
+        const { error } = await supa.from("item").update({ mancante: !isPresent }).eq("id", itemId);
+        if (error) throw error;
+
+        // se presente -> togli da wishlist
         if (isPresent) {
-          // Aggiorna il campo wishlist nella tabella item
-          const { error: itemWishlistError } = await supa
-            .from('item')
-            .update({ wishlist: false })
-            .eq('id', itemId);
-          
-          if (itemWishlistError) {
-            console.error('Errore aggiornamento campo wishlist item:', itemWishlistError);
-          }
-          
-          // Rimuovi dalla tabella wishlist
+          await supa.from("item").update({ wishlist: false }).eq("id", itemId);
+
           const currentUser = await getCurrentUserAsync();
           if (currentUser) {
-            const { error: wishlistError } = await supa
-              .from('wishlist')
-              .delete()
-              .eq('user_id', currentUser.id)
-              .eq('item_id', itemId);
-            
-            if (wishlistError) {
-              console.error('Errore rimozione da tabella wishlist:', wishlistError);
-            }
+            await supa.from("wishlist").delete().eq("user_id", currentUser.id).eq("item_id", itemId);
           }
-        }
-        
-        // Aggiorna il testo dello stato
-        statusText.textContent = isPresent ? 'Presente' : 'Mancante';
-        
-        // Aggiorna la classe dell'item per styling
-        const itemDiv = checkbox.closest('.item');
-        if (isPresent) {
-          itemDiv.classList.remove('item-missing');
-          itemDiv.classList.add('item-present');
-          
-          // Nascondi la checkbox wishlist se l'oggetto è ora presente
-          const wishlistContainer = itemDiv.querySelector('.wishlist-checkbox-container');
-          if (wishlistContainer) {
-            wishlistContainer.style.display = 'none';
-          }
-          
+
+          const wishlistLabel = checkbox.closest(".item").querySelector(".wishlist-checkbox-container");
+          if (wishlistLabel) wishlistLabel.style.display = "none";
         } else {
-          itemDiv.classList.remove('item-present');
-          itemDiv.classList.add('item-missing');
-          
-          // Mostra la checkbox wishlist se l'oggetto è ora mancante
-          let wishlistContainer = itemDiv.querySelector('.wishlist-checkbox-container');
-          if (!wishlistContainer) {
-            // Crea la checkbox wishlist se non esiste
-            const itemName = itemDiv.querySelector('h3').textContent;
-            const itemNumber = itemDiv.querySelector('p').textContent.replace('Numero: ', '');
-            
-            const itemStatus = itemDiv.querySelector('.item-status');
-            wishlistContainer = document.createElement('label');
-            wishlistContainer.className = 'wishlist-checkbox-container';
-            wishlistContainer.innerHTML = `
-              <input type="checkbox" 
-                     class="wishlist-checkbox" 
-                     data-item-id="${itemId}"
-                     data-item-name="${itemName}"
-                     data-item-number="${itemNumber}">
-              <span class="wishlist-checkmark">💝</span>
-              <span class="wishlist-text">Wishlist</span>
-            `;
-            itemStatus.appendChild(wishlistContainer);
-            
-            // Aggiungi event listener alla nuova checkbox
-            const newWishlistCheckbox = wishlistContainer.querySelector('.wishlist-checkbox');
-            setupSingleWishlistCheckbox(newWishlistCheckbox);
-          } else {
-            wishlistContainer.style.display = 'flex';
-          }
+          const wishlistLabel = checkbox.closest(".item").querySelector(".wishlist-checkbox-container");
+          if (wishlistLabel) wishlistLabel.style.display = "";
         }
-        
-        console.log(`✅ Aggiornato stato oggetto ${itemId}: ${isPresent ? 'presente' : 'mancante'}`);
-        
-      } catch (error) {
-        console.error('Errore aggiornamento stato:', error);
-        
-        // Ripristina lo stato precedente del checkbox in caso di errore
-        checkbox.checked = !checkbox.checked;
-        alert('❌ Errore nell\'aggiornamento dello stato: ' + error.message);
+
+        if (statusText) statusText.textContent = isPresent ? "Presente" : "Mancante";
+      } catch (err) {
+        console.error("Errore aggiornamento stato:", err);
+        checkbox.checked = !checkbox.checked; // rollback
+        alert("❌ Errore nell'aggiornamento: " + err.message);
       }
     });
   });
@@ -461,109 +273,57 @@ function setupItemCheckboxes() {
 // SETUP WISHLIST CHECKBOXES
 // =========================
 function setupWishlistCheckboxes() {
-  const wishlistCheckboxes = document.querySelectorAll('.wishlist-checkbox');
-  wishlistCheckboxes.forEach(checkbox => setupSingleWishlistCheckbox(checkbox));
+  document.querySelectorAll(".wishlist-checkbox").forEach((cb) => setupSingleWishlistCheckbox(cb));
 }
 
 function setupSingleWishlistCheckbox(checkbox) {
-  // Imposta lo stato iniziale se necessario
-  const wishlistText = checkbox.parentElement.querySelector('.wishlist-text');
+  const wishlistText = checkbox.parentElement.querySelector(".wishlist-text");
   if (checkbox.checked && wishlistText) {
-    wishlistText.textContent = 'In Wishlist';
-    wishlistText.style.color = '#e74c3c';
+    wishlistText.textContent = "In Wishlist";
+    wishlistText.style.color = "#e74c3c";
   }
-  
-  // Rimuovi event listener esistenti per evitare duplicati
-  const newCheckbox = checkbox.cloneNode(true);
-  checkbox.parentNode.replaceChild(newCheckbox, checkbox);
-  
-  // Aggiungi event listener
-  newCheckbox.addEventListener('change', async (e) => {
-    const itemId = newCheckbox.getAttribute('data-item-id');
-    const itemName = newCheckbox.getAttribute('data-item-name');
-    const isInWishlist = newCheckbox.checked;
-    
+
+  checkbox.addEventListener("change", async () => {
+    const itemId = checkbox.dataset.itemId;
+    const itemName = checkbox.dataset.itemName;
+    const isInWishlist = checkbox.checked;
+
     try {
       const currentUser = await getCurrentUserAsync();
-      if (!currentUser) {
-        throw new Error('Utente non autenticato');
-      }
-      
+      if (!currentUser) throw new Error("Utente non autenticato");
+
       if (isInWishlist) {
-        // Aggiorna il campo wishlist nella tabella item
-        const { error: itemError } = await supa
-          .from('item')
-          .update({ wishlist: true })
-          .eq('id', itemId);
-        
-        if (itemError) throw itemError;
-        
-        // Aggiungi alla tabella wishlist per i dettagli aggiuntivi
-        const { error: wishlistError } = await supa
-          .from('wishlist')
-          .insert({
-            user_id: currentUser.id,
-            item_id: itemId,
-            priority: 'media',
-            notes: null,
-            estimated_price: null,
-            purchase_url: null
-          });
-        
-        if (wishlistError) {
-          console.error('Errore dettagli wishlist:', wishlistError);
-          // Se fallisce l'inserimento nella wishlist, rimuovi il flag dall'item
-          await supa.from('item').update({ wishlist: false }).eq('id', itemId);
-          
-          // Se l'errore è per record duplicato, ignora
-          if (wishlistError.code === '23505') {
-            console.log('Record wishlist già esistente, continuando...');
-          } else {
-            throw wishlistError;
-          }
-        }
-        
+        await supa.from("item").update({ wishlist: true }).eq("id", itemId);
+        await supa.from("wishlist").insert({
+          user_id: currentUser.id,
+          item_id: itemId,
+          priority: "media",
+          notes: null,
+          estimated_price: null,
+          purchase_url: null,
+        });
       } else {
-        // Aggiorna il campo wishlist nella tabella item
-        const { error: itemError } = await supa
-          .from('item')
-          .update({ wishlist: false })
-          .eq('id', itemId);
-        
-        if (itemError) throw itemError;
-        
-        // Rimuovi dalla tabella wishlist
-        const { error: wishlistError } = await supa
-          .from('wishlist')
-          .delete()
-          .eq('user_id', currentUser.id)
-          .eq('item_id', itemId);
-        
-        if (wishlistError) {
-          console.error('Errore rimozione dettagli wishlist:', wishlistError);
-          // Non bloccare per questo errore, il flag item è più importante
-        }
+        await supa.from("item").update({ wishlist: false }).eq("id", itemId);
+        await supa.from("wishlist").delete().eq("user_id", currentUser.id).eq("item_id", itemId);
       }
-      
-      console.log(`${isInWishlist ? '✅ Aggiunto' : '❌ Rimosso'} "${itemName}" ${isInWishlist ? 'alla' : 'dalla'} wishlist`);
-      
-      // Feedback visivo
-      const wishlistText = newCheckbox.parentElement.querySelector('.wishlist-text');
+
       if (wishlistText) {
-        wishlistText.textContent = isInWishlist ? 'In Wishlist' : 'Wishlist';
-        wishlistText.style.color = isInWishlist ? '#e74c3c' : '';
+        wishlistText.textContent = isInWishlist ? "In Wishlist" : "Wishlist";
+        wishlistText.style.color = isInWishlist ? "#e74c3c" : "";
       }
-      
-    } catch (error) {
-      console.error('Errore gestione wishlist:', error);
-      
-      // Ripristina lo stato precedente in caso di errore
-      newCheckbox.checked = !newCheckbox.checked;
-      alert('❌ Errore nell\'aggiornamento della wishlist: ' + error.message);
+
+      console.log(`${isInWishlist ? "Aggiunto" : "Rimosso"} "${itemName}" ${isInWishlist ? "alla" : "dalla"} wishlist`);
+    } catch (err) {
+      console.error("Errore gestione wishlist:", err);
+      checkbox.checked = !checkbox.checked; // rollback
+      alert("❌ Errore aggiornamento wishlist: " + err.message);
     }
   });
 }
-// Funzione helper per ottenere l'utente corrente
+
+// =========================
+// FUNZIONE: ottieni utente corrente
+// =========================
 async function getCurrentUserAsync() {
   const { data: { user } } = await supa.auth.getUser();
   return user;

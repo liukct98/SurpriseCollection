@@ -104,8 +104,8 @@ async function loadCollection() {
           <p>${i.accessori || ""}</p>
           <p>Valore: ${i.valore || "?"}</p>
           ${
-            i.foto
-              ? `<img src="${i.foto}" alt="${i.nome}" class="item-foto">`
+            i.immagine_riferimento
+              ? `<img src="${i.immagine_riferimento}" alt="${i.nome}" class="item-foto">`
               : ""
           }
         </div>
@@ -159,8 +159,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       const valore = document.getElementById("valore").value;
       const serie_id = document.getElementById("serie_id").value;
 
-      let fotoUrl = null;
-      const fotoInput = document.getElementById("foto");
+  let immagineRiferimentoUrl = null;
+  const fotoInput = document.getElementById("foto");
       if (fotoInput.files.length > 0) {
         const file = fotoInput.files[0];
         const filePath = `${Date.now()}_${file.name}`;
@@ -172,12 +172,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           return;
         }
         const { data } = supabase.storage.from("Foto").getPublicUrl(filePath);
-        fotoUrl = data.publicUrl;
+  immagineRiferimentoUrl = data.publicUrl;
       }
 
       const { error } = await supabase
         .from("item")
-        .insert([{ numero, nome, accessori, valore, foto: fotoUrl, serie_id }]);
+  .insert([{ numero: String(numero), nome, accessori, valore, immagine_riferimento: immagineRiferimentoUrl, serie_id }]);
 
       if (error) alert("❌ Errore inserimento oggetto: " + error.message);
       else {

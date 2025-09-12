@@ -185,7 +185,7 @@ async function loadItems() {
           </div>
         ` : `
           <div class="no-image-placeholder">
-            📷 Nessuna foto disponibile
+            📷 Nessuna immagine disponibile
           </div>
         `}
       </div>
@@ -333,6 +333,7 @@ function handleFormSubmit(e) {
     numero: document.getElementById('item-numero').value.trim(),
     nome: document.getElementById('item-nome').value.trim(),
     accessori: document.getElementById('item-accessori').value.trim(),
+  valore: document.getElementById('item-valore').value.trim(),
     immagineFile: fileInput.files[0] || null // File invece di URL
   };
   
@@ -406,7 +407,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let updateData = {
           numero: formData.numero,
           nome: formData.nome,
-          accessori: formData.accessori || null
+          accessori: formData.accessori || null,
+          valore: document.getElementById('edit-item-valore').value.trim() || null
         };
         
         // Se c'è un nuovo file immagine, caricalo
@@ -425,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data: { publicUrl } } = supabase.storage
               .from('Foto')
               .getPublicUrl(fileName);
-            updateData.immagine_riferimento = publicUrl;
+  updateData.immagine_riferimento = publicUrl;
           }
         }
         
@@ -461,7 +463,7 @@ function showImageModal(imageUrl, itemName, itemAccessories) {
   
   // Imposta il contenuto del modal
   modalImage.src = imageUrl;
-  modalTitle.textContent = `Foto: ${itemName}`;
+  modalTitle.textContent = `Immagine: ${itemName}`;
   modalItemName.textContent = `📦 ${itemName}`;
   
   if (itemAccessories && itemAccessories !== 'null' && itemAccessories !== '') {

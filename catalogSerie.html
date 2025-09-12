@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Oggetti Serie - Catalogo</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3.0&t=20250912">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FF6B35">
   
@@ -61,6 +61,10 @@
             <label for="item-accessori">Accessori</label>
             <input type="text" id="item-accessori" placeholder="es. Cappello, Bastone">
           </div>
+          <div class="form-group">
+            <label for="item-valore">Valore (€)</label>
+            <input type="number" id="item-valore" step="0.01" min="0" placeholder="es. 12.50">
+          </div>
           
           <div class="form-group">
             <label for="item-immagine">Foto:</label>
@@ -98,6 +102,10 @@
             <label for="edit-item-accessori">Accessori</label>
             <input type="text" id="edit-item-accessori" placeholder="es. Cappello, Bastone">
           </div>
+          <div class="form-group">
+            <label for="edit-item-valore">Valore (€)</label>
+            <input type="number" id="edit-item-valore" step="0.01" min="0" placeholder="es. 12.50">
+          </div>
           
           <div class="form-group">
             <label for="edit-item-immagine">Foto:</label>
@@ -133,6 +141,7 @@
 
   <!-- Scripts -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="catalogSerie.js"></script>
+  <script src="utils.js?v=3.0&t=20250912"></script>
+  <script src="catalogSerie.js?v=3.0&t=20250912&bust=cache"></script>
 </body>
 </html>
