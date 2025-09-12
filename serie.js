@@ -141,7 +141,7 @@ async function loadCollection() {
                 <label class="checkbox-container">
                   <input type="checkbox" class="item-checkbox" data-item-id="${i.id}" ${!i.mancante ? "checked" : ""}>
                   <span class="checkmark"></span>
-                  <span class="status-text">${!i.mancante ? "Presente" : "Mancante"}</span>
+                  <span class="status-text">Presente</span>
                 </label>
                 ${
                   i.mancante
@@ -155,8 +155,8 @@ async function loadCollection() {
               </div>
             </div>
             <p>${i.accessori || ""}</p>
-            <p>Valore: ${i.valore || "?"}</p>
-            ${i.immagine_riferimento ? `<img src="${i.immagine_riferimento}" alt="${i.nome}" class="item-foto">` : ""}
+            ${i.valore && i.valore !== "" ? `<p>Valore: ${i.valore}</p>` : ""}
+            ${i.immagine_riferimento ? `<img src="${i.immagine_riferimento}" alt="${i.nome}" class="item-foto" style="cursor:pointer;" data-img="${i.immagine_riferimento}">` : ""}
             <div class="item-actions">
               <button class="btn-item-action btn-item-edit" data-action="edit-item" data-id="${i.id}">Modifica</button>
               <button class="btn-item-action btn-item-delete" data-action="delete-item" data-id="${i.id}" data-name="${i.nome}">Elimina</button>
@@ -165,6 +165,26 @@ async function loadCollection() {
         `;
       })
       .join("");
+
+    // Lightbox: click sulla foto per ingrandire
+    document.querySelectorAll('.item-foto').forEach(img => {
+      img.addEventListener('click', function() {
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        if (lightbox && lightboxImg) {
+          lightboxImg.src = img.getAttribute('data-img');
+          lightbox.style.display = 'flex';
+        }
+      });
+    });
+
+    // Chiudi lightbox al click
+    const lightbox = document.getElementById('lightbox');
+    if (lightbox) {
+      lightbox.addEventListener('click', function() {
+        lightbox.style.display = 'none';
+      });
+    }
 
     setupItemActionButtons();
     setupItemCheckboxes();
@@ -259,7 +279,18 @@ function setupItemCheckboxes() {
           if (wishlistLabel) wishlistLabel.style.display = "";
         }
 
-        if (statusText) statusText.textContent = isPresent ? "Presente" : "Mancante";
+        if (statusText) statusText.textContent = "Presente";
+        // Cambia colore in verde subito
+        const itemDiv = checkbox.closest('.item');
+        if (itemDiv) {
+          if (isPresent) {
+            itemDiv.classList.add('item-present');
+            itemDiv.classList.remove('item-missing');
+          } else {
+            itemDiv.classList.add('item-missing');
+            itemDiv.classList.remove('item-present');
+          }
+        }
       } catch (err) {
         console.error("Errore aggiornamento stato:", err);
         checkbox.checked = !checkbox.checked; // rollback
