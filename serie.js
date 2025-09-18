@@ -67,14 +67,14 @@ async function checkAuth() {
   const serieControls = document.getElementById("serie-controls");
   if (serieControls) serieControls.style.display = "block";
 
-  // Aggiorna link "Aggiungi"
-  const addLink = document.querySelector('a[href="./addItem.html"]');
-  if (addLink) {
-    addLink.href = `./addItem.html?serie_id=${serieId}`;
-    console.log("🔗 Link Aggiungi aggiornato:", addLink.href);
-  } else {
-    console.error("❌ Link ./addItem.html non trovato!");
-  }
+  // // Aggiorna link "Aggiungi"
+  // const addLink = document.querySelector('a[href="./addItem.html"]');
+  // if (addLink) {
+  //   addLink.href = `./addItem.html?serie_id=${serieId}`;
+  //   console.log("🔗 Link Aggiungi aggiornato:", addLink.href);
+  // } else {
+  //   console.error("❌ Link ./addItem.html non trovato!");
+  // }
 
   console.log("✅ Serie caricata:", serie);
   // Carica la collezione dopo aver caricato la serie
@@ -87,66 +87,92 @@ async function checkAuth() {
 // =========================
 async function loadCollection() {
   const seriesList = document.getElementById("items-list");
-  if (seriesList) seriesList.innerHTML = `<p style='color:blue;'>[DEBUG] loadCollection chiamata</p>`;
-  console.log("[DEBUG] loadCollection chiamata");
-  if (!seriesList) {
-    console.error("Elemento #items-list non trovato nel DOM");
-    return;
-  }
+  if (!seriesList) return;
 
   const serieId = getSerieIdFromUrl();
   if (!serieId) {
     seriesList.innerHTML = `<p>❌ ID serie mancante!</p>`;
-    console.error("ID serie mancante nell'URL");
     return;
   }
 
   seriesList.innerHTML = `<div class="spinner"></div><p>Caricamento oggetti della serie...</p>`;
-  console.log("Inizio caricamento oggetti per serieId:", serieId);
 
   try {
     const currentUser = await getCurrentUserAsync();
-    console.log("Utente corrente:", currentUser);
     if (!currentUser) {
       seriesList.innerHTML = `<p style='color:red;'>❌ Utente non autenticato!</p>`;
-      throw new Error("Utente non autenticato");
-    }
-
-    const { data: items, error } = await supa
-      .from("item")
-      .select("*")
-      .eq("serie_id", serieId)
-      .order("numero", { ascending: true });
-    console.log("Risposta Supabase items:", items, error);
-
-    if (error) {
-      seriesList.innerHTML = `<p style='color:red;'>❌ Errore nella query Supabase: ${error.message}</p>`;
-      throw error;
-    }
-
-    if (!items || items.length === 0) {
-      seriesList.innerHTML = `<p style='color:orange;'>Nessun oggetto presente in questa serie.<br><a href='./addItem.html?serie_id=${serieId}'>Aggiungi il primo oggetto!</a></p>`;
-      console.warn("Nessun oggetto trovato per questa serie.");
       return;
     }
 
-    seriesList.innerHTML = items
-      .map((i, index) => {
-        const isInWishlist = !!i.wishlist;
+    // Recupera la serie per ottenere il catalog_series_id
+    const { data: serie, error: serieError } = await supa
+      .from("series")
+      .select("*")
+      .eq("id", serieId)
+      .single();
+
+    if (serieError || !serie) {
+      seriesList.innerHTML = `<p style='color:red;'>❌ Errore nel caricamento dati serie!</p>`;
+      return;
+    }
+
+    const catalogSeriesId = serie.catalog_series_id;
+    if (!catalogSeriesId) {
+      seriesList.innerHTML = `<p style='color:red;'>❌ Questa serie non è collegata a nessuna serie del catalogo!</p>`;
+      return;
+    }
+
+    // 1. Recupera tutti gli oggetti del catalogo per la serie
+    const { data: catalogItems, error: catError } = await supa
+      .from("catalog_items")
+      .select("*")
+      .eq("catalog_series_id", catalogSeriesId)
+      .order("numero", { ascending: true });
+
+    console.log("[DEBUG] catalogItems:", catalogItems);
+    if (catError) {
+      seriesList.innerHTML = `<p style='color:red;'>❌ Errore nel caricamento oggetti catalogo: ${catError.message}</p>`;
+      return;
+    }
+
+    // 2. Recupera tutti gli item posseduti dall'utente per questa serie
+    const { data: userItems, error: userError } = await supa
+      .from("item")
+      .select("*")
+      .eq("serie_id", serieId)
+      .eq("user_id", currentUser.id);
+
+    if (userError) {
+      seriesList.innerHTML = `<p style='color:red;'>❌ Errore nel caricamento oggetti utente: ${userError.message}</p>`;
+      return;
+    }
+
+    // 3. Merge: per ogni oggetto catalogo, cerca se l'utente lo possiede
+    const userItemsByCatalogId = {};
+    userItems.forEach(u => {
+      if (u.catalog_item_id) userItemsByCatalogId[u.catalog_item_id] = u;
+    });
+
+    seriesList.innerHTML = catalogItems
+      .map((cat, index) => {
+        console.log(`[DEBUG] Rendering item #${index}:`, cat);
+        const userItem = userItemsByCatalogId[cat.id];
+        const isPresent = userItem && !userItem.mancante;
+        const isInWishlist = userItem && userItem.wishlist;
         return `
-          <div class="item fade-in ${!i.mancante ? "item-present" : "item-missing"}" style="animation-delay:${0.1 * index}s;">
+          <div class="item fade-in ${isPresent ? "item-present" : "item-missing"}" style="animation-delay:${0.1 * index}s;">
             <div class="item-header">
-              <h3>${i.nome} (#${i.numero})</h3>
+              <h3>${cat.nome || ""} (#${cat.numero || ""})</h3>
               <div class="item-status">
                 <label class="checkbox-container">
-                  <input type="checkbox" class="item-checkbox" data-item-id="${i.id}" ${!i.mancante ? "checked" : ""}>
+                  <input type="checkbox" class="item-checkbox" data-item-id="${userItem ? userItem.id : ''}" data-catalog-item-id="${cat.id}" ${isPresent ? "checked" : ""}>
                   <span class="checkmark"></span>
                   <span class="status-text">Presente</span>
                 </label>
                 ${
-                  i.mancante
+                  !isPresent
                     ? `<label class="wishlist-checkbox-container">
-                        <input type="checkbox" class="wishlist-checkbox" data-item-id="${i.id}" data-item-name="${i.nome}" data-item-number="${i.numero}" ${isInWishlist ? "checked" : ""}>
+                        <input type="checkbox" class="wishlist-checkbox" data-catalog-item-id="${cat.id}" data-item-name="${cat.nome || ""}" data-item-number="${cat.numero || ""}" ${isInWishlist ? "checked" : ""}>
                         <span class="wishlist-checkmark">&#x1F49D;</span>
                         <span class="wishlist-text">${isInWishlist ? "In Wishlist" : "Wishlist"}</span>
                       </label>`
@@ -154,45 +180,28 @@ async function loadCollection() {
                 }
               </div>
             </div>
-            <p>${i.accessori || ""}</p>
-            ${i.valore && i.valore !== "" ? `<p>Valore: ${i.valore}</p>` : ""}
-            ${i.immagine_riferimento ? `<img src="${i.immagine_riferimento}" alt="${i.nome}" class="item-foto" style="cursor:pointer;" data-img="${i.immagine_riferimento}">` : ""}
+            <p>${cat.accessori || ""}</p>
+            ${(cat.valore && cat.valore !== "") ? `<p>Valore: ${cat.valore}</p>` : ""}
+            ${cat.immagine_riferimento ? `<img src="${cat.immagine_riferimento}" alt="${cat.nome || ""}" class="item-foto" style="cursor:pointer;" data-img="${cat.immagine_riferimento}">` : ""}
             <div class="item-actions">
-              <button class="btn-item-action btn-item-edit" data-action="edit-item" data-id="${i.id}">Modifica</button>
-              <button class="btn-item-action btn-item-delete" data-action="delete-item" data-id="${i.id}" data-name="${i.nome}">Elimina</button>
+              <button class="btn-item-action btn-item-edit" data-action="edit-item" data-id="${userItem ? userItem.id : ''}">Modifica</button>
+              <button class="btn-item-action btn-item-delete" data-action="delete-item" data-id="${userItem ? userItem.id : ''}" data-name="${cat.nome || ""}">Elimina</button>
             </div>
           </div>
         `;
       })
       .join("");
 
-    // Lightbox: click sulla foto per ingrandire
-    document.querySelectorAll('.item-foto').forEach(img => {
-      img.addEventListener('click', function() {
-        const lightbox = document.getElementById('lightbox');
-        const lightboxImg = document.getElementById('lightbox-img');
-        if (lightbox && lightboxImg) {
-          lightboxImg.src = img.getAttribute('data-img');
-          lightbox.style.display = 'flex';
-        }
-      });
-    });
-
-    // Chiudi lightbox al click
-    const lightbox = document.getElementById('lightbox');
-    if (lightbox) {
-      lightbox.addEventListener('click', function() {
-        lightbox.style.display = 'none';
-      });
-    }
-
-    setupItemActionButtons();
+    // Dopo il rendering, attiva i checkbox
     setupItemCheckboxes();
-    setupWishlistCheckboxes();
-    console.log("Oggetti caricati e DOM aggiornato.");
+
+    // Dopo il rendering, attiva i checkbox
+    setupItemCheckboxes();
+
+    // ...resto del codice per lightbox, setupItemActionButtons, ecc...
+    // (puoi lasciare invariato il resto della funzione)
   } catch (error) {
     console.error("Errore durante il caricamento della collezione:", error);
-    // seriesList.innerHTML già aggiornato sopra
   }
 }
 
@@ -255,13 +264,41 @@ function setupItemActionButtons() {
 function setupItemCheckboxes() {
   document.querySelectorAll(".item-checkbox").forEach((checkbox) => {
     checkbox.addEventListener("change", async () => {
-      const itemId = checkbox.dataset.itemId;
+      let itemId = checkbox.dataset.itemId;
+      const catalogItemId = checkbox.dataset.catalogItemId;
       const isPresent = checkbox.checked;
       const statusText = checkbox.closest(".item-header").querySelector(".status-text");
 
       try {
-        const { error } = await supa.from("item").update({ mancante: !isPresent }).eq("id", itemId);
-        if (error) throw error;
+        // Se non esiste ancora l'item, crealo
+        if (!itemId || itemId === "") {
+          const serieId = getSerieIdFromUrl();
+          const currentUser = await getCurrentUserAsync();
+          // Recupera i dati dal DOM (nome, numero, accessori, immagine)
+          const itemDiv = checkbox.closest('.item');
+          const nome = itemDiv.querySelector('h3')?.textContent?.split(' (#')[0] || '';
+          const numero = nome && itemDiv.querySelector('h3')?.textContent?.match(/#(\d+)/)?.[1] || '';
+          const accessori = itemDiv.querySelector('p')?.textContent || '';
+          const img = itemDiv.querySelector('img')?.getAttribute('src') || '';
+
+          const { data: newItem, error: insertError } = await supa.from("item").insert({
+            user_id: currentUser.id,
+            serie_id: serieId,
+            catalog_item_id: catalogItemId,
+            mancante: !isPresent,
+            wishlist: false,
+            nome: nome,
+            numero: numero,
+            accessori: accessori,
+            immagine_riferimento: img
+          }).select().single();
+          if (insertError) throw insertError;
+          itemId = newItem.id;
+          checkbox.dataset.itemId = itemId;
+        } else {
+          const { error } = await supa.from("item").update({ mancante: !isPresent }).eq("id", itemId);
+          if (error) throw error;
+        }
 
         // se presente -> togli da wishlist
         if (isPresent) {
