@@ -1,3 +1,95 @@
+/* --- Card Marca Dettagliata --- */
+.brand-card {
+  background: linear-gradient(90deg, #ff6b35 0%, #3a86ff 100%);
+  color: #fff;
+  border-radius: 18px;
+  padding: 32px 24px;
+  margin: 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(60,60,60,0.10);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: inline-block;
+  min-width: 220px;
+}
+.brand-card:hover {
+  transform: scale(1.06);
+  box-shadow: 0 8px 32px rgba(60,60,60,0.18);
+}
+.brand-card-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+}
+.brand-card-info {
+  font-size: 1.1rem;
+  color: #fff;
+  opacity: 0.85;
+}
+/* --- Blocco Serie Vetrina --- */
+.serie-block {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(60,60,60,0.10);
+  padding: 28px 20px;
+  margin: 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: inline-block;
+  border: 2px solid #3a86ff;
+}
+.serie-block:hover {
+  transform: scale(1.06);
+  box-shadow: 0 8px 32px rgba(60,60,60,0.18);
+  border-color: #ff6b35;
+}
+.serie-block-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #3a86ff;
+  margin-bottom: 8px;
+}
+.serie-block-info {
+  font-size: 1.1rem;
+  color: #ff6b35;
+}
+/* --- Blocco Marca Vetrina --- */
+.brand-block {
+  background: linear-gradient(90deg, #ff6b35 0%, #3a86ff 100%);
+  color: #fff;
+  border-radius: 18px;
+  padding: 32px 24px;
+  margin: 12px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(60,60,60,0.10);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: inline-block;
+}
+.brand-block:hover {
+  transform: scale(1.06);
+  box-shadow: 0 8px 32px rgba(60,60,60,0.18);
+}
+.brand-block-title {
+  letter-spacing: 2px;
+}
+/* --- Titolo Marca --- */
+.brand-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ff6b35;
+  margin: 18px 0 24px 0;
+  letter-spacing: 1px;
+}
 /* --- Stile pagina serie --- */
 .main-header {
   background: linear-gradient(90deg, #3a86ff 0%, #ff6b35 100%);

@@ -77,9 +77,20 @@ async function loadCollectionSeries() {
   
   // Popola i filtri
   populateFilters();
-  
+  // Mostra vetrina marche
+  const brandShowcase = document.getElementById('brand-showcase');
+  if (brandShowcase) {
+    const brands = [...new Set(allSeries.map(s => s.marca).filter(Boolean))].sort();
+    brandShowcase.innerHTML = brands.map(brand => `<button class="brand-btn" onclick="filterByBrand('${brand}')">${brand}</button>`).join("");
+  }
   // Mostra le serie filtrate
   displayFilteredSeries();
+// Filtro per marca
+window.currentBrandFilter = null;
+function filterByBrand(brand) {
+  window.currentBrandFilter = brand;
+  displayFilteredSeries();
+}
 
   console.log(`✅ Caricate ${series.length} collezioni`);
 }
@@ -108,6 +119,10 @@ function populateFilters() {
 // FILTRAGGIO E VISUALIZZAZIONE
 // =========================
 function displayFilteredSeries() {
+  // Filtro per marca
+  if (window.currentBrandFilter) {
+    filteredSeries = filteredSeries.filter(serie => serie.marca === window.currentBrandFilter);
+  }
   let filteredSeries = [...allSeries];
   
   // Filtro per ricerca

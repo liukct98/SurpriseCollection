@@ -52,7 +52,37 @@ async function loadCatalog() {
     
     // Popola i filtri
     populateFilters();
-    
+    // Mostra vetrina marche come blocchi
+    const brandShowcase = document.getElementById('brand-showcase');
+    const catalogContainer = document.getElementById('catalog-container');
+    if (brandShowcase && catalogContainer) {
+      const brands = [...new Set(allCatalogSeries.map(s => s.marca).filter(Boolean))].sort();
+      brandShowcase.innerHTML = brands.map(brand => {
+        const serieCount = allCatalogSeries.filter(s => s.marca === brand).length;
+        return `
+          <div class="serie fade-in" onclick="filterByBrand('${brand}')" style="cursor:pointer;">
+            <div>
+              <h2>${brand}</h2>
+              <div class="serie-info">
+                <p><strong>🎯 Serie disponibili:</strong> ${serieCount}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+      // Nascondi le serie finché non si seleziona una marca
+      catalogContainer.style.display = 'none';
+    }
+// Filtro per marca
+window.currentBrandFilter = null;
+function filterByBrand(brand) {
+  // Mostra le serie e nascondi la vetrina marche
+  document.getElementById('catalog-container').style.display = '';
+  document.getElementById('brand-showcase').style.display = 'none';
+  window.currentBrandFilter = brand;
+  displayFilteredCatalog();
+}
+window.filterByBrand = filterByBrand;
     // Mostra le serie filtrate
     displayFilteredCatalog();
     
@@ -242,6 +272,10 @@ function populateFilters() {
 
 function displayFilteredCatalog() {
   let filteredSeries = [...allCatalogSeries];
+  // Filtro per marca
+  if (window.currentBrandFilter) {
+    filteredSeries = filteredSeries.filter(serie => serie.marca === window.currentBrandFilter);
+  }
   
   // Filtro per ricerca
   if (currentSearch) {
