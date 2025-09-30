@@ -11,17 +11,20 @@
   <div class="container">
     <h1>✏️ Modifica Serie</h1>
     <form id="edit-serie-form">
-      <label for="nome">Nome Serie</label>
-      <input type="text" id="nome" required>
+  <label for="nome">Nome Serie</label>
+  <input type="text" id="nome" required>
 
-      <label for="anno">Anno</label>
-      <input type="number" id="anno" min="1900" max="2099" required>
+  <label for="anno">Anno</label>
+  <input type="number" id="anno" min="1900" max="2099" required>
 
-      <label for="nazione">Nazione</label>
-      <input type="text" id="nazione" required>
+  <label for="nazione">Nazione</label>
+  <input type="text" id="nazione" required>
 
-      <label for="n_pezzi">Numero di pezzi totali</label>
-      <input type="number" id="n_pezzi" min="1" required>
+  <label for="marca">Marca</label>
+  <input type="text" id="marca">
+
+  <label for="n_pezzi">Numero di pezzi totali</label>
+  <input type="number" id="n_pezzi" min="1" required>
 
       <div class="form-buttons">
         <button type="submit" class="btn-primary">💾 Salva Modifiche</button>
@@ -83,10 +86,11 @@
         }
 
         // Popola il form con i dati della serie
-        document.getElementById('nome').value = serie.nome || '';
-        document.getElementById('anno').value = serie.anno || '';
-        document.getElementById('nazione').value = serie.nazione || '';
-        document.getElementById('n_pezzi').value = serie.n_pezzi || serie.n_oggetti || '';
+  document.getElementById('nome').value = serie.nome || '';
+  document.getElementById('anno').value = serie.anno || '';
+  document.getElementById('nazione').value = serie.nazione || '';
+  document.getElementById('marca').value = serie.marca || '';
+  document.getElementById('n_pezzi').value = serie.n_pezzi || serie.n_oggetti || '';
 
       } catch (error) {
         console.error('Errore caricamento serie:', error);
@@ -111,6 +115,7 @@
           nome: document.getElementById('nome').value.trim(),
           anno: parseInt(document.getElementById('anno').value),
           nazione: document.getElementById('nazione').value.trim(),
+          marca: document.getElementById('marca').value.trim(),
           n_pezzi: parseInt(document.getElementById('n_pezzi').value)
         };
 

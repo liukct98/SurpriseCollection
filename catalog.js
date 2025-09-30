@@ -86,7 +86,7 @@ function displayCatalog(series) {
         <h2>${serie.nome} (${serie.anno || 'N/A'})</h2>
         <div class="serie-info">
           <p><strong>📍 Nazione:</strong> ${serie.nazione || 'Non specificata'}</p>
-          <p><strong>🎯 Oggetti previsti:</strong> ${serie.n_pezzi || 0}</p>
+          <p><strong>🎯 Numero pezzi:</strong> ${serie.n_pezzi || 0}</p>
           ${serie.immagine_copertina ? `
             <div class="serie-preview-image">
               <img src="${serie.immagine_copertina}" alt="${serie.nome}" loading="lazy">

@@ -174,7 +174,8 @@ function displayFilteredSeries() {
         <h2>${serie.nome} (${serie.anno})</h2>
         <div class="serie-info">
           <p><strong>📍 Nazione:</strong> ${serie.nazione || 'Non specificata'}</p>
-          <p><strong>🎯 Oggetti previsti:</strong> ${serie.n_pezzi || serie.n_oggetti || 0}</p>
+            <p><strong>🏭 Marca:</strong> ${getSerieMarca(serie)}</p>
+          <p><strong>�🎯 Numero pezzi:</strong> ${serie.n_pezzi || serie.n_oggetti || 0}</p>
           <p><strong>📦 Oggetti posseduti:</strong> ${serie.itemCount}</p>
           ${serie.catalog_series_id ? `
             <div class="sync-indicator">
@@ -297,6 +298,27 @@ function setupFilterListeners() {
 
 // =========================
 // EVENT LISTENER DOMContentLoaded
+// Funzione per mostrare la marca corretta
+function getSerieMarca(serie) {
+  // Se la serie ha la marca, mostra quella
+  if (serie.marca) return serie.marca;
+  // Se è sincronizzata con catalogo, cerca la marca dal catalogo
+  if (serie.catalog_series_id && window.catalogSeriesCache) {
+    const catalogSerie = window.catalogSeriesCache.find(s => s.id === serie.catalog_series_id);
+    if (catalogSerie && catalogSerie.marca) return catalogSerie.marca;
+  }
+  return 'Non specificata';
+}
+
+// Carica cache catalogo all'avvio
+window.catalogSeriesCache = [];
+async function loadCatalogSeriesCache() {
+  const { data, error } = await supa.from('catalog_series').select('id, marca');
+  if (!error && data) window.catalogSeriesCache = data;
+}
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadCatalogSeriesCache();
+});
 // =========================
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("🎯 DOMContentLoaded - Pagina collection caricata!");

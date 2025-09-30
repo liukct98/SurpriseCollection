@@ -114,6 +114,11 @@
             <label for="serie-nazione">Nazione</label>
             <input type="text" id="serie-nazione" placeholder="es. Italia">
           </div>
+
+          <div class="form-group">
+            <label for="serie-marca">Marca *</label>
+            <input type="text" id="serie-marca" required placeholder="es. Ferrero">
+          </div>
           
           <div class="form-group">
             <label for="serie-pezzi">Numero Pezzi</label>
@@ -155,6 +160,11 @@
           <div class="form-group">
             <label for="edit-serie-nazione">Nazione</label>
             <input type="text" id="edit-serie-nazione" placeholder="es. Italia">
+          </div>
+
+          <div class="form-group">
+            <label for="edit-serie-marca">Marca *</label>
+            <input type="text" id="edit-serie-marca" required placeholder="es. Ferrero">
           </div>
           
           <div class="form-group">
@@ -594,8 +604,9 @@
         document.getElementById('edit-serie-nome').value = serie.nome || '';
         document.getElementById('edit-serie-anno').value = serie.anno || '';
         document.getElementById('edit-serie-nazione').value = serie.nazione || '';
+        document.getElementById('edit-serie-marca').value = serie.marca || '';
         document.getElementById('edit-serie-pezzi').value = serie.n_pezzi || '';
-        
+
         // Mostra info sull'immagine corrente
         const currentImageInfo = document.getElementById('current-image-info');
         if (serie.immagine_copertina) {
@@ -624,12 +635,13 @@
       if (addForm) {
         addForm.addEventListener('submit', async (e) => {
           e.preventDefault();
-          
+
           const fileInput = document.getElementById('serie-immagine');
           const formData = {
             nome: document.getElementById('serie-nome').value.trim(),
             anno: parseInt(document.getElementById('serie-anno').value) || null,
             nazione: document.getElementById('serie-nazione').value.trim() || null,
+            marca: document.getElementById('serie-marca').value.trim() || null,
             n_pezzi: parseInt(document.getElementById('serie-pezzi').value) || null,
             immagineFile: fileInput.files[0] || null
           };
@@ -638,18 +650,22 @@
             alert('⚠️ Il nome della serie è obbligatorio');
             return;
           }
+          if (!formData.marca) {
+            alert('⚠️ La marca è obbligatoria');
+            return;
+          }
 
           try {
             let immagineUrl = null;
-            
+
             // Se c'è un file immagine, caricalo su Supabase Storage
             if (formData.immagineFile) {
               const fileName = `catalog_series/${formData.nome}_${Date.now()}.${formData.immagineFile.name.split('.').pop()}`;
-              
+
               const { data: uploadData, error: uploadError } = await supabase.storage
                 .from('Foto')
                 .upload(fileName, formData.immagineFile);
-                
+
               if (uploadError) {
                 console.error('Errore upload immagine:', uploadError);
                 alert('⚠️ Errore nel caricamento dell\'immagine, procedo senza immagine');
@@ -661,15 +677,16 @@
                 immagineUrl = publicUrl;
               }
             }
-            
+
             const serieData = {
               nome: formData.nome,
               anno: formData.anno,
               nazione: formData.nazione,
+              marca: formData.marca,
               n_pezzi: formData.n_pezzi,
               immagine_copertina: immagineUrl
             };
-            
+
             const { error } = await supabase
               .from('catalog_series')
               .insert([serieData]);
@@ -678,7 +695,7 @@
 
             alert(`✅ Serie "${formData.nome}" aggiunta al catalogo!`);
             hideAddSerieForm();
-            
+
             // Se il manager è aperto, aggiorna la lista
             if (!document.getElementById('catalog-manager').classList.contains('hidden')) {
               await loadCatalogSeries();
@@ -696,13 +713,14 @@
       if (editForm) {
         editForm.addEventListener('submit', async (e) => {
           e.preventDefault();
-          
+
           const serieId = document.getElementById('edit-serie-id').value;
           const fileInput = document.getElementById('edit-serie-immagine');
           const formData = {
             nome: document.getElementById('edit-serie-nome').value.trim(),
             anno: parseInt(document.getElementById('edit-serie-anno').value) || null,
             nazione: document.getElementById('edit-serie-nazione').value.trim() || null,
+            marca: document.getElementById('edit-serie-marca').value.trim() || null,
             n_pezzi: parseInt(document.getElementById('edit-serie-pezzi').value) || null,
             immagineFile: fileInput.files[0] || null
           };
@@ -711,23 +729,28 @@
             alert('⚠️ Il nome della serie è obbligatorio');
             return;
           }
+          if (!formData.marca) {
+            alert('⚠️ La marca è obbligatoria');
+            return;
+          }
 
           try {
             let updateData = {
               nome: formData.nome,
               anno: formData.anno,
               nazione: formData.nazione,
+              marca: formData.marca,
               n_pezzi: formData.n_pezzi
             };
-            
+
             // Se c'è un nuovo file immagine, caricalo
             if (formData.immagineFile) {
               const fileName = `catalog_series/${formData.nome}_${Date.now()}.${formData.immagineFile.name.split('.').pop()}`;
-              
+
               const { data: uploadData, error: uploadError } = await supabase.storage
                 .from('Foto')
                 .upload(fileName, formData.immagineFile);
-                
+
               if (uploadError) {
                 console.error('Errore upload immagine:', uploadError);
                 alert('⚠️ Errore nel caricamento dell\'immagine, procedo senza modificare l\'immagine');
@@ -739,7 +762,7 @@
                 updateData.immagine_copertina = publicUrl;
               }
             }
-            
+
             const { error } = await supabase
               .from('catalog_series')
               .update(updateData)
@@ -749,7 +772,7 @@
 
             alert(`✅ Serie "${formData.nome}" modificata con successo!`);
             hideEditSerieForm();
-            
+
             // Se il manager è aperto, aggiorna la lista
             if (!document.getElementById('catalog-manager').classList.contains('hidden')) {
               await loadCatalogSeries();

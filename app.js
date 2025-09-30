@@ -71,7 +71,7 @@ async function loadCollection() {
     serieDiv.innerHTML = `
       <h2>${serie.nome} (${serie.anno})</h2>
       <p><b>Nazione:</b> ${serie.nazione}</p>
-      <p><b>Oggetti previsti:</b> ${serie.n_pezzi}</p>
+      <p><b>Numero pezzi:</b> ${serie.n_pezzi}</p>
       <div class="items" id="items-${serie.id}">
         <div class="spinner"></div>
       </div>
@@ -133,10 +133,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const anno = document.getElementById("anno").value;
       const n_pezzi = document.getElementById("n_pezzi").value;
       const nazione = document.getElementById("nazione").value;
+      const marca = document.getElementById("marca").value;
 
       const { error } = await supabase
         .from("series")
-        .insert([{ nome, anno, n_pezzi, nazione }]);
+        .insert([{ nome, anno, n_pezzi, nazione, marca }]);
 
       if (error) alert("❌ Errore inserimento serie: " + error.message);
       else {
