@@ -194,6 +194,10 @@ function displayFilteredSeries() {
   // Ordinamento
   filteredSeries.sort((a, b) => {
     switch (currentSort) {
+      case "anno-cres":
+        return (a.anno || 0) - (b.anno || 0);
+      case "anno-desc":
+        return (b.anno || 0) - (a.anno || 0);
       case "anno":
         return b.anno - a.anno;
       case "nazione":
@@ -216,9 +220,14 @@ function displayFilteredSeries() {
     return;
   }
   
-  seriesList.innerHTML = filteredSeries.map((serie, index) => `
+  // Tasto indietro in alto a sinistra
+  let backBtnHtml = '';
+  if (window.currentBrandFilter) {
+    backBtnHtml = `<div><button id=\"back-to-brands\" class=\"back-btn static-back-btn\" onclick=\"showBrandShowcase()\"><span class=\"back-arrow\">&#8592;</span> Marche</button></div>`;
+  }
+  seriesList.innerHTML = backBtnHtml + filteredSeries.map((serie, index) => `
     <div class="serie fade-in" style="animation-delay: ${0.1 * index}s;">
-      <div onclick="window.location.href='./serie.html?id=${serie.id}'" style="cursor: pointer;">
+  <div onclick="window.sessionStorage.setItem('lastBrand', JSON.stringify('${window.currentBrandFilter || ''}')); window.location.href='./serie.html?id=${serie.id}'" style="cursor: pointer;">
         <h2>${serie.nome} (${serie.anno})</h2>
         <div class="serie-info">
           <p><strong>📍 Nazione:</strong> ${serie.nazione || 'Non specificata'}</p>

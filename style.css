@@ -1,3 +1,42 @@
+/* --- Bottone indietro statico sopra la lista --- */
+.static-back-btn {
+  position: static !important;
+  margin: 0 0 18px 0 !important;
+  left: unset !important;
+  top: unset !important;
+  z-index: 10;
+}
+/* --- Bottone indietro moderno --- */
+.back-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 12px 0 0 12px;
+  z-index: 20;
+  background: #fff;
+  color: #3a86ff;
+  border: 2px solid #3a86ff;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 6px 18px 6px 12px;
+  box-shadow: 0 2px 8px rgba(60,60,60,0.10);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.18s, color 0.18s, border 0.18s;
+}
+.back-btn:hover {
+  background: #3a86ff;
+  color: #fff;
+  border-color: #ff6b35;
+}
+.back-arrow {
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-right: 4px;
+}
 /* --- Card Marca Dettagliata --- */
 .brand-card {
   background: linear-gradient(90deg, #ff6b35 0%, #3a86ff 100%);

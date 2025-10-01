@@ -13,37 +13,27 @@
         </header>
 
         <main class="main-content">
-            <!-- Barra di ricerca e filtri -->
+         <!-- Barra di ricerca e filtri (stile collection) -->
         <div class="search-filters">
-        <div class="search-bar">
-            <input type="text" id="search-input" placeholder="🔍 Cerca serie o oggetti..." />
-            <button id="clear-search" class="clear-btn">✕</button>
-        </div>
-        
-        <button id="toggle-filters" class="filter-toggle">🔧 Filtri</button>
-        
-        <div class="filters" id="filters-container" style="display: none;">
-            <select id="filter-year" class="filter-select">
-            <option value="">Tutti gli anni</option>
-            </select>
-            
-            <select id="filter-nation" class="filter-select">
-            <option value="">Tutte le nazioni</option>
-            </select>
-            
-            <select id="filter-completion" class="filter-select">
-            <option value="">Tutte le serie</option>
-            <option value="incomplete">Solo serie incomplete</option>
-            <option value="complete">Solo serie complete</option>
-            </select>
-            
-            <select id="sort-by" class="filter-select">
-            <option value="nome">Ordina per nome</option>
-            <option value="anno">Ordina per anno</option>
-            <option value="nazione">Ordina per nazione</option>
-            <option value="completion">Ordina per completamento</option>
-            </select>
-        </div>
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="🔍 Cerca serie o oggetti..." />
+                <button id="clear-search" class="clear-btn">✕</button>
+            </div>
+            <button id="toggle-filters" class="filter-toggle">🔧 Filtri</button>
+            <div class="filters" id="filters-container" style="display: none;">
+                <select id="filter-year" class="filter-select">
+                <option value="">Tutti gli anni</option>
+                </select>
+                <select id="filter-nation" class="filter-select">
+                <option value="">Tutte le nazioni</option>
+                </select>
+                <select id="sort-by" class="filter-select">
+                <option value="nome">Ordina per nome</option>
+                <option value="nazione">Ordina per nazione</option>
+                    <option value="anno-cres">Ordina per anno crescente</option>
+                    <option value="anno-desc">Ordina per anno decrescente</option>
+                </select>
+            </div>
         </div>
                 
             <div id="catalog-container" class="series-list">
@@ -63,6 +53,10 @@
             <a href="home.html" class="nav-item">
                 <span class="nav-icon">🏠</span>
                 <span class="nav-label">Home</span>
+            </a>
+            <a href="catalog.html" class="nav-item">
+                <span class="nav-icon">📖</span>
+                <span class="nav-label">Catalogo</span>
             </a>
             <a href="collection.html" class="nav-item">
                 <span class="nav-icon">📦</span>

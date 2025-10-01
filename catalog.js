@@ -14,6 +14,7 @@ let allCatalogSeries = []; // Memorizza tutte le serie per il filtraggio
 let currentSearch = "";
 let currentYearFilter = "";
 let currentNationFilter = "";
+let currentCompletionFilter = "";
 let currentSort = "nome";
 
 // =============================================
@@ -81,7 +82,22 @@ function filterByBrand(brand) {
   document.getElementById('brand-showcase').style.display = 'none';
   window.currentBrandFilter = brand;
   displayFilteredCatalog();
+  // Aggiungi freccia indietro
+  const container = document.getElementById('catalog-container');
+  if (container && !document.getElementById('back-to-brands')) {
+    const backDiv = document.createElement('div');
+    backDiv.style.marginBottom = '18px';
+    backDiv.innerHTML = `<button id="back-to-brands" class="back-btn static-back-btn" onclick="window.showBrandShowcaseCatalog()"><span class="back-arrow">&#8592;</span> Marche</button>`;
+    container.prepend(backDiv);
+  }
 }
+
+window.showBrandShowcaseCatalog = function() {
+  window.currentBrandFilter = null;
+  document.getElementById('brand-showcase').style.display = '';
+  document.getElementById('catalog-container').style.display = 'none';
+};
+
 window.filterByBrand = filterByBrand;
     // Mostra le serie filtrate
     displayFilteredCatalog();
@@ -110,9 +126,14 @@ function displayCatalog(series) {
     return;
   }
 
-  container.innerHTML = series.map((serie, index) => `
+  // Se filtrato per marca, aggiungi la freccia in cima
+  let backBtnHtml = '';
+  if (window.currentBrandFilter) {
+    backBtnHtml = `<div><button id="back-to-brands" class="back-btn static-back-btn" onclick="window.showBrandShowcaseCatalog()"><span class="back-arrow">&#8592;</span> Marche</button></div>`;
+  }
+  container.innerHTML = backBtnHtml + series.map((serie, index) => `
     <div class="serie fade-in" style="animation-delay: ${0.1 * index}s;">
-      <div onclick="viewDetails('${serie.id}')" style="cursor: pointer;">
+      <div onclick="window.sessionStorage.setItem('lastBrandCatalog', JSON.stringify('${window.currentBrandFilter || ''}')); viewDetails('${serie.id}')" style="cursor: pointer;">
         <h2>${serie.nome} (${serie.anno || 'N/A'})</h2>
         <div class="serie-info">
           <p><strong>📍 Nazione:</strong> ${serie.nazione || 'Non specificata'}</p>
@@ -257,18 +278,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 function populateFilters() {
   const yearFilter = document.getElementById("filter-year");
   const nationFilter = document.getElementById("filter-nation");
-  
-  if (!yearFilter || !nationFilter) return;
-  
+  const completionFilter = document.getElementById("filter-completion");
+  if (!yearFilter || !nationFilter || !completionFilter) return;
+
   // Anni unici
   const years = [...new Set(allCatalogSeries.map(s => s.anno).filter(Boolean))].sort((a, b) => b - a);
   yearFilter.innerHTML = '<option value="">Tutti gli anni</option>' + 
     years.map(year => `<option value="${year}">${year}</option>`).join("");
-  
+
   // Nazioni uniche
   const nations = [...new Set(allCatalogSeries.map(s => s.nazione).filter(Boolean))].sort();
   nationFilter.innerHTML = '<option value="">Tutte le nazioni</option>' + 
     nations.map(nation => `<option value="${nation}">${nation}</option>`).join("");
+
+  // Completamento (sempre le stesse opzioni)
+  completionFilter.innerHTML = `
+    <option value="">Tutte le serie</option>
+    <option value="incomplete">Solo serie incomplete</option>
+    <option value="complete">Solo serie complete</option>
+  `;
 }
 
 function displayFilteredCatalog() {
@@ -277,7 +305,7 @@ function displayFilteredCatalog() {
   if (window.currentBrandFilter) {
     filteredSeries = filteredSeries.filter(serie => serie.marca === window.currentBrandFilter);
   }
-  
+
   // Filtro per ricerca
   if (currentSearch) {
     filteredSeries = filteredSeries.filter(serie => 
@@ -285,32 +313,50 @@ function displayFilteredCatalog() {
       (serie.nazione && serie.nazione.toLowerCase().includes(currentSearch.toLowerCase()))
     );
   }
-  
+
   // Filtro per anno
   if (currentYearFilter) {
     filteredSeries = filteredSeries.filter(serie => serie.anno == currentYearFilter);
   }
-  
+
   // Filtro per nazione
   if (currentNationFilter) {
     filteredSeries = filteredSeries.filter(serie => serie.nazione === currentNationFilter);
   }
-  
+
+  // Filtro per completamento (solo se la serie ha n_pezzi e n_pezzi_collezionati)
+  if (currentCompletionFilter) {
+    filteredSeries = filteredSeries.filter(serie => {
+      // Se non ci sono dati di completamento, non mostrare nulla
+      if (typeof serie.n_pezzi !== 'number' || typeof serie.n_pezzi_collezionati !== 'number') return false;
+      if (currentCompletionFilter === 'complete') return serie.n_pezzi_collezionati >= serie.n_pezzi;
+      if (currentCompletionFilter === 'incomplete') return serie.n_pezzi_collezionati < serie.n_pezzi;
+      return true;
+    });
+  }
+
   // Ordinamento
   filteredSeries.sort((a, b) => {
     switch (currentSort) {
-      case "anno":
+      case "anno-cres":
+        return (a.anno || 0) - (b.anno || 0);
+      case "anno-desc":
         return (b.anno || 0) - (a.anno || 0);
+      case "anno": // fallback legacy
+        return (a.anno || 0) - (b.anno || 0);
       case "nazione":
         return (a.nazione || "").localeCompare(b.nazione || "");
-      case "n_pezzi":
-        return (b.n_pezzi || 0) - (a.n_pezzi || 0);
+      case "completion":
+        // Complete prima, incomplete dopo
+        const aComplete = (typeof a.n_pezzi === 'number' && typeof a.n_pezzi_collezionati === 'number' && a.n_pezzi_collezionati >= a.n_pezzi);
+        const bComplete = (typeof b.n_pezzi === 'number' && typeof b.n_pezzi_collezionati === 'number' && b.n_pezzi_collezionati >= b.n_pezzi);
+        return (bComplete - aComplete);
       case "nome":
       default:
         return a.nome.localeCompare(b.nome);
     }
   });
-  
+
   displayCatalog(filteredSeries);
 }
 
@@ -326,17 +372,32 @@ function setupFilterListeners() {
   const searchInput = document.getElementById("search-input");
   const yearFilter = document.getElementById("filter-year");
   const nationFilter = document.getElementById("filter-nation");
+  const completionFilter = document.getElementById("filter-completion");
   const sortSelect = document.getElementById("sort-by");
   const resetBtn = document.getElementById("reset-filters");
   const toggleBtn = document.getElementById("toggle-filters");
   const filtersContainer = document.getElementById("filters-container");
+  // Filtro completamento
+  if (completionFilter) {
+    completionFilter.addEventListener("change", (e) => {
+      currentCompletionFilter = e.target.value;
+      displayFilteredCatalog();
+    });
+  }
   
-  // Toggle filtri
+  // Toggle filtri (stile collection)
   if (toggleBtn && filtersContainer) {
     toggleBtn.addEventListener("click", () => {
       const isHidden = filtersContainer.style.display === "none";
-      filtersContainer.style.display = isHidden ? "block" : "none";
-      toggleBtn.textContent = isHidden ? "🔧 Nascondi Filtri" : "🔧 Mostra Filtri";
+      if (isHidden) {
+        filtersContainer.style.display = "grid";
+        toggleBtn.textContent = "🔧 Nascondi Filtri";
+        toggleBtn.classList.add("active");
+      } else {
+        filtersContainer.style.display = "none";
+        toggleBtn.textContent = "🔧 Mostra Filtri";
+        toggleBtn.classList.remove("active");
+      }
     });
   }
   
@@ -378,13 +439,15 @@ function setupFilterListeners() {
       if (searchInput) searchInput.value = "";
       if (yearFilter) yearFilter.value = "";
       if (nationFilter) nationFilter.value = "";
+      if (completionFilter) completionFilter.value = "";
       if (sortSelect) sortSelect.value = "nome";
-      
+
       currentSearch = "";
       currentYearFilter = "";
       currentNationFilter = "";
+      currentCompletionFilter = "";
       currentSort = "nome";
-      
+
       displayFilteredCatalog();
     });
   }

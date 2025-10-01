@@ -59,9 +59,27 @@ async function checkAuth() {
     return;
   }
 
+
   // Aggiorna titolo pagina
   const serieTitle = document.getElementById("serie-title");
   if (serieTitle) serieTitle.textContent = serie.nome;
+
+  // Mostra tasto indietro
+  const backBtn = document.getElementById("back-to-series");
+  if (backBtn) {
+    backBtn.style.display = "block";
+    backBtn.onclick = function() {
+      // Se c'è una marca salvata, torna alla lista serie di quella marca
+      const lastBrand = window.sessionStorage.getItem('lastBrand');
+      if (lastBrand && lastBrand !== '""') {
+        const brand = JSON.parse(lastBrand);
+        window.sessionStorage.removeItem('lastBrand');
+        window.location.href = `collection.html?brand=${encodeURIComponent(brand)}`;
+      } else {
+        window.history.length > 1 ? window.history.back() : window.location.href = "collection.html";
+      }
+    };
+  }
 
   // Mostra controlli della serie
   const serieControls = document.getElementById("serie-controls");

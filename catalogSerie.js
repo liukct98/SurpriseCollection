@@ -83,14 +83,33 @@ function getUrlParams() {
 }
 
 function goBack() {
-  // Prova prima a tornare indietro nella cronologia
+  // Se c'è una marca salvata, torna alla lista serie di quella marca
+  const lastBrand = window.sessionStorage.getItem('lastBrandCatalog');
+  if (lastBrand && lastBrand !== '""') {
+    const brand = JSON.parse(lastBrand);
+    window.sessionStorage.removeItem('lastBrandCatalog');
+    window.location.href = `catalog.html?brand=${encodeURIComponent(brand)}`;
+    return;
+  }
+  // Altrimenti torna indietro normalmente
   if (window.history.length > 1) {
     window.history.back();
   } else {
-    // Se non c'è cronologia, vai alla home
-    window.location.href = 'home.html';
+    window.location.href = 'catalog.html';
   }
 }
+
+// Mostra la freccia indietro se serve
+document.addEventListener('DOMContentLoaded', () => {
+  const backBtn = document.getElementById('back-to-catalog-series');
+  if (backBtn) {
+    const lastBrand = window.sessionStorage.getItem('lastBrandCatalog');
+    if (lastBrand && lastBrand !== '""') {
+      backBtn.style.display = 'inline-flex';
+      backBtn.onclick = goBack;
+    }
+  }
+});
 
 function showAddItemForm() {
   document.getElementById('add-item-form').classList.remove('hidden');
