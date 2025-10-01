@@ -175,6 +175,7 @@ async function addToCollection(catalogSeriesId) {
         nazione: catalogSerie.nazione,
         n_pezzi: catalogSerie.n_pezzi,
         immagine_copertina: catalogSerie.immagine_copertina,
+        marca: catalogSerie.marca || null,
         user_id: currentUser.id,
         catalog_series_id: catalogSeriesId // 🔄 Collegamento per sincronizzazione automatica
       })

@@ -33,11 +33,7 @@ let currentSort = "nome";
 async function loadCollectionSeries() {
   const seriesList = document.getElementById("series-list");
   if (!seriesList) return;
-
-  seriesList.innerHTML = `
-    <div class="spinner"></div>
-    <p style="text-align:center;">Caricamento collezioni...</p>
-  `;
+  // Non mostrare nulla qui, la vetrina marche verrà gestita dopo
 
   console.log("📦 Caricamento serie dal database...");
   const { data: series, error } = await supa
@@ -77,19 +73,56 @@ async function loadCollectionSeries() {
   
   // Popola i filtri
   populateFilters();
-  // Mostra vetrina marche
+  // Mostra solo la vetrina marche all'avvio
   const brandShowcase = document.getElementById('brand-showcase');
-  if (brandShowcase) {
+  if (brandShowcase && seriesList) {
     const brands = [...new Set(allSeries.map(s => s.marca).filter(Boolean))].sort();
-    brandShowcase.innerHTML = brands.map(brand => `<button class="brand-btn" onclick="filterByBrand('${brand}')">${brand}</button>`).join("");
+    brandShowcase.style.display = '';
+    seriesList.innerHTML = '';
+    brandShowcase.innerHTML = brands.map((brand, idx) => {
+      const count = allSeries.filter(s => s.marca === brand).length;
+      return `
+        <div class="serie fade-in" onclick="filterByBrand('${brand}')" style="animation-delay: ${0.1 * idx}s; cursor:pointer;">
+          <div>
+            <h2>${brand}</h2>
+            <div class="serie-info">
+              <p><strong>🎯 Serie nella tua collezione:</strong> ${count}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
   }
-  // Mostra le serie filtrate
-  displayFilteredSeries();
+  // Nascondi le serie all'avvio
+  window.currentBrandFilter = null;
+// fine loadCollectionSeries
 // Filtro per marca
 window.currentBrandFilter = null;
-function filterByBrand(brand) {
+window.filterByBrand = function(brand) {
   window.currentBrandFilter = brand;
+  // Nascondi la vetrina marche, mostra le serie della marca
+  const brandShowcase = document.getElementById('brand-showcase');
+  if (brandShowcase) brandShowcase.style.display = 'none';
   displayFilteredSeries();
+  // Mostra pulsante indietro
+  const seriesList = document.getElementById('series-list');
+  if (seriesList && !document.getElementById('back-to-brands')) {
+    const backBtn = document.createElement('button');
+    backBtn.id = 'back-to-brands';
+    backBtn.className = 'clear-btn';
+    backBtn.innerHTML = '← Marche';
+    backBtn.style.margin = '16px 0 12px 0';
+    backBtn.onclick = showBrandShowcase;
+    seriesList.prepend(backBtn);
+  }
+}
+
+window.showBrandShowcase = function() {
+  window.currentBrandFilter = null;
+  const brandShowcase = document.getElementById('brand-showcase');
+  if (brandShowcase) brandShowcase.style.display = '';
+  const seriesList = document.getElementById('series-list');
+  if (seriesList) seriesList.innerHTML = '';
 }
 
   console.log(`✅ Caricate ${series.length} collezioni`);
@@ -119,11 +152,11 @@ function populateFilters() {
 // FILTRAGGIO E VISUALIZZAZIONE
 // =========================
 function displayFilteredSeries() {
+  let filteredSeries = [...allSeries];
   // Filtro per marca
   if (window.currentBrandFilter) {
     filteredSeries = filteredSeries.filter(serie => serie.marca === window.currentBrandFilter);
   }
-  let filteredSeries = [...allSeries];
   
   // Filtro per ricerca
   if (currentSearch) {
