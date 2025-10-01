@@ -29,7 +29,7 @@ async function checkAdminAccess() {
     }
     
     // Lista degli admin autorizzati
-    const adminEmails = ['liukct@gmail.com', 'marcellink892@gmail.com'];
+    const adminEmails = ['liukct@gmail.com', 'marcellink892@gmail.com', 'settegiallo@libero.it', 'antonio.marchi61@gmail.com'];
     
     if (adminEmails.includes(user.email) || adminEmails.includes(user.email.trim())) {
       console.log('✅ Admin riconosciuto:', user.email);

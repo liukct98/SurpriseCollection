@@ -160,6 +160,22 @@ function displayCatalog(series) {
 }
 
 async function addToCollection(catalogSeriesId) {
+    // DEBUG: stampa info utente auth e id users
+    console.log('DEBUG Supabase Auth:', currentUser);
+
+    // 2. Recupera l'id reale dalla tabella users tramite email
+    const { data: userRow, error: userError } = await supabase
+      .from('users')
+      .select('id, mail')
+      .eq('mail', currentUser.email)
+      .single();
+    if (userError || !userRow) {
+      alert('Utente non trovato nella tabella users!');
+      console.log('DEBUG: userError', userError, 'userRow', userRow, 'currentUser.email', currentUser.email);
+      return;
+    }
+    const realUserId = userRow.id;
+    console.log('DEBUG: user_id usato per insert:', realUserId, '| email auth:', currentUser.email, '| mail users:', userRow.mail);
   try {
     console.log("➕ Aggiunta serie alla collezione...");
 
@@ -172,12 +188,25 @@ async function addToCollection(catalogSeriesId) {
 
     if (catalogError) throw catalogError;
 
-    // 2. Controlla se la serie è già nella collezione dell'utente
+
+    // 2. Recupera l'id reale dalla tabella users tramite email
+    const { data: userRow, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('mail', currentUser.email)
+      .single();
+    if (userError || !userRow) {
+      alert('Utente non trovato nella tabella users!');
+      return;
+    }
+    const realUserId = userRow.id;
+
+    // 3. Controlla se la serie è già nella collezione dell'utente
     const { data: existingSerie, error: checkError } = await supabase
       .from("series")
       .select("id")
       .eq("catalog_series_id", catalogSeriesId)
-      .eq("user_id", currentUser.id)
+      .eq("user_id", realUserId)
       .single();
 
     if (checkError && checkError.code !== 'PGRST116') throw checkError;
@@ -187,7 +216,7 @@ async function addToCollection(catalogSeriesId) {
       return;
     }
 
-    // 3. Aggiungi la serie alla collezione personale CON riferimento al catalogo
+    // 4. Aggiungi la serie alla collezione personale CON riferimento al catalogo
     const { data: newSerie, error: serieError } = await supabase
       .from("series")
       .insert({
@@ -197,7 +226,7 @@ async function addToCollection(catalogSeriesId) {
         n_pezzi: catalogSerie.n_pezzi,
         immagine_copertina: catalogSerie.immagine_copertina,
         marca: catalogSerie.marca || null,
-        user_id: currentUser.id,
+        user_id: realUserId,
         catalog_series_id: catalogSeriesId // 🔄 Collegamento per sincronizzazione automatica
       })
       .select()
@@ -220,17 +249,17 @@ async function addToCollection(catalogSeriesId) {
     if (itemsError) throw itemsError;
 
     if (catalogItems && catalogItems.length > 0) {
-      const userItems = catalogItems.map(item => ({
-  numero: String(item.numero),
-        nome: item.nome,
-        accessori: item.accessori,
-  immagine_riferimento: item.immagine_riferimento,
-        serie_id: newSerie.id,
-        user_id: currentUser.id,
-        catalog_item_id: item.id, // 🔄 Collegamento per sincronizzazione automatica
-        mancante: true,
-        wishlist: false
-      }));
+  const userItems = catalogItems.map(item => ({
+    numero: String(item.numero),
+    nome: item.nome,
+    accessori: item.accessori,
+    immagine_riferimento: item.immagine_riferimento,
+    serie_id: newSerie.id,
+    user_id: realUserId, // Usa sempre l'id reale dell'utente
+    catalog_item_id: item.id, // 🔄 Collegamento per sincronizzazione automatica
+    mancante: true,
+    wishlist: false
+  }));
 
       const { error: insertError } = await supabase
         .from("item")
