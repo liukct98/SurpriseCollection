@@ -24,7 +24,6 @@ function getSerieIdFromUrl() {
 async function checkAuth() {
   const seriesList = document.getElementById("items-list");
   if (seriesList) seriesList.innerHTML = `<p style='color:blue;'>[DEBUG] checkAuth chiamata</p>`;
-  console.log("[DEBUG] checkAuth chiamata");
   const {
     data: { session },
   } = await supa.auth.getSession();
@@ -89,12 +88,10 @@ async function checkAuth() {
   // const addLink = document.querySelector('a[href="./addItem.html"]');
   // if (addLink) {
   //   addLink.href = `./addItem.html?serie_id=${serieId}`;
-  //   console.log("🔗 Link Aggiungi aggiornato:", addLink.href);
   // } else {
   //   console.error("❌ Link ./addItem.html non trovato!");
   // }
 
-  console.log("✅ Serie caricata:", serie);
   // Carica la collezione dopo aver caricato la serie
   loadCollection();
   return serie;
@@ -147,21 +144,36 @@ async function loadCollection() {
       .eq("catalog_series_id", catalogSeriesId)
       .order("numero", { ascending: true });
 
-    console.log("[DEBUG] catalogItems:", catalogItems);
     if (catError) {
       seriesList.innerHTML = `<p style='color:red;'>❌ Errore nel caricamento oggetti catalogo: ${catError.message}</p>`;
       return;
     }
 
-    // 2. Recupera tutti gli item posseduti dall'utente per questa serie
-    const { data: userItems, error: userError } = await supa
+    // 2. Recupera l'id reale dalla tabella users tramite email
+    const { data: { user: authUser } } = await supa.auth.getUser();
+    if (!authUser) {
+      seriesList.innerHTML = `<p style='color:red;'>❌ Utente non autenticato!`;
+      return;
+    }
+    const { data: userRow, error: userError } = await supa
+      .from('users')
+      .select('id, mail')
+      .eq('mail', authUser.email)
+      .single();
+    if (userError || !userRow) {
+      seriesList.innerHTML = `<p style='color:red;'>❌ Errore nel recupero utente: ${userError?.message || 'Utente non trovato'}`;
+      return;
+    }
+    const realUserId = userRow.id;
+
+    // 3. Recupera tutti gli item posseduti dall'utente per questa serie
+    const { data: userItems, error: itemsError } = await supa
       .from("item")
       .select("*")
       .eq("serie_id", serieId)
-      .eq("user_id", currentUser.id);
-
-    if (userError) {
-      seriesList.innerHTML = `<p style='color:red;'>❌ Errore nel caricamento oggetti utente: ${userError.message}</p>`;
+      .eq("user_id", realUserId);
+    if (itemsError) {
+      seriesList.innerHTML = `<p style='color:red;'>❌ Errore nel caricamento oggetti utente: ${itemsError.message}</p>`;
       return;
     }
 
@@ -173,7 +185,6 @@ async function loadCollection() {
 
     seriesList.innerHTML = catalogItems
       .map((cat, index) => {
-        console.log(`[DEBUG] Rendering item #${index}:`, cat);
         const userItem = userItemsByCatalogId[cat.id];
         const isPresent = userItem && !userItem.mancante;
         const isInWishlist = userItem && userItem.wishlist;
@@ -190,7 +201,7 @@ async function loadCollection() {
                 ${
                   !isPresent
                     ? `<label class="wishlist-checkbox-container">
-                        <input type="checkbox" class="wishlist-checkbox" data-catalog-item-id="${cat.id}" data-item-name="${cat.nome || ""}" data-item-number="${cat.numero || ""}" ${isInWishlist ? "checked" : ""}>
+                        <input type="checkbox" class="wishlist-checkbox" data-item-id="${userItem ? userItem.id : ''}" data-catalog-item-id="${cat.id}" data-item-name="${cat.nome || ""}" data-item-number="${cat.numero || ""}" ${isInWishlist ? "checked" : ""}>
                         <span class="wishlist-checkmark">&#x1F49D;</span>
                         <span class="wishlist-text">${isInWishlist ? "In Wishlist" : "Wishlist"}</span>
                       </label>`
@@ -212,12 +223,9 @@ async function loadCollection() {
 
     // Dopo il rendering, attiva i checkbox
     setupItemCheckboxes();
-
-    // Dopo il rendering, attiva i checkbox
-    setupItemCheckboxes();
-
-    // ...resto del codice per lightbox, setupItemActionButtons, ecc...
-    // (puoi lasciare invariato il resto della funzione)
+    // Dopo il rendering, attiva i checkbox wishlist
+    console.log('[DEBUG] Numero di wishlist-checkbox:', document.querySelectorAll('.wishlist-checkbox').length);
+    setupWishlistCheckboxes();
   } catch (error) {
     console.error("Errore durante il caricamento della collezione:", error);
   }
@@ -238,7 +246,6 @@ async function deleteSerie() {
   const confirmDelete = confirm("[ATTENZIONE] Sei sicuro di voler eliminare questa serie?\n\nATTENZIONE: Verranno eliminati anche tutti gli oggetti al suo interno!");
   if (!confirmDelete) return;
 
-  console.log("Eliminazione serie:", serieId);
 
   try {
     // elimina item
@@ -291,7 +298,17 @@ function setupItemCheckboxes() {
         // Se non esiste ancora l'item, crealo
         if (!itemId || itemId === "") {
           const serieId = getSerieIdFromUrl();
-          const currentUser = await getCurrentUserAsync();
+          // Recupera l'id reale dalla tabella users tramite email
+          const { data: { user: authUser } } = await supa.auth.getUser();
+          if (!authUser) throw new Error("Utente non autenticato");
+          const { data: userRow, error: userError } = await supa
+            .from('users')
+            .select('id, mail')
+            .eq('mail', authUser.email)
+            .single();
+          if (userError || !userRow) throw new Error("Utente non trovato nella tabella users!");
+          const realUserId = userRow.id;
+
           // Recupera i dati dal DOM (nome, numero, accessori, immagine)
           const itemDiv = checkbox.closest('.item');
           const nome = itemDiv.querySelector('h3')?.textContent?.split(' (#')[0] || '';
@@ -300,7 +317,7 @@ function setupItemCheckboxes() {
           const img = itemDiv.querySelector('img')?.getAttribute('src') || '';
 
           const { data: newItem, error: insertError } = await supa.from("item").insert({
-            user_id: currentUser.id,
+            user_id: realUserId,
             serie_id: serieId,
             catalog_item_id: catalogItemId,
             mancante: !isPresent,
@@ -314,6 +331,19 @@ function setupItemCheckboxes() {
           itemId = newItem.id;
           checkbox.dataset.itemId = itemId;
         } else {
+          // DEBUG: mostra itemId prima di ogni update
+          const { data: itemRow, error: itemFetchError } = await supa.from("item").select("*").eq("id", itemId).single();
+          if (!itemRow) {
+            console.warn('[DEBUG] Nessuna riga trovata nella tabella item per questo itemId:', itemId);
+          } else {
+            const { data: { user: authUser } } = await supa.auth.getUser();
+            const { data: userRow, error: userError } = await supa
+              .from('users')
+              .select('id, mail')
+              .eq('mail', authUser.email)
+              .single();
+            const realUserId = userRow?.id;
+          }
           const { error } = await supa.from("item").update({ mancante: !isPresent }).eq("id", itemId);
           if (error) throw error;
         }
@@ -373,24 +403,35 @@ function setupSingleWishlistCheckbox(checkbox) {
     const itemId = checkbox.dataset.itemId;
     const itemName = checkbox.dataset.itemName;
     const isInWishlist = checkbox.checked;
+    console.log('[DEBUG] Click wishlist:', { itemId, itemName, isInWishlist });
 
     try {
-      const currentUser = await getCurrentUserAsync();
-      if (!currentUser) throw new Error("Utente non autenticato");
+      // Recupera l'id reale dalla tabella users tramite email
+      const { data: { user: authUser } } = await supa.auth.getUser();
+      if (!authUser) throw new Error("Utente non autenticato");
+      const { data: userRow, error: userError } = await supa
+        .from('users')
+        .select('id, mail')
+        .eq('mail', authUser.email)
+        .single();
+      if (userError || !userRow) throw new Error("Utente non trovato nella tabella users!");
+      const realUserId = userRow.id;
 
       if (isInWishlist) {
         await supa.from("item").update({ wishlist: true }).eq("id", itemId);
-        await supa.from("wishlist").insert({
-          user_id: currentUser.id,
+        const { error: wishlistInsertError } = await supa.from("wishlist").insert({
+          user_id: realUserId,
           item_id: itemId,
           priority: "media",
           notes: null,
           estimated_price: null,
           purchase_url: null,
         });
+        if (wishlistInsertError) console.error("Errore insert wishlist:", wishlistInsertError);
       } else {
         await supa.from("item").update({ wishlist: false }).eq("id", itemId);
-        await supa.from("wishlist").delete().eq("user_id", currentUser.id).eq("item_id", itemId);
+        const { error: wishlistDeleteError } = await supa.from("wishlist").delete().eq("user_id", realUserId).eq("item_id", itemId);
+        if (wishlistDeleteError) console.error("Errore delete wishlist:", wishlistDeleteError);
       }
 
       if (wishlistText) {

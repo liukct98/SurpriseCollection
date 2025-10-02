@@ -64,13 +64,23 @@ async function loadWishlist() {
       <p style="text-align:center;">Caricamento wishlist...</p>
     `;
 
+    // Recupera l'id reale dalla tabella users tramite email
+    const { data: { user: authUser } } = await supa.auth.getUser();
+    if (!authUser) throw new Error("Utente non autenticato");
+    const { data: userRow, error: userError } = await supa
+      .from('users')
+      .select('id, mail')
+      .eq('mail', authUser.email)
+      .single();
+    if (userError || !userRow) throw new Error("Utente non trovato nella tabella users!");
+    const realUserId = userRow.id;
+
     // Carica le serie dell'utente
     const { data: series, error: seriesError } = await supa
       .from("series")
       .select("*")
-      .eq("user_id", currentUser.id)
+      .eq("user_id", realUserId)
       .order("nome");
-    
     if (seriesError) throw seriesError;
     allSeries = series || [];
 
@@ -78,23 +88,20 @@ async function loadWishlist() {
     const { data: items, error: itemsError } = await supa
       .from("item")
       .select("*")
-      .eq("user_id", currentUser.id)
+      .eq("user_id", realUserId)
       .eq("mancante", true)
       .eq("wishlist", true);
-    
     if (itemsError) throw itemsError;
 
     // Carica i dettagli aggiuntivi dalla tabella wishlist
     const itemIds = items.map(item => item.id);
     let wishlistDetails = [];
-    
     if (itemIds.length > 0) {
       const { data: details, error: detailsError } = await supa
         .from("wishlist")
         .select("*")
-        .eq("user_id", currentUser.id)
+        .eq("user_id", realUserId)
         .in("item_id", itemIds);
-      
       if (detailsError) {
         console.error('Errore caricamento dettagli wishlist:', detailsError);
       } else {
@@ -292,9 +299,20 @@ async function updateWishlistItem(formData) {
       throw new Error('Oggetto non trovato nella wishlist');
     }
 
+    // Recupera l'id reale dalla tabella users tramite email
+    const { data: { user: authUser } } = await supa.auth.getUser();
+    if (!authUser) throw new Error("Utente non autenticato");
+    const { data: userRow, error: userError } = await supa
+      .from('users')
+      .select('id, mail')
+      .eq('mail', authUser.email)
+      .single();
+    if (userError || !userRow) throw new Error("Utente non trovato nella tabella users!");
+    const realUserId = userRow.id;
+
     console.log('🔧 Debug updateWishlistItem:', {
       itemId: itemId,
-      currentUserId: currentUser.id,
+      realUserId: realUserId,
       itemFound: !!item,
       formData: {
         priority: formData.get("priority"),
@@ -316,16 +334,16 @@ async function updateWishlistItem(formData) {
     const notes = formData.get("description") || null;
     const estimatedPrice = formData.get("price") ? parseFloat(formData.get("price")) : null;
     const purchaseUrl = formData.get("url") || null;
-    
+
     console.log('🔧 Valori per update:', {
       priority,
       notes,
       estimatedPrice,
       purchaseUrl,
-      user_id: currentUser.id,
+      user_id: realUserId,
       item_id: itemId
     });
-    
+
     const { data, error, count } = await supa
       .from('wishlist')
       .update({
@@ -334,10 +352,10 @@ async function updateWishlistItem(formData) {
         estimated_price: estimatedPrice,
         purchase_url: purchaseUrl
       })
-      .eq('user_id', currentUser.id)
+      .eq('user_id', realUserId)
       .eq('item_id', itemId)
-      .select(); // Aggiungiamo select per vedere cosa viene aggiornato
-    
+      .select();
+
     console.log('🔧 Risultato update:', { data, error, count });
     
     if (error) {
@@ -384,11 +402,21 @@ async function markAsAcquired(itemId) {
     
     if (itemError) throw itemError;
     
+    // Recupera l'id reale dalla tabella users tramite email
+    const { data: { user: authUser } } = await supa.auth.getUser();
+    if (!authUser) throw new Error("Utente non autenticato");
+    const { data: userRow, error: userError } = await supa
+      .from('users')
+      .select('id, mail')
+      .eq('mail', authUser.email)
+      .single();
+    if (userError || !userRow) throw new Error("Utente non trovato nella tabella users!");
+    const realUserId = userRow.id;
     // Rimuovi dalla tabella wishlist
     const { error: wishlistError } = await supa
       .from('wishlist')
       .delete()
-      .eq('user_id', currentUser.id)
+      .eq('user_id', realUserId)
       .eq('item_id', itemId);
     
     if (wishlistError) {
