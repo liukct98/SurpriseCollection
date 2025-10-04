@@ -16,6 +16,7 @@ if (typeof supabase === 'undefined') {
 }
 
 const supa = supabase.createClient(supabaseUrl, supabaseKey);
+window.supabase = supa;
 
 // =========================
 // VARIABILI GLOBALI

@@ -16,6 +16,7 @@ if (typeof window.supabase === 'undefined') {
 }
 
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+window.supabase = supabase;
 
 // =========================
 // VERIFICA SESSIONE

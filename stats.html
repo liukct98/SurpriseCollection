@@ -18,7 +18,25 @@
   <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
 </head>
 <body>
-  <header>Catalogo Collezioni</header>
+  
+     <!-- Navbar Moderna con icona profilo -->
+    <nav class="navbar">
+        <div class="nav-container">
+        <div class="nav-brand">
+            <span class="nav-logo">🎁</span>
+            <span class="nav-title">Catalogando</span>
+        </div>
+        <div class="nav-menu">
+            <button class="nav-profile" onclick="location.href='profile.html'" title="Il mio Profilo">
+            <div class="profile-avatar">
+                <span id="user-initials">?</span>
+            </div>
+            <span class="profile-name" id="nav-user-name">Utente</span>
+            </button>
+        </div>
+        </div>
+    </nav>
+
   <div class="container" style="padding-bottom:90px;">
     <h1>📊 Statistiche della Collezione</h1>
     
@@ -112,7 +130,7 @@
       <span class="label">Collezione</span>
       <span class="ripple"></span>
     </a>
-    <a href="stats.html" class="nav-item active">
+    <a href="catalog.html" class="nav-item active">
       <span class="icon">📖</span>
       <span class="label">Catalogo</span>
       <span class="ripple"></span>
@@ -121,6 +139,7 @@
   
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="stats.js?v=3.0&t=20250912&bust=cache" defer></script>
+  <script src="navbar.js?v=3.0&t=20250912"></script>
 
   <script>
     if ('serviceWorker' in navigator) {
