@@ -253,8 +253,7 @@ function displayFilteredSeries() {
         </div>
       </div>
       <div class="serie-actions" onclick="event.stopPropagation();">
-        <button class="btn-action btn-edit" data-action="edit" data-id="${serie.id}">✏️ Modifica</button>
-        <button class="btn-action btn-delete" data-action="delete" data-id="${serie.id}" data-name="${serie.nome}">🗑️ Elimina</button>
+  <button class="btn-action btn-delete" data-action="delete" data-id="${serie.id}" data-name="${serie.nome}" style="color:#111;">🗑️ Elimina</button>
       </div>
     </div>
   `).join("");

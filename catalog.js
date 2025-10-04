@@ -159,7 +159,6 @@ function displayCatalog(series) {
       </div>
       <div class="serie-actions" onclick="event.stopPropagation();">
         <button onclick="addToCollection('${serie.id}')" class="btn-primary">➕ Aggiungi alla Collezione</button>
-        <button onclick="viewDetails('${serie.id}')" class="btn-secondary">👁️ Dettagli</button>
       </div>
     </div>
   `).join('');
