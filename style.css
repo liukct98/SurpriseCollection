@@ -1,3 +1,73 @@
+/* =========================
+   NOTIFICHE NAVBAR
+========================= */
+.nav-notifiche {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 6px 12px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  font-size: 1em;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+}
+.nav-notifiche:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+.nav-notifiche:active {
+  background: #f5f5f5;
+}
+.notifiche-icon {
+  font-size: 1.3em;
+  line-height: 1;
+  display: inline-block;
+  color: #FF6B35;
+  transition: color 0.2s;
+}
+.nav-notifiche:hover .notifiche-icon {
+  color: #d35400;
+}
+.notifiche-badge {
+  display: none;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #e74c3c;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.8em;
+  padding: 2px 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  font-weight: 600;
+}
+.notifiche-icon {
+  font-size: 1.45em;
+  line-height: 1;
+  display: inline-block;
+  color: #FF6B35;
+  transition: color 0.2s;
+}
+.notifiche-badge {
+  display: none;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #e74c3c;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.8em;
+  padding: 2px 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  font-weight: 600;
+}
 /* --- Bottone indietro statico sopra la lista --- */
 .static-back-btn {
   position: static !important;
