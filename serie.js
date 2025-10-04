@@ -189,30 +189,36 @@ async function loadCollection() {
         const userItem = userItemsByCatalogId[cat.id];
         const isPresent = userItem && !userItem.mancante;
         const isInWishlist = userItem && userItem.wishlist;
+        // Campo doppione: valore attuale o 0 se non presente
+        const doppioneValue = userItem && typeof userItem.doppione === 'number' ? userItem.doppione : 0;
         return `
           <div class="item fade-in ${isPresent ? "item-present" : "item-missing"}" style="animation-delay:${0.1 * index}s;">
             <div class="item-header">
               <h3>${cat.nome || ""} (#${cat.numero || ""})</h3>
-              <div class="item-status">
-                <label class="checkbox-container">
-                  <input type="checkbox" class="item-checkbox" data-item-id="${userItem ? userItem.id : ''}" data-catalog-item-id="${cat.id}" ${isPresent ? "checked" : ""}>
-                  <span class="checkmark"></span>
-                  <span class="status-text">Presente</span>
-                </label>
-                ${
-                  !isPresent
-                    ? `<label class="wishlist-checkbox-container">
-                        <input type="checkbox" class="wishlist-checkbox" data-item-id="${userItem ? userItem.id : ''}" data-catalog-item-id="${cat.id}" data-item-name="${cat.nome || ""}" data-item-number="${cat.numero || ""}" ${isInWishlist ? "checked" : ""}>
-                        <span class="wishlist-checkmark">&#x1F49D;</span>
-                        <span class="wishlist-text">${isInWishlist ? "In Wishlist" : "Wishlist"}</span>
-                      </label>`
-                    : ""
-                }
-              </div>
+            </div>
+            <div class="item-status" style="margin-bottom:8px;">
+              <label class="checkbox-container">
+                <input type="checkbox" class="item-checkbox" data-item-id="${userItem ? userItem.id : ''}" data-catalog-item-id="${cat.id}" ${isPresent ? "checked" : ""}>
+                <span class="checkmark"></span>
+                <span class="status-text">Presente</span>
+              </label>
+              ${
+                !isPresent
+                  ? `<label class="wishlist-checkbox-container">
+                      <input type="checkbox" class="wishlist-checkbox" data-item-id="${userItem ? userItem.id : ''}" data-catalog-item-id="${cat.id}" data-item-name="${cat.nome || ""}" data-item-number="${cat.numero || ""}" ${isInWishlist ? "checked" : ""}>
+                      <span class="wishlist-checkmark">&#x1F49D;</span>
+                      <span class="wishlist-text">${isInWishlist ? "In Wishlist" : "Wishlist"}</span>
+                    </label>`
+                  : ""
+              }
             </div>
             <p>${cat.accessori || ""}</p>
             ${(cat.valore && cat.valore !== "") ? `<p>Valore: ${cat.valore}</p>` : ""}
             ${cat.immagine_riferimento ? `<img src="${cat.immagine_riferimento}" alt="${cat.nome || ""}" class="item-foto" style="cursor:pointer;" data-img="${cat.immagine_riferimento}">` : ""}
+            <div class="item-doppione-field" style="margin:8px 0;">
+              <label for="doppione-${cat.id}" style="font-size:0.95em;">Doppione:</label>
+              <input type="number" min="0" class="doppione-input" id="doppione-${cat.id}" data-item-id="${userItem ? userItem.id : ''}" data-catalog-item-id="${cat.id}" value="${doppioneValue}" style="width:60px; margin-left:8px;">
+            </div>
             <div class="item-actions">
               <button class="btn-item-action btn-item-edit" data-action="edit-item" data-id="${userItem ? userItem.id : ''}">Modifica</button>
               <button class="btn-item-action btn-item-delete" data-action="delete-item" data-id="${userItem ? userItem.id : ''}" data-name="${cat.nome || ""}">Elimina</button>
@@ -222,11 +228,39 @@ async function loadCollection() {
       })
       .join("");
 
-    // Dopo il rendering, attiva i checkbox
-    setupItemCheckboxes();
-    // Dopo il rendering, attiva i checkbox wishlist
-    console.log('[DEBUG] Numero di wishlist-checkbox:', document.querySelectorAll('.wishlist-checkbox').length);
-    setupWishlistCheckboxes();
+  // Dopo il rendering, attiva i checkbox
+  setupItemCheckboxes();
+  // Dopo il rendering, attiva i checkbox wishlist
+  console.log('[DEBUG] Numero di wishlist-checkbox:', document.querySelectorAll('.wishlist-checkbox').length);
+  setupWishlistCheckboxes();
+  // Dopo il rendering, attiva i doppione input
+  setupDoppioneInputs();
+// =========================
+// SETUP DOPPIONE INPUTS
+// =========================
+function setupDoppioneInputs() {
+  document.querySelectorAll('.doppione-input').forEach(input => {
+    input.addEventListener('change', async (e) => {
+      const itemId = input.dataset.itemId;
+      const catalogItemId = input.dataset.catalogItemId;
+      const value = parseInt(input.value, 10) || 0;
+      if (!itemId) {
+        alert('Devi prima marcare come "Presente" l\'oggetto per poter salvare i doppioni!');
+        input.value = 0;
+        return;
+      }
+      try {
+        const { error } = await supa.from('item').update({ doppione: value }).eq('id', itemId);
+        if (error) throw error;
+        // Feedback visivo
+        input.style.background = '#d4ffd4';
+        setTimeout(() => { input.style.background = ''; }, 600);
+      } catch (err) {
+        alert('Errore salvataggio doppioni: ' + err.message);
+      }
+    });
+  });
+}
   } catch (error) {
     console.error("Errore durante il caricamento della collezione:", error);
   }
@@ -290,12 +324,18 @@ function setupItemActionButtons() {
 function setupItemCheckboxes() {
   document.querySelectorAll(".item-checkbox").forEach((checkbox) => {
     checkbox.addEventListener("change", async () => {
+
       let itemId = checkbox.dataset.itemId;
       const catalogItemId = checkbox.dataset.catalogItemId;
       const isPresent = checkbox.checked;
       const statusText = checkbox.closest(".item-header").querySelector(".status-text");
 
       try {
+        // Recupera il valore doppione dal relativo input
+        const itemDivCheckbox = checkbox.closest('.item');
+        const doppioneInput = itemDivCheckbox.querySelector('.doppione-input');
+        const doppioneValue = doppioneInput ? parseInt(doppioneInput.value, 10) || 0 : 0;
+
         // Se non esiste ancora l'item, crealo
         if (!itemId || itemId === "") {
           const serieId = getSerieIdFromUrl();
@@ -311,11 +351,10 @@ function setupItemCheckboxes() {
           const realUserId = userRow.id;
 
           // Recupera i dati dal DOM (nome, numero, accessori, immagine)
-          const itemDiv = checkbox.closest('.item');
-          const nome = itemDiv.querySelector('h3')?.textContent?.split(' (#')[0] || '';
-          const numero = nome && itemDiv.querySelector('h3')?.textContent?.match(/#(\d+)/)?.[1] || '';
-          const accessori = itemDiv.querySelector('p')?.textContent || '';
-          const img = itemDiv.querySelector('img')?.getAttribute('src') || '';
+          const nome = itemDivCheckbox.querySelector('h3')?.textContent?.split(' (#')[0] || '';
+          const numero = nome && itemDivCheckbox.querySelector('h3')?.textContent?.match(/#(\d+)/)?.[1] || '';
+          const accessori = itemDivCheckbox.querySelector('p')?.textContent || '';
+          const img = itemDivCheckbox.querySelector('img')?.getAttribute('src') || '';
 
           const { data: newItem, error: insertError } = await supa.from("item").insert({
             user_id: realUserId,
@@ -326,11 +365,13 @@ function setupItemCheckboxes() {
             nome: nome,
             numero: numero,
             accessori: accessori,
-            immagine_riferimento: img
+            immagine_riferimento: img,
+            doppione: doppioneValue
           }).select().single();
           if (insertError) throw insertError;
           itemId = newItem.id;
           checkbox.dataset.itemId = itemId;
+          if (doppioneInput) doppioneInput.dataset.itemId = itemId;
         } else {
           // DEBUG: mostra itemId prima di ogni update
           const { data: itemRow, error: itemFetchError } = await supa.from("item").select("*").eq("id", itemId).single();
@@ -345,7 +386,7 @@ function setupItemCheckboxes() {
               .single();
             const realUserId = userRow?.id;
           }
-          const { error } = await supa.from("item").update({ mancante: !isPresent }).eq("id", itemId);
+          const { error } = await supa.from("item").update({ mancante: !isPresent, doppione: doppioneValue }).eq("id", itemId);
           if (error) throw error;
         }
 
