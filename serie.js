@@ -328,7 +328,9 @@ function setupItemCheckboxes() {
       let itemId = checkbox.dataset.itemId;
       const catalogItemId = checkbox.dataset.catalogItemId;
       const isPresent = checkbox.checked;
-      const statusText = checkbox.closest(".item-header").querySelector(".status-text");
+  // Cerca .status-text all'interno della .item
+  const itemDivCheckbox = checkbox.closest('.item');
+  const statusText = itemDivCheckbox ? itemDivCheckbox.querySelector('.status-text') : null;
 
       try {
         // Recupera il valore doppione dal relativo input
