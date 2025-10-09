@@ -58,16 +58,23 @@
       if (!notifiche || notifiche.length === 0) {
         html += `<div style='padding:18px;text-align:center;color:#888;'>Nessuna notifica</div>`;
       } else {
-        html += notifiche.map(n => `
-          <div style='padding:12px 16px; border-bottom:1px solid #f3f3f3; display:flex; align-items:flex-start; gap:8px;'>
+        html += notifiche.map(n => {
+          const isFriendRequest = n.titolo && n.titolo.toLowerCase().includes('amicizia');
+          const clickHandler = isFriendRequest ? `onclick="window.location.href='friendRequests.html'" style='cursor:pointer;'` : '';
+          const bgColor = isFriendRequest ? 'background:linear-gradient(to right, #f0f4ff, #ffffff);border-left:4px solid #667eea;' : '';
+          
+          return `
+          <div ${clickHandler} style='padding:12px 16px; border-bottom:1px solid #f3f3f3; display:flex; align-items:flex-start; gap:8px;${bgColor}'>
             <div style='flex:1;'>
               <div style='font-weight:500;'>${n.titolo || 'Notifica'}</div>
               <div style='font-size:0.97em;color:#444;margin-top:2px;'>${n.messaggio}</div>
               <div style='font-size:0.85em;color:#aaa;margin-top:4px;'>${new Date(n.data).toLocaleString('it-IT')}</div>
+              ${isFriendRequest ? `<div style='font-size:0.8em;color:#667eea;margin-top:4px;'>👉 Clicca per gestire</div>` : ''}
             </div>
-            <button onclick="archiviaNotifica('${n.id}')" style='background:none;border:none;color:#e74c3c;font-size:1.1em;cursor:pointer;' title='Archivia'>&#128465;</button>
+            <button onclick="event.stopPropagation();archiviaNotifica('${n.id}')" style='background:none;border:none;color:#e74c3c;font-size:1.1em;cursor:pointer;' title='Archivia'>&#128465;</button>
           </div>
-        `).join('');
+        `;
+        }).join('');
       }
       popup.innerHTML = html;
       popup.style.display = 'block';

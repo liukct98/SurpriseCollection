@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Richieste di Amicizia</title>
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Supabase deve essere caricato per primo -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="navbar.js"></script>
+  <script src="app.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container" style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="flex:1; display: flex; align-items: left;">
+        <button class="nav-back" onclick="history.back()" title="Indietro">
+          <span class="back-arrow">←</span>
+        </button>
+      </div>
+      <div style="flex:2; display: flex; justify-content: center; align-items: center;">
+        <div class="nav-brand">
+          <span class="nav-logo">👥</span>
+          <span class="nav-title">Amicizie</span>
+        </div>
+      </div>
+      <div style="flex:1; display: flex; justify-content: flex-end;">
+        <button 
+          onclick="location.href='searchUsers.html'" 
+          style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;"
+        >
+          🔍 Cerca
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" style="padding-bottom:90px;">
+    <h1>👥 Gestione Amicizie</h1>
+
+    <div id="debug-info" style="background: #ffffcc; padding: 15px; margin: 15px 0; border-radius: 8px; border: 2px solid #ffa500;"></div>
+
+    <div style="margin: 30px 0;">
+      <h2 style="margin-bottom: 15px;">📬 Richieste Ricevute</h2>
+      <div id="friend-requests-list">
+        <div class="spinner"></div>
+        <p style="text-align: center;">Caricamento richieste...</p>
+      </div>
+    </div>
+
+    <div style="margin: 30px 0;">
+      <h2 style="margin-bottom: 15px;">✅ Amici</h2>
+      <div id="friends-list">
+        <div class="spinner"></div>
+        <p style="text-align: center;">Caricamento amici...</p>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav"></nav>
+
+  <script src="friendRequests.js"></script>
+</body>
+</html>
