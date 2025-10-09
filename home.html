@@ -30,6 +30,85 @@
   <!-- Script notifiche personali -->
   <script src="notifiche.js?v=3.0&t=20251004"></script>
   <script>
+    // Mostra lo stato sotto la barra di ricerca o in alto
+    function showStatus(msg, type) {
+      let color = '#3a86ff';
+      if (type === 'error') color = '#ff3b3b';
+      if (type === 'warning') color = '#ffb703';
+      if (type === 'info') color = '#888';
+      if (type === 'success') color = '#43aa8b';
+      let popup = document.getElementById('notifiche-popup');
+      let el = document.getElementById('home-status');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'home-status';
+        el.style.cssText = 'margin:0 auto 12px auto;padding:10px 22px;border-radius:10px;font-weight:600;text-align:center;box-shadow:0 1px 8px rgba(0,0,0,0.10);font-size:1.08em;max-width:90vw;';
+        if (popup && popup.parentNode) {
+          popup.parentNode.insertBefore(el, popup.nextSibling);
+        } else {
+          document.body.appendChild(el);
+        }
+      }
+      el.textContent = msg;
+      el.style.background = color + '22';
+      el.style.color = color;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 3200);
+    }
+    // Gestione accetta/rifiuta richiesta amicizia dalla popup
+    async function accettaFriendRequest(requestId) {
+      const { error } = await supabase.from('friend_requests').update({ status: 'accepted' }).eq('id', requestId);
+      if (error) {
+        showStatus('Errore: ' + error.message, 'error');
+      } else {
+        showStatus('Richiesta accettata!', 'success');
+        // Recupera info richiesta e utente
+        const { data: richiesta } = await supabase.from('friend_requests').select('sender_id, receiver_id').eq('id', requestId).single();
+        if (richiesta) {
+          // Recupera username/email destinatario
+          const { data: userRow } = await supabase.from('users').select('username, mail').eq('id', richiesta.receiver_id).single();
+          await supabase.from('notification').insert({
+            user_id: richiesta.sender_id,
+            titolo: 'Richiesta accettata',
+            messaggio: `La tua richiesta di amicizia è stata accettata da ${userRow?.username || userRow?.mail || 'utente'}`,
+            data: new Date().toISOString(),
+            letto: false
+          });
+        }
+        // Cancella la notifica di richiesta dal db
+        await supabase.from('notification').delete().eq('user_id', richiesta.receiver_id).eq('titolo', 'Nuova richiesta di amicizia');
+      }
+      updateNotificheBadge();
+      const notifiche = await loadNotifichePersonali();
+      showNotifichePopup(notifiche);
+    }
+
+    async function rifiutaFriendRequest(requestId) {
+      const { error } = await supabase.from('friend_requests').update({ status: 'declined' }).eq('id', requestId);
+      if (error) {
+        showStatus('Errore: ' + error.message, 'error');
+      } else {
+        showStatus('Richiesta rifiutata.', 'warning');
+        // Recupera info richiesta e utente
+        const { data: richiesta } = await supabase.from('friend_requests').select('sender_id, receiver_id').eq('id', requestId).single();
+        if (richiesta) {
+          // Recupera username/email destinatario
+          const { data: userRow } = await supabase.from('users').select('username, mail').eq('id', richiesta.receiver_id).single();
+          await supabase.from('notification').insert({
+            user_id: richiesta.sender_id,
+            titolo: 'Richiesta rifiutata',
+            messaggio: `La tua richiesta di amicizia è stata rifiutata da ${userRow?.username || userRow?.mail || 'utente'}`,
+            data: new Date().toISOString(),
+            letto: false
+          });
+        }
+        // Cancella la notifica di richiesta dal db
+        await supabase.from('notification').delete().eq('user_id', richiesta.receiver_id).eq('titolo', 'Nuova richiesta di amicizia');
+      }
+      updateNotificheBadge();
+      const notifiche = await loadNotifichePersonali();
+      showNotifichePopup(notifiche);
+    }
     // Funzione per mostrare popup notifiche
     function showNotifichePopup(notifiche) {
       let popup = document.getElementById('notifiche-popup');
@@ -58,16 +137,34 @@
       if (!notifiche || notifiche.length === 0) {
         html += `<div style='padding:18px;text-align:center;color:#888;'>Nessuna notifica</div>`;
       } else {
-        html += notifiche.map(n => `
-          <div style='padding:12px 16px; border-bottom:1px solid #f3f3f3; display:flex; align-items:flex-start; gap:8px;'>
-            <div style='flex:1;'>
-              <div style='font-weight:500;'>${n.titolo || 'Notifica'}</div>
-              <div style='font-size:0.97em;color:#444;margin-top:2px;'>${n.messaggio}</div>
-              <div style='font-size:0.85em;color:#aaa;margin-top:4px;'>${new Date(n.data).toLocaleString('it-IT')}</div>
-            </div>
-            <button onclick="archiviaNotifica('${n.id}')" style='background:none;border:none;color:#e74c3c;font-size:1.1em;cursor:pointer;' title='Archivia'>&#128465;</button>
-          </div>
-        `).join('');
+        notifiche.forEach(n => {
+          if (n.tipo === 'friend_request') {
+            html += `
+              <div style='padding:0;display:flex;justify-content:center;'>
+                <div style='background:#43aa8b;padding:18px 18px 12px 18px;border-radius:14px;box-shadow:0 2px 8px rgba(60,60,60,0.10);margin:12px 0;min-width:220px;max-width:320px;width:100%;display:flex;flex-direction:column;align-items:center;cursor:pointer;' onclick=\"window.location.href='friendRequests.html#friend-requests-list'\"> 
+                  <div style='font-weight:600;font-size:1.15em;color:#fff;margin-bottom:4px;'>${n.titolo || 'Richiesta di amicizia'}</div>
+                  <div style='font-size:1em;color:#222;margin-bottom:4px;text-align:center;'>${n.messaggio}</div>
+                  <div style='font-size:0.95em;color:#eee;margin-bottom:8px;'>${new Date(n.data).toLocaleString('it-IT')}</div>
+                  <div style='display:flex;gap:10px;'>
+                    <button onclick=\"event.stopPropagation();accettaFriendRequest('${n.friendRequestId}')\" style='background:#fff;color:#43aa8b;border:none;padding:7px 18px;border-radius:8px;cursor:pointer;font-weight:600;'>Accetta</button>
+                    <button onclick=\"event.stopPropagation();rifiutaFriendRequest('${n.friendRequestId}')\" style='background:#fff;color:#e74c3c;border:none;padding:7px 18px;border-radius:8px;cursor:pointer;font-weight:600;'>Rifiuta</button>
+                  </div>
+                </div>
+              </div>
+            `;
+          } else {
+            html += `
+              <div style='padding:12px 16px; border-bottom:1px solid #f3f3f3; display:flex; align-items:flex-start; gap:8px;'>
+                <div style='flex:1;'>
+                  <div style='font-weight:500;'>${n.titolo || 'Notifica'}</div>
+                  <div style='font-size:0.97em;color:#444;margin-top:2px;'>${n.messaggio}</div>
+                  <div style='font-size:0.85em;color:#aaa;margin-top:4px;'>${new Date(n.data).toLocaleString('it-IT')}</div>
+                </div>
+                <button onclick=\"archiviaNotifica('${n.id}')\" style='background:none;border:none;color:#e74c3c;font-size:1.1em;cursor:pointer;' title='Archivia'>&#128465;</button>
+              </div>
+            `;
+          }
+        });
       }
       popup.innerHTML = html;
       popup.style.display = 'block';
@@ -84,7 +181,7 @@
       // Recupera users.id tramite email
       const { data: userRow, error: userError } = await supabase
         .from('users')
-        .select('id')
+        .select('id, username, mail')
         .eq('mail', user.email)
         .single();
       if (userError || !userRow) {
@@ -93,19 +190,42 @@
       }
       const userId = userRow.id;
       console.log('[Notifiche] users.id corrente:', userId);
-      const { data, error } = await supabase
+      // Notifiche classiche
+      const { data: notifiche, error: notifError } = await supabase
         .from('notification')
         .select('*')
         .eq('user_id', userId)
         .order('data', { ascending: false });
-      if (error) {
-        console.error('[Notifiche] Errore query notification:', error);
+      if (notifError) {
+        console.error('[Notifiche] Errore query notification:', notifError);
         return [];
       }
-      console.log('[Notifiche] Notifiche trovate:', data);
-      const nonLetti = data.filter(n => !n.letto);
-      console.log('[Notifiche] Notifiche non lette:', nonLetti);
-      return nonLetti;
+      const nonLetti = notifiche.filter(n => !n.letto);
+      // Richieste amicizia pendenti
+      const { data: richieste, error: reqError } = await supabase
+        .from('friend_requests')
+        .select('id, sender_id, status, created_at, sender:sender_id(username, mail)')
+        .eq('receiver_id', userId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+      if (reqError) {
+        console.error('[Notifiche] Errore query richieste amicizia:', reqError);
+        return nonLetti;
+      }
+      // Trasforma richieste in notifiche
+      const richiesteNotifiche = (richieste || []).map(r => ({
+        id: 'friendreq-' + r.id,
+        titolo: 'Richiesta di amicizia',
+        messaggio: `Hai ricevuto una richiesta da ${r.sender?.username || r.sender?.mail || r.sender_id}`,
+        data: r.created_at,
+        letto: false,
+        tipo: 'friend_request',
+        friendRequestId: r.id
+      }));
+      // Unisci notifiche e richieste
+      const tutte = [...nonLetti, ...richiesteNotifiche].sort((a, b) => new Date(b.data) - new Date(a.data));
+      console.log('[Notifiche] Tutte le notifiche (incluse richieste):', tutte);
+      return tutte;
     }
 
     // Aggiorna badge notifiche
