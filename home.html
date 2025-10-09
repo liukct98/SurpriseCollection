@@ -101,7 +101,7 @@
             data: new Date().toISOString(),
             letto: false
           });
-        }
+        } 
         // Cancella la notifica di richiesta dal db
         await supabase.from('notification').delete().eq('user_id', richiesta.receiver_id).eq('titolo', 'Nuova richiesta di amicizia');
       }
