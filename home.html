@@ -120,9 +120,9 @@
       }
     }
 
-    // Archivia una notifica
+    // Archivia una notifica (elimina dal DB)
     async function archiviaNotifica(id) {
-      await supabase.from('notification').update({ letto: true }).eq('id', id);
+      await supabase.from('notification').delete().eq('id', id);
       updateNotificheBadge();
       // Ricarica popup
       const notifiche = await loadNotifichePersonali();
