@@ -33,22 +33,26 @@ async function loadMessages(friendId) {
     .single();
   if (!userRow) return;
   // Messaggi tra userRow.id e friendId
+  const chatMessagesDiv = document.getElementById('chat-messages');
+  chatMessagesDiv.innerHTML = '<div class="spinner" style="margin:30px auto;text-align:center;"></div>';
   const { data, error } = await supabase
     .from('messages')
     .select('id, sender_id, receiver_id, content, created_at')
     .or(`and(sender_id.eq.${userRow.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${userRow.id})`)
     .order('created_at', { ascending: true });
   if (error) {
-    document.getElementById('chat-messages').innerHTML = `<p>Errore: ${error.message}</p>`;
+    chatMessagesDiv.innerHTML = `<p>Errore: ${error.message}</p>`;
     return;
   }
   if (!data || data.length === 0) {
-    document.getElementById('chat-messages').innerHTML = '<p>Nessun messaggio.</p>';
+    chatMessagesDiv.innerHTML = '<p>Nessun messaggio.</p>';
     window._allChatMessages = [];
     return;
   }
   window._allChatMessages = data;
   await renderChatMessages(data);
+  // Scroll automatico in fondo
+  chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
 
   // Setup filtro ricerca
   const searchInput = document.getElementById('chat-search');
@@ -73,7 +77,7 @@ async function renderChatMessages(messages) {
   document.getElementById('chat-messages').innerHTML = messages.length === 0 ? '<p>Nessun messaggio.</p>' : messages.map(msg => {
     const isMine = userId && msg.sender_id === userId;
     return `<div style="display:flex;justify-content:${isMine ? 'flex-end' : 'flex-start'};margin-bottom:8px;">
-      <div style="background:${isMine ? '#43aa8b' : '#eee'};color:${isMine ? '#fff' : '#333'};padding:10px 14px;border-radius:12px;max-width:70%;">
+      <div style="background:${isMine ? '#43aa8b' : '#f5f5f5'};color:${isMine ? '#fff' : '#333'};padding:12px 16px;border-radius:16px;max-width:70%;box-shadow:0 2px 8px #0001;">
         ${msg.content}
         <div style="font-size:0.85em;color:#888;margin-top:4px;text-align:right;">${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
       </div>
@@ -109,6 +113,34 @@ async function sendMessage(friendId, content) {
 
 // Setup eventi
 window.addEventListener('DOMContentLoaded', async () => {
+  // Emoji picker
+  const emojiBtn = document.getElementById('emoji-btn');
+  const emojiPicker = document.getElementById('emoji-picker');
+  const chatInput = document.getElementById('chat-input');
+  const emojiList = ['😀','😁','😂','🤣','😊','😍','😎','😢','😡','👍','🙏','🎉','❤️','🔥','🥳','😅','😇','😜','🤔','🙌','💯'];
+  if (emojiBtn && emojiPicker && chatInput) {
+    emojiBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
+      emojiPicker.innerHTML = emojiList.map(emoji => `<button type='button' style='font-size:18px;padding:4px 7px;border:none;background:none;cursor:pointer;'>${emoji}</button>`).join('');
+      // Posiziona il picker sotto il bottone
+      const rect = emojiBtn.getBoundingClientRect();
+      emojiPicker.style.left = rect.left + 'px';
+      emojiPicker.style.bottom = (window.innerHeight - rect.bottom + 40) + 'px';
+    });
+    emojiPicker.addEventListener('click', function(e) {
+      if (e.target.tagName === 'BUTTON') {
+        chatInput.value += e.target.textContent;
+        chatInput.focus();
+        emojiPicker.style.display = 'none';
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
+        emojiPicker.style.display = 'none';
+      }
+    });
+  }
   const form = document.getElementById('chat-form');
   if (!form) return;
   const friendId = getFriendIdFromUrl();
