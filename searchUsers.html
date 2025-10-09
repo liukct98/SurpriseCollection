@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cerca Utenti</title>
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Supabase deve essere caricato per primo -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="navbar.js?v=1.0"></script>
+  <script src="app.js?v=1.0"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container" style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="flex:1; display: flex; align-items: left;">
+        <button class="nav-back" onclick="history.back()" title="Indietro">
+          <span class="back-arrow">←</span>
+        </button>
+      </div>
+      <div style="flex:2; display: flex; justify-content: center; align-items: center;">
+        <div class="nav-brand">
+          <span class="nav-logo">🔍</span>
+          <span class="nav-title">Cerca Utenti</span>
+        </div>
+      </div>
+      <div style="flex:1;"></div>
+    </div>
+  </nav>
+
+  <div class="container" style="padding-bottom:90px;">
+    <h1>🔍 Cerca Utenti</h1>
+    <p>Cerca altri utenti per username o email e invia richieste di amicizia</p>
+
+    <div class="search-box" style="margin: 20px 0;">
+      <input 
+        type="text" 
+        id="search-input" 
+        placeholder="Cerca per username o email..."
+        style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;"
+      >
+    </div>
+
+    <div id="search-status" style="margin: 10px 0; padding: 10px; border-radius: 5px; display: none;"></div>
+
+    <div id="search-results" style="margin-top: 20px;">
+      <p style="text-align: center; color: #888;">Digita per cercare utenti...</p>
+    </div>
+  </div>
+
+  <nav class="bottom-nav"></nav>
+
+  <script src="searchUsers.js?v=1.0"></script>
+</body>
+</html>
