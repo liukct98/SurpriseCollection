@@ -22,7 +22,7 @@ async function loadFriendInfo(friendId) {
 }
 
 // Carica messaggi
-async function loadMessages(friendId) {
+async function loadMessages(friendId, isAutoRefresh = false) {
   const { data: { user: authUser } } = await supabase.auth.getUser();
   if (!authUser) return;
   // Recupera il vero users.id
@@ -32,9 +32,30 @@ async function loadMessages(friendId) {
     .eq('mail', authUser.email)
     .single();
   if (!userRow) return;
+  
+  // Marca i messaggi da questo mittente come letti
+  await supabase
+    .from('messages')
+    .update({ read: true })
+    .eq('receiver_id', userRow.id)
+    .eq('sender_id', friendId)
+    .eq('read', false);
+  
+  if (!isAutoRefresh) console.log("📖 Messaggi marcati come letti per friend:", friendId);
+  
   // Messaggi tra userRow.id e friendId
   const chatMessagesDiv = document.getElementById('chat-messages');
-  chatMessagesDiv.innerHTML = '<div class="spinner" style="margin:30px auto;text-align:center;"></div>';
+  
+  // Salva posizione scroll solo per auto-refresh
+  let previousScrollTop = 0;
+  let wasAtBottom = true;
+  if (isAutoRefresh) {
+    previousScrollTop = chatMessagesDiv.scrollTop;
+    wasAtBottom = chatMessagesDiv.scrollTop >= (chatMessagesDiv.scrollHeight - chatMessagesDiv.clientHeight - 50);
+  } else {
+    chatMessagesDiv.innerHTML = '<div class="spinner" style="margin:30px auto;text-align:center;"></div>';
+  }
+  
   const { data, error } = await supabase
     .from('messages')
     .select('id, sender_id, receiver_id, content, created_at')
@@ -49,10 +70,28 @@ async function loadMessages(friendId) {
     window._allChatMessages = [];
     return;
   }
+  
+  // Controlla se ci sono nuovi messaggi
+  const previousMessageCount = window._allChatMessages ? window._allChatMessages.length : 0;
+  const hasNewMessages = data.length > previousMessageCount;
+  
   window._allChatMessages = data;
   await renderChatMessages(data);
-  // Scroll automatico in fondo
-  chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+  
+  // Gestisci scroll intelligente
+  if (isAutoRefresh) {
+    if (hasNewMessages && wasAtBottom) {
+      // Se eri in fondo e ci sono nuovi messaggi, vai in fondo
+      chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+    } else if (!hasNewMessages) {
+      // Se non ci sono nuovi messaggi, mantieni posizione
+      chatMessagesDiv.scrollTop = previousScrollTop;
+    }
+    // Se non eri in fondo e ci sono nuovi messaggi, non cambiare scroll
+  } else {
+    // Per caricamento iniziale, vai sempre in fondo
+    chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+  }
 
   // Setup filtro ricerca
   const searchInput = document.getElementById('chat-search');
@@ -108,7 +147,38 @@ async function sendMessage(friendId, content) {
     return;
   }
   console.log('[DEBUG] Messaggio inviato con successo');
-  loadMessages(friendId);
+  loadMessages(friendId, false); // false = caricamento normale
+}
+
+// Auto-refresh della chat
+let chatRefreshInterval = null;
+let currentFriendId = null;
+
+function startChatAutoRefresh(friendId) {
+  currentFriendId = friendId;
+  
+  // Ferma eventuali refresh precedenti
+  if (chatRefreshInterval) {
+    clearInterval(chatRefreshInterval);
+  }
+  
+  console.log("🔄 Auto-refresh chat attivato per friend:", friendId);
+  
+  // Refresh ogni 3 secondi
+  chatRefreshInterval = setInterval(() => {
+    if (document.visibilityState === 'visible') {
+      console.log("🔄 Auto-refresh chat...");
+      loadMessages(friendId, true); // true = isAutoRefresh
+    }
+  }, 3000);
+}
+
+function stopChatAutoRefresh() {
+  if (chatRefreshInterval) {
+    clearInterval(chatRefreshInterval);
+    chatRefreshInterval = null;
+    console.log("⏹️ Auto-refresh chat fermato");
+  }
 }
 
 // Setup eventi
@@ -161,6 +231,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     .then(({ data }) => {
       window._userRowCache = data;
       loadMessages(friendId);
+      
+      // 🚀 Attiva auto-refresh della chat
+      startChatAutoRefresh(friendId);
     });
 
   form.addEventListener('submit', function(e) {
@@ -175,4 +248,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     input.value = '';
     input.focus();
   });
+});
+
+// Ferma auto-refresh quando si esce dalla pagina
+window.addEventListener('beforeunload', () => {
+  stopChatAutoRefresh();
 });

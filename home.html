@@ -26,6 +26,7 @@
   <script src="navbar.js?v=3.0&t=20250912"></script>
   <!-- App JS con timestamp per forzare reload -->
   <script src="app.js?v=3.0&t=20250912&bust=cache"></script>
+  <script src="notificationsManager_polling.js?v=1.0&t=20251013"></script>
 
   <!-- Script notifiche personali -->
   <script src="notifiche.js?v=3.0&t=20251004"></script>
@@ -152,6 +153,19 @@
                 </div>
               </div>
             `;
+          } else if (n.tipo === 'chat_message') {
+            html += `
+              <div style='padding:0;display:flex;justify-content:center;'>
+                <div style='background:#4a90e2;padding:18px 18px 12px 18px;border-radius:14px;box-shadow:0 2px 8px rgba(60,60,60,0.10);margin:12px 0;min-width:220px;max-width:320px;width:100%;display:flex;flex-direction:column;align-items:center;cursor:pointer;' onclick=\"window.location.href='chat.html?friend_id=${n.sender_id}'\"> 
+                  <div style='font-weight:600;font-size:1.15em;color:#fff;margin-bottom:4px;'>${n.titolo || 'Nuovo messaggio'}</div>
+                  <div style='font-size:1em;color:#222;margin-bottom:4px;text-align:center;'>${n.messaggio}</div>
+                  <div style='font-size:0.95em;color:#eee;margin-bottom:8px;'>${new Date(n.data).toLocaleString('it-IT')}</div>
+                  <div style='display:flex;gap:10px;'>
+                    <button onclick=\"event.stopPropagation();archiviaNotifica('${n.id}')\" style='background:#fff;color:#4a90e2;border:none;padding:7px 18px;border-radius:8px;cursor:pointer;font-weight:600;'>Archivia</button>
+                  </div>
+                </div>
+              </div>
+            `;
           } else {
             html += `
               <div style='padding:12px 16px; border-bottom:1px solid #f3f3f3; display:flex; align-items:flex-start; gap:8px;'>
@@ -190,6 +204,31 @@
       }
       const userId = userRow.id;
       console.log('[Notifiche] users.id corrente:', userId);
+      
+      // Messaggi chat non letti
+      const { data: unreadMessages, error: msgError } = await supabase
+        .from('messages')
+        .select('id, sender_id, content, created_at, sender:sender_id(username, mail)')
+        .eq('receiver_id', userId)
+        .eq('read', false)
+        .order('created_at', { ascending: false });
+      
+      if (msgError) {
+        console.error('[Notifiche] Errore query messaggi non letti:', msgError);
+      }
+      
+      // Trasforma messaggi in notifiche
+      const messaggiNotifiche = (unreadMessages || []).map(m => ({
+        id: 'message-' + m.id,
+        titolo: `Messaggio da ${m.sender?.username || m.sender?.mail || m.sender_id}`,
+        messaggio: m.content.length > 50 ? m.content.substring(0, 50) + '...' : m.content,
+        data: m.created_at,
+        letto: false,
+        tipo: 'chat_message',
+        sender_id: m.sender_id,
+        message_id: m.id
+      }));
+      
       // Notifiche classiche
       const { data: notifiche, error: notifError } = await supabase
         .from('notification')
@@ -198,7 +237,7 @@
         .order('data', { ascending: false });
       if (notifError) {
         console.error('[Notifiche] Errore query notification:', notifError);
-        return [];
+        return [...messaggiNotifiche];
       }
       const nonLetti = notifiche.filter(n => !n.letto);
       // Richieste amicizia pendenti
@@ -222,9 +261,9 @@
         tipo: 'friend_request',
         friendRequestId: r.id
       }));
-      // Unisci notifiche e richieste
-      const tutte = [...nonLetti, ...richiesteNotifiche].sort((a, b) => new Date(b.data) - new Date(a.data));
-      console.log('[Notifiche] Tutte le notifiche (incluse richieste):', tutte);
+      // Unisci messaggi, notifiche e richieste
+      const tutte = [...messaggiNotifiche, ...nonLetti, ...richiesteNotifiche].sort((a, b) => new Date(b.data) - new Date(a.data));
+      console.log('[Notifiche] Tutte le notifiche (inclusi messaggi e richieste):', tutte);
       return tutte;
     }
 
@@ -240,9 +279,20 @@
       }
     }
 
-    // Archivia una notifica (elimina dal DB)
+    // Archivia una notifica
     async function archiviaNotifica(id) {
-      await supabase.from('notification').delete().eq('id', id);
+      if (id.startsWith('message-')) {
+        // Se è un messaggio, marcalo come letto
+        const messageId = id.replace('message-', '');
+        await supabase.from('messages').update({ read: true }).eq('id', messageId);
+      } else if (id.startsWith('friendreq-')) {
+        // Se è una richiesta amicizia, non fare nulla (gestita diversamente)
+        return;
+      } else {
+        // Se è una notifica normale, eliminala
+        await supabase.from('notification').delete().eq('id', id);
+      }
+      
       updateNotificheBadge();
       // Ricarica popup
       const notifiche = await loadNotifichePersonali();
@@ -259,8 +309,6 @@
         });
       }
       updateNotificheBadge();
-      // Aggiorna badge ogni 60s
-      setInterval(updateNotificheBadge, 60000);
     });
   </script>
 </head>
