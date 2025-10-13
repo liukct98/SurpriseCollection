@@ -1,7 +1,7 @@
 // =========================
 // INIZIALIZZAZIONE SUPABASE
 // =========================
-console.log("💝 Script wishlist.js caricato!");
+
 
 const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
@@ -42,14 +42,14 @@ async function initializeWishlistTable() {
   try {
     // Prova a creare la tabella wishlist se non esiste
     // Nota: questo potrebbe fallire se la tabella esiste già, è normale
-    console.log("🔧 Tentativo di inizializzazione tabella wishlist...");
+    
     
     // Per ora simuliamo l'esistenza della tabella
     // In un ambiente reale, dovresti creare la tabella via Supabase Dashboard
-    console.log("✅ Tabella wishlist pronta");
+    
     
   } catch (error) {
-    console.log("ℹ️ Tabella wishlist già esistente o errore di permessi:", error.message);
+    
   }
 }
 
@@ -104,7 +104,7 @@ async function loadWishlist() {
         .eq("user_id", realUserId)
         .in("item_id", itemIds);
       if (detailsError) {
-        console.error('Errore caricamento dettagli wishlist:', detailsError);
+        
       } else {
         wishlistDetails = details || [];
       }
@@ -138,21 +138,11 @@ async function loadWishlist() {
       };
     });
     
-    console.log('🔄 Wishlist ricaricata:', {
-      itemCount: allWishlistItems.length,
-      items: allWishlistItems.map(i => ({
-        name: i.name,
-        priority: i.priority,
-        description: i.description,
-        price: i.price,
-        url: i.url
-      }))
-    });
     
     displayFilteredWishlist();
     
   } catch (error) {
-    console.error("Errore caricamento wishlist:", error);
+    
     wishlistContainer.innerHTML = `<p>❌ Errore caricamento wishlist: ${error.message}</p>`;
   }
 }
@@ -311,24 +301,6 @@ async function updateWishlistItem(formData) {
     if (userError || !userRow) throw new Error("Utente non trovato nella tabella users!");
     const realUserId = userRow.id;
 
-    console.log('🔧 Debug updateWishlistItem:', {
-      itemId: itemId,
-      realUserId: realUserId,
-      itemFound: !!item,
-      formData: {
-        priority: formData.get("priority"),
-        description: formData.get("description"),
-        price: formData.get("price"),
-        url: formData.get("url")
-      },
-      // Debug dei valori degli input HTML
-      htmlValues: {
-        priority: document.getElementById("wishlist-priority").value,
-        description: document.getElementById("wishlist-description").value,
-        price: document.getElementById("wishlist-price").value,
-        url: document.getElementById("wishlist-url").value
-      }
-    });
 
     // Aggiorna la tabella wishlist
     const priority = formData.get("priority") || 'media'; // Default a 'media' se vuoto
@@ -336,14 +308,6 @@ async function updateWishlistItem(formData) {
     const estimatedPrice = formData.get("price") ? parseFloat(formData.get("price")) : null;
     const purchaseUrl = formData.get("url") || null;
 
-    console.log('🔧 Valori per update:', {
-      priority,
-      notes,
-      estimatedPrice,
-      purchaseUrl,
-      user_id: realUserId,
-      item_id: itemId
-    });
 
     const { data, error, count } = await supa
       .from('wishlist')
@@ -357,7 +321,7 @@ async function updateWishlistItem(formData) {
       .eq('item_id', itemId)
       .select();
 
-    console.log('🔧 Risultato update:', { data, error, count });
+    
     
     if (error) {
       throw error;
@@ -372,14 +336,14 @@ async function updateWishlistItem(formData) {
     }
     
     // Ricarica la wishlist per mostrare le modifiche
-    console.log('🔄 Ricaricando wishlist dopo aggiornamento...');
+    
     await loadWishlist();
     closeWishlistModal();
     
-    console.log("✅ Oggetto wishlist aggiornato:", item.name);
+    
     
   } catch (error) {
-    console.error("Errore aggiornamento wishlist:", error);
+    
     alert("❌ Errore durante l'aggiornamento: " + error.message);
   }
 }
@@ -421,7 +385,7 @@ async function markAsAcquired(itemId) {
       .eq('item_id', itemId);
     
     if (wishlistError) {
-      console.error('Errore rimozione dettagli wishlist:', wishlistError);
+      
       // Non bloccare per questo errore
     }
     
@@ -430,10 +394,10 @@ async function markAsAcquired(itemId) {
     
     // Mostra messaggio di successo
     alert(`🎉 Congratulazioni! Hai ottenuto "${item.name}"!`);
-    console.log("✅ Oggetto marcato come ottenuto e rimosso dalla wishlist");
+    
     
   } catch (error) {
-    console.error("Errore marcatura come ottenuto:", error);
+    
     alert("❌ Errore: " + error.message);
   }
 }
@@ -494,7 +458,7 @@ function setupEventListeners() {
 // DOMContentLoaded
 // =========================
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("💝 DOMContentLoaded - Pagina wishlist caricata!");
+  
   
   // Verifica autenticazione
   const user = await checkAuth();

@@ -3,7 +3,6 @@
 
 // Funzione per mostrare nome e iniziali utente nella navbar (robusta su tutti i client)
 async function showUserName(retry = 0) {
-    console.log('[DEBUG] showUserName chiamata, tentativo:', retry);
     if (!window.supabase) {
         if (retry < 10) setTimeout(() => showUserName(retry + 1), 300);
         return;
@@ -20,7 +19,6 @@ async function showUserName(retry = 0) {
     }
     try {
         const { data, error } = await window.supabase.auth.getUser();
-        console.log('[DEBUG] Risposta getUser:', data, error);
         if (error || !data.user) {
             nameEl.textContent = 'NOLOGIN';
             initialsEl.textContent = '?';
@@ -31,7 +29,6 @@ async function showUserName(retry = 0) {
             .select('username')
             .eq('mail', data.user.email)
             .single();
-        console.log('[DEBUG] Profilo utente:', userProfile, profileError);
         if (userProfile && userProfile.username) {
             const username = userProfile.username;
             const initials = username.slice(0, 2).toUpperCase();
@@ -44,7 +41,6 @@ async function showUserName(retry = 0) {
             initialsEl.textContent = initials;
         }
     } catch (err) {
-        console.log('[DEBUG] Errore caricamento profilo:', err);
         nameEl.textContent = 'Errore';
         initialsEl.textContent = '?';
     }

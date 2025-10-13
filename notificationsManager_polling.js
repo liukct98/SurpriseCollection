@@ -2,7 +2,7 @@
 // GESTORE NOTIFICHE CHAT - VERSIONE POLLING
 // (per Supabase senza Real-time)
 // =========================
-console.log("🔔 NotificationsManager (Polling) caricato!");
+
 
 class ChatNotificationsManager {
   constructor() {
@@ -19,68 +19,52 @@ class ChatNotificationsManager {
   // Inizializza il gestore notifiche
   async init() {
     try {
-      console.warn("🚀 Inizio init() NotificationsManager...");
       
       // Crea sempre il badge, indipendentemente dall'autenticazione
       this.createNotificationBadge();
-      console.warn("✅ Badge creato");
       
       // Verifica che Supabase client sia disponibile (già configurato in app.js)
       if (typeof supabase === 'undefined') {
-        console.error("❌ Supabase client non disponibile per NotificationsManager");
         return false;
       }
 
       // Usa il client Supabase già configurato
       this.supabase = supabase;
-      console.warn("✅ Supabase client assegnato");
 
       // Ottieni l'utente corrente
-      console.warn("🔍 Ottengo utente corrente...");
       const { data: { user } } = await this.supabase.auth.getUser();
-      console.warn("👤 Utente:", user?.email || "non loggato");
       
       if (!user) {
-        console.warn("ℹ️ Utente non loggato, badge creato ma notifiche non attive");
         return false;
       }
 
       // Ottieni l'ID utente dalla tabella users
-      console.warn("🔍 Cerco ID utente nella tabella users...");
       const { data: userRow, error } = await this.supabase
         .from('users')
         .select('id')
         .eq('mail', user.email)
         .single();
 
-      console.warn("👤 UserRow:", userRow, "Error:", error);
 
       if (error || !userRow) {
-        console.error("❌ ID utente non trovato:", error);
         return false;
       }
 
       this.currentUserId = userRow.id;
-      console.warn("✅ NotificationsManager (Polling) inizializzato per utente:", this.currentUserId);
 
       // Richiedi permessi notifiche
-      console.warn("🔍 Richiedo permessi notifiche...");
       await this.requestNotificationPermission();
 
       // Conta messaggi non letti esistenti
-      console.warn("🔍 Conto messaggi non letti...");
       await this.updateUnreadCount();
 
       // Avvia il polling
-      console.warn("🔍 Avvio polling...");
       this.startPolling();
 
       this.isInitialized = true;
-      console.warn("🎉 Init completato con successo!");
       return true;
 
     } catch (error) {
-      console.error("❌ Errore inizializzazione NotificationsManager:", error);
       // Anche se c'è un errore, il badge dovrebbe essere creato
       return false;
     }
@@ -89,37 +73,31 @@ class ChatNotificationsManager {
   // Richiedi l'autorizzazione per le notifiche browser
   async requestNotificationPermission() {
     if (!("Notification" in window)) {
-      console.log("ℹ️ Questo browser non supporta le notifiche");
       return false;
     }
 
     if (Notification.permission === "granted") {
-      console.log("✅ Permessi notifiche già concessi");
       return true;
     }
 
     if (Notification.permission !== "denied") {
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
-        console.log("✅ Permessi notifiche concessi");
         return true;
       }
     }
 
-    console.log("⚠️ Permessi notifiche negati");
     return false;
   }
 
   // Usa il badge delle notifiche esistente nell'header
   createNotificationBadge() {
-    console.log("🔗 Integrazione con badge notifiche esistente nell'header");
     
     // Verifica che il badge nell'header esista
     const headerBadge = document.getElementById('notifiche-badge');
     const headerBtn = document.getElementById('nav-notifiche-btn');
     
     if (!headerBadge || !headerBtn) {
-      console.warn("⚠️ Badge header non trovato, riprovo tra un po'...");
       setTimeout(() => this.createNotificationBadge(), 500);
       return;
     }
@@ -127,24 +105,18 @@ class ChatNotificationsManager {
     // Il badge serve SOLO per mostrare il numero
     // NON aggiungiamo click listener - solo le notifiche browser portano alle chat
     
-    console.log("✅ Badge header configurato (solo visual, no click)");
   }
 
   // Aggiorna il contatore badge nell'header
   updateBadge(count) {
-    console.warn("🔄 updateBadge chiamato con count:", count);
     
     const headerBadge = document.getElementById('notifiche-badge');
     const headerBtn = document.getElementById('nav-notifiche-btn');
     
-    console.warn("🔍 headerBadge:", headerBadge);
-    console.warn("🔍 headerBtn:", headerBtn);
     
     if (!headerBadge) {
-      console.warn("⚠️ Badge header non trovato per aggiornamento - tentativo ricerca alternativa");
       // Prova a cercarlo in modo diverso
       const allBadges = document.querySelectorAll('[id*="badge"], [class*="badge"]');
-      console.warn("🔍 Tutti i badge trovati:", allBadges);
       return;
     }
 
@@ -155,10 +127,8 @@ class ChatNotificationsManager {
       if (headerBtn) {
         headerBtn.style.position = 'relative'; // Per posizionare il badge
       }
-      console.warn("📊 Badge header aggiornato:", count, "- display:", headerBadge.style.display);
     } else {
       headerBadge.style.display = 'none';
-      console.warn("📊 Badge header nascosto (0 messaggi)");
     }
   }
 
@@ -166,7 +136,6 @@ class ChatNotificationsManager {
   startPolling() {
     if (!this.currentUserId) return;
 
-    console.log("🔄 Avvio polling notifiche ogni", this.pollingFrequency / 1000, "secondi");
 
     // Salva il timestamp dell'ultimo controllo
     this.lastCheck = new Date();
@@ -184,13 +153,11 @@ class ChatNotificationsManager {
     if (!this.currentUserId) return;
 
     try {
-      console.warn("🔄 Controllo messaggi non letti per utente:", this.currentUserId);
       
       // Aggiorna il contatore dei messaggi non letti
       await this.updateUnreadCount();
 
     } catch (error) {
-      console.error("❌ Errore polling:", error);
     }
   }
 
@@ -207,7 +174,6 @@ class ChatNotificationsManager {
         .eq('read', false);
 
       if (error) {
-        console.error("❌ Errore conteggio messaggi non letti:", error);
         this.notificationCount = 0;
         this.updateBadge(0);
         return;
@@ -217,10 +183,8 @@ class ChatNotificationsManager {
       
       this.notificationCount = unreadCount;
       this.updateBadge(this.notificationCount);
-      console.warn("📊 Messaggi non letti:", this.notificationCount);
 
     } catch (error) {
-      console.error("❌ Errore updateUnreadCount:", error);
       // Fallback: inizializza con 0
       this.notificationCount = 0;
       this.updateBadge(0);
@@ -234,7 +198,6 @@ class ChatNotificationsManager {
       await this.supabase.rpc('create_unread_messages_table_if_not_exists');
     } catch (error) {
       // Ignora errori, probabilmente la tabella esiste già
-      console.log("ℹ️ Tabella unread_messages già esistente");
     }
   }
 
@@ -249,7 +212,6 @@ class ChatNotificationsManager {
         .single();
 
       if (error) {
-        console.error("❌ Errore caricamento mittente:", error);
         return;
       }
 
@@ -262,7 +224,6 @@ class ChatNotificationsManager {
 
       if (isInChatWithSender) {
         // Se è nella chat con il mittente, ricarica i messaggi invece di notificare
-        console.log("📱 Utente nella chat attiva, ricarico messaggi...");
         if (typeof loadMessages === 'function') {
           loadMessages(message.sender_id);
         }
@@ -291,7 +252,6 @@ class ChatNotificationsManager {
           .single();
 
         if (existingNotification) {
-          console.log("ℹ️ Notifica già esistente per messaggio:", message.id);
           return;
         }
 
@@ -315,19 +275,14 @@ class ChatNotificationsManager {
           .insert(notificationData);
 
         if (insertError) {
-          console.error("❌ Errore inserimento notifica:", insertError);
         } else {
-          console.log("✅ Notifica aggiunta al pannello:", `Messaggio da ${senderName}`);
         }
 
       } catch (error) {
-        console.error("❌ Errore aggiunta notifica al pannello:", error);
       }
 
-      console.log("✅ Notifica messaggio gestita per:", senderName);
 
     } catch (error) {
-      console.error("❌ Errore gestione nuovo messaggio:", error);
     }
   }
 
@@ -343,15 +298,12 @@ class ChatNotificationsManager {
         .eq('sender_id', senderId);
 
       if (error) {
-        console.error("❌ Errore marcatura messaggi letti:", error);
         return;
       }
 
-      console.log("✅ Messaggi marcati come letti per sender:", senderId);
       await this.updateUnreadCount();
 
     } catch (error) {
-      console.error("❌ Errore markMessagesAsRead:", error);
     }
   }
 
@@ -366,15 +318,12 @@ class ChatNotificationsManager {
         .eq('user_id', this.currentUserId);
 
       if (error) {
-        console.error("❌ Errore marcatura tutti messaggi letti:", error);
         return;
       }
 
-      console.log("✅ Tutti i messaggi marcati come letti");
       await this.updateUnreadCount();
 
     } catch (error) {
-      console.error("❌ Errore markAllMessagesAsRead:", error);
     }
   }
 
@@ -385,13 +334,11 @@ class ChatNotificationsManager {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
       this.startPolling();
-      console.log("🔄 Frequenza polling aggiornata a", milliseconds / 1000, "secondi");
     }
   }
 
   // Pulisce il polling
   cleanup() {
-    console.log("🧹 Pulizia NotificationsManager...");
     
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
@@ -413,7 +360,6 @@ class ChatNotificationsManager {
 
   // Metodo pubblico per forzare la creazione del badge
   forceBadgeCreation() {
-    console.log("🔧 Forzatura creazione badge...");
     this.createNotificationBadge();
   }
 }
@@ -423,32 +369,22 @@ window.notificationsManager = new ChatNotificationsManager();
 
 // Auto-inizializza quando il DOM è pronto
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log("🔧 DOM caricato, inizializzo NotificationsManager...");
-  console.log("🔧 window.notificationsManager:", window.notificationsManager);
   
   // Aspetta che Supabase sia disponibile
   let retries = 0;
   const maxRetries = 10;
   
   const waitForSupabase = async () => {
-    console.log("🔍 Controllo disponibilità Supabase...", typeof supabase);
     if (typeof supabase !== 'undefined') {
-      console.log("✅ Supabase client trovato, inizializzo sistema notifiche...");
       const success = await window.notificationsManager.init();
       if (success) {
-        console.log("🔔 Sistema notifiche (polling) attivo!");
-        console.log("🔔 User ID:", window.notificationsManager.currentUserId);
-        console.log("🔔 Polling interval:", window.notificationsManager.pollingInterval);
       } else {
-        console.log("❌ Errore inizializzazione sistema notifiche");
       }
     } else {
       retries++;
       if (retries < maxRetries) {
-        console.log(`⏳ Supabase client non ancora pronto, retry ${retries}/${maxRetries}...`);
         setTimeout(waitForSupabase, 500);
       } else {
-        console.error("❌ Timeout: Supabase client non disponibile dopo", maxRetries, "tentativi");
       }
     }
   };
@@ -469,11 +405,9 @@ document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       // Tab nascosta - riduci frequenza polling
       window.notificationsManager.setPollingFrequency(10000); // 10 secondi
-      console.log("😴 Tab nascosta, polling ridotto");
     } else {
       // Tab attiva - ripristina frequenza normale
       window.notificationsManager.setPollingFrequency(3000); // 3 secondi
-      console.log("👀 Tab attiva, polling normale");
     }
   }
 });

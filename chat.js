@@ -41,7 +41,7 @@ async function loadMessages(friendId, isAutoRefresh = false) {
     .eq('sender_id', friendId)
     .eq('read', false);
   
-  if (!isAutoRefresh) console.log("📖 Messaggi marcati come letti per friend:", friendId);
+
   
   // Messaggi tra userRow.id e friendId
   const chatMessagesDiv = document.getElementById('chat-messages');
@@ -82,15 +82,15 @@ async function loadMessages(friendId, isAutoRefresh = false) {
   if (isAutoRefresh) {
     if (hasNewMessages && wasAtBottom) {
       // Se eri in fondo e ci sono nuovi messaggi, vai in fondo
-      chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+      scrollToBottomNow();
     } else if (!hasNewMessages) {
       // Se non ci sono nuovi messaggi, mantieni posizione
       chatMessagesDiv.scrollTop = previousScrollTop;
     }
     // Se non eri in fondo e ci sono nuovi messaggi, non cambiare scroll
   } else {
-    // Per caricamento iniziale, vai sempre in fondo
-    chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+    // Per caricamento iniziale, vai sempre in fondo (forza anche lo scroll della finestra)
+    scrollToBottomHard();
   }
 
   // Setup filtro ricerca
@@ -124,6 +124,24 @@ async function renderChatMessages(messages) {
   }).join('');
 }
 
+// ===== Helper di scroll affidabili =====
+function scrollToBottomNow() {
+  const chatDiv = document.getElementById('chat-messages');
+  if (chatDiv) {
+    chatDiv.scrollTop = chatDiv.scrollHeight + 1000; // vai ben oltre il fondo del container
+  }
+  // fallback: scroll della pagina intera, utile se il container non è scrollabile
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+function scrollToBottomHard() {
+  // più tentativi per coprire render asincroni/layout
+  scrollToBottomNow();
+  requestAnimationFrame(scrollToBottomNow);
+  setTimeout(scrollToBottomNow, 100);
+  setTimeout(scrollToBottomNow, 250);
+}
+
 // Invia messaggio
 async function sendMessage(friendId, content) {
   const { data: { user: authUser } } = await supabase.auth.getUser();
@@ -146,7 +164,7 @@ async function sendMessage(friendId, content) {
     console.error('[DEBUG] Errore Supabase:', error);
     return;
   }
-  console.log('[DEBUG] Messaggio inviato con successo');
+
   loadMessages(friendId, false); // false = caricamento normale
 }
 
@@ -162,12 +180,12 @@ function startChatAutoRefresh(friendId) {
     clearInterval(chatRefreshInterval);
   }
   
-  console.log("🔄 Auto-refresh chat attivato per friend:", friendId);
+
   
   // Refresh ogni 3 secondi
   chatRefreshInterval = setInterval(() => {
     if (document.visibilityState === 'visible') {
-      console.log("🔄 Auto-refresh chat...");
+
       loadMessages(friendId, true); // true = isAutoRefresh
     }
   }, 3000);
@@ -177,7 +195,7 @@ function stopChatAutoRefresh() {
   if (chatRefreshInterval) {
     clearInterval(chatRefreshInterval);
     chatRefreshInterval = null;
-    console.log("⏹️ Auto-refresh chat fermato");
+
   }
 }
 
@@ -237,7 +255,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
   form.addEventListener('submit', function(e) {
-    console.log('[DEBUG] submit form chiamato!');
+
     e.preventDefault();
     const input = document.getElementById('chat-input');
     const text = input.value.trim();

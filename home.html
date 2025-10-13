@@ -189,7 +189,6 @@
       if (!window.supabase) return [];
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.warn('[Notifiche] Nessun utente loggato');
         return [];
       }
       // Recupera users.id tramite email
@@ -199,11 +198,9 @@
         .eq('mail', user.email)
         .single();
       if (userError || !userRow) {
-        console.error('[Notifiche] Errore recupero users.id:', userError);
         return [];
       }
       const userId = userRow.id;
-      console.log('[Notifiche] users.id corrente:', userId);
       
       // Messaggi chat non letti
       const { data: unreadMessages, error: msgError } = await supabase
@@ -214,7 +211,6 @@
         .order('created_at', { ascending: false });
       
       if (msgError) {
-        console.error('[Notifiche] Errore query messaggi non letti:', msgError);
       }
       
       // Trasforma messaggi in notifiche
@@ -236,7 +232,6 @@
         .eq('user_id', userId)
         .order('data', { ascending: false });
       if (notifError) {
-        console.error('[Notifiche] Errore query notification:', notifError);
         return [...messaggiNotifiche];
       }
       const nonLetti = notifiche.filter(n => !n.letto);
@@ -248,7 +243,6 @@
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
       if (reqError) {
-        console.error('[Notifiche] Errore query richieste amicizia:', reqError);
         return nonLetti;
       }
       // Trasforma richieste in notifiche
@@ -263,7 +257,6 @@
       }));
       // Unisci messaggi, notifiche e richieste
       const tutte = [...messaggiNotifiche, ...nonLetti, ...richiesteNotifiche].sort((a, b) => new Date(b.data) - new Date(a.data));
-      console.log('[Notifiche] Tutte le notifiche (inclusi messaggi e richieste):', tutte);
       return tutte;
     }
 
@@ -497,44 +490,36 @@
 
   <script>
     // LOGICA INLINE PER BYPASSARE CACHE
-    console.log('🔄 JavaScript inline - nessun cache possibile');
     
     // Controlla accesso admin - VERSIONE INLINE
     function checkAdminAccess(userEmail) {
-      console.log('✅ Funzione checkAdminAccess INLINE - userEmail:', userEmail);
       const adminSection = document.querySelector('.admin-section');
       
       // Lista degli admin autorizzati
       const adminEmails = ['liukct@gmail.com', 'marcellink892@gmail.com', 'settegiallo@libero.it', 'antonio.marchi61@gmail.com'];
 
       if (adminEmails.includes(userEmail) || adminEmails.includes(userEmail.trim())) {
-        console.log('✅ Admin riconosciuto INLINE per:', userEmail);
         adminSection.style.display = 'block';
         adminSection.style.border = '3px solid green'; // Indicatore visivo
       } else {
-        console.log('ℹ️ Accesso normale INLINE per:', userEmail);
         adminSection.style.display = 'none';
       }
     }
 
     // Mostra username utente loggato - VERSIONE INLINE
     async function showUserName() {
-      console.log('🔄 showUserName INLINE - controllo utente autenticato...');
       
       // Verifica che Supabase sia disponibile
       if (!window.supabase) {
-        console.error('Supabase non è disponibile!');
         return;
       }
       
       const { data, error } = await supabase.auth.getUser();
       if (error) {
-        console.error('Errore getUser:', error);
         return;
       }
       
       if (data.user) {
-        console.log('✅ Utente loggato INLINE:', data.user.email);
         try {
           // Cerca lo username nella tabella users
           const { data: userProfile, error: profileError } = await supabase
@@ -556,7 +541,6 @@
             document.getElementById('user-initials').textContent = initials;
           }
         } catch (err) {
-          console.error('Errore caricamento profilo utente:', err);
           // Fallback: usa la parte prima della @ dell'email
           const displayName = data.user.email.split('@')[0];
           const initials = displayName.slice(0, 2).toUpperCase();
@@ -567,19 +551,16 @@
         // Controlla se è admin e mostra sezione gestione catalogo
         checkAdminAccess(data.user.email);
       } else {
-        console.log('Nessun utente loggato');
       }
     }
 
     // Aspetta che Supabase sia pronto e controlla autenticazione
     document.addEventListener('DOMContentLoaded', async function() {
-      console.log('🔄 DOMContentLoaded INLINE');
       // Aspetta un momento per assicurarsi che Supabase sia pronto
       setTimeout(async () => {
         try {
           await showUserName();
         } catch (error) {
-          console.error('Errore nel controllo utente:', error);
         }
       }, 2000);
       
@@ -594,11 +575,9 @@
     let installButton;
 
     function initializePWA() {
-      console.log('🔄 Inizializzazione PWA INLINE');
       
       // Controlla se l'app è già installata
       if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-        console.log('✅ App già installata');
       } else {
         // Crea il bottone di installazione
         createInstallButton();
@@ -629,7 +608,6 @@
         if (deferredPrompt) {
           deferredPrompt.prompt();
           const { outcome } = await deferredPrompt.userChoice;
-          console.log('Install prompt result:', outcome);
           deferredPrompt = null;
         } else {
           // Fallback per browser che non supportano il prompt automatico
@@ -639,19 +617,16 @@
       });
       
       document.body.appendChild(installButton);
-      console.log('✅ Bottone installazione PWA aggiunto');
     }
 
     // Event listener per il prompt di installazione nativo
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      console.log('✅ Install prompt disponibile');
     });
 
     // Nasconde il bottone se l'app viene installata
     window.addEventListener('appinstalled', (evt) => {
-      console.log('✅ App installata con successo');
       if (installButton) installButton.style.display = 'none';
     });
   </script>   
@@ -739,7 +714,6 @@
         `).join('');
 
       } catch (error) {
-        console.error('Errore caricamento catalogo:', error);
         container.innerHTML = `
           <div class="error-state">
             <h4>⚠️ Errore</h4>
@@ -765,37 +739,30 @@
       }
 
       try {
-        console.log(`🗑️ Eliminazione serie ${serieId} iniziata...`);
         
         // 1. Prima elimina tutti gli oggetti dal catalogo generale
-        console.log('🗑️ Eliminazione oggetti catalog_items...');
         const { error: catalogItemsError } = await supabase
           .from('catalog_items')
           .delete()
           .eq('catalog_series_id', serieId);
 
         if (catalogItemsError) {
-          console.error('Errore eliminazione catalog_items:', catalogItemsError);
           throw catalogItemsError;
         }
 
         // 2. Trova tutte le serie personali che potrebbero essere collegate (per nome)
-        console.log('🔍 Ricerca serie personali collegate...');
         const { data: personalSeries, error: findError } = await supabase
           .from('series')
           .select('id, nome')
           .eq('nome', serieName);
 
         if (findError) {
-          console.error('Errore ricerca serie personali:', findError);
         }
 
         // 3. Per ogni serie personale trovata, elimina nella sequenza corretta
         if (personalSeries && personalSeries.length > 0) {
-          console.log(`🗑️ Gestione eliminazione per ${personalSeries.length} serie personali...`);
           
           for (const serie of personalSeries) {
-            console.log(`🗑️ Eliminazione oggetti per serie: ${serie.nome} (ID: ${serie.id})`);
             
             // 3a. Prima trova tutti gli oggetti di questa serie
             const { data: serieItems, error: itemsError } = await supabase
@@ -804,13 +771,11 @@
               .eq('serie_id', serie.id);
 
             if (itemsError) {
-              console.error('Errore ricerca oggetti:', itemsError);
               continue; // Continua con la prossima serie
             }
 
             // 3b. Per ogni oggetto, elimina prima dalle wishlist
             if (serieItems && serieItems.length > 0) {
-              console.log(`🗑️ Eliminazione da wishlist per ${serieItems.length} oggetti...`);
               
               for (const item of serieItems) {
                 const { error: wishlistError } = await supabase
@@ -819,57 +784,48 @@
                   .eq('item_id', item.id);
                 
                 if (wishlistError) {
-                  console.error(`Errore eliminazione wishlist per item ${item.id}:`, wishlistError);
                   // Non blocchiamo per questo errore
                 }
               }
               
               // 3c. Ora elimina gli oggetti dalla collezione personale
-              console.log(`🗑️ Eliminazione ${serieItems.length} oggetti personali...`);
               const { error: deleteItemsError } = await supabase
                 .from('item')
                 .delete()
                 .eq('serie_id', serie.id);
               
               if (deleteItemsError) {
-                console.error('Errore eliminazione oggetti personali:', deleteItemsError);
                 throw deleteItemsError;
               }
             }
             
             // 3d. Infine elimina la serie personale
-            console.log(`🗑️ Eliminazione serie personale: ${serie.nome}`);
             const { error: deleteSerieError } = await supabase
               .from('series')
               .delete()
               .eq('id', serie.id);
             
             if (deleteSerieError) {
-              console.error('Errore eliminazione serie personale:', deleteSerieError);
               throw deleteSerieError;
             }
           }
         }
 
         // 4. Infine elimina la serie dal catalogo generale
-        console.log('🗑️ Eliminazione serie dal catalogo generale...');
         const { error: catalogSerieError } = await supabase
           .from('catalog_series')
           .delete()
           .eq('id', serieId);
 
         if (catalogSerieError) {
-          console.error('Errore eliminazione catalog_series:', catalogSerieError);
           throw catalogSerieError;
         }
 
-        console.log('✅ Eliminazione completata con successo!');
         alert(`✅ Serie "${serieName}" eliminata completamente dal sistema!\\n\\n- Rimossa dal catalogo generale\\n- Rimossa dalle collezioni degli utenti\\n- Rimossa dalle wishlist`);
         await loadCatalogSeries();
 
       } catch (error) {
-        console.error('Errore eliminazione serie:', error);
-        alert(`❌ Errore nell'eliminazione: ${error.message}\\n\\nControlla la console per maggiori dettagli.`);
+      
       }
     }
 
@@ -910,7 +866,6 @@
         showEditSerieForm();
 
       } catch (error) {
-        console.error('Errore caricamento serie per modifica:', error);
         alert(`❌ Errore nel caricamento: ${error.message}`);
       }
     }
@@ -959,7 +914,6 @@
                 .upload(fileName, formData.immagineFile);
 
               if (uploadError) {
-                console.error('Errore upload immagine:', uploadError);
                 alert('⚠️ Errore nel caricamento dell\'immagine, procedo senza immagine');
               } else {
                 // Ottieni l'URL pubblico dell'immagine
@@ -1000,7 +954,6 @@
             }
 
           } catch (error) {
-            console.error('Errore aggiunta serie:', error);
             alert(`❌ Errore nell'aggiunta: ${error.message}`);
           }
         });
@@ -1052,7 +1005,6 @@
                 .upload(fileName, formData.immagineFile);
 
               if (uploadError) {
-                console.error('Errore upload immagine:', uploadError);
                 alert('⚠️ Errore nel caricamento dell\'immagine, procedo senza modificare l\'immagine');
               } else {
                 // Ottieni l'URL pubblico dell'immagine
@@ -1085,7 +1037,6 @@
             }
 
           } catch (error) {
-            console.error('Errore modifica serie:', error);
             alert(`❌ Errore nella modifica: ${error.message}`);
           }
         });
@@ -1139,7 +1090,6 @@
         updateStatWithAnimation('wishlist-count', wishlistCount);
 
       } catch (error) {
-        console.error('Errore caricamento statistiche profilo:', error);
         // Mostra valori di default in caso di errore
         document.getElementById('total-series').textContent = '0';
         document.getElementById('total-items').textContent = '0';
@@ -1202,7 +1152,6 @@
               await supabase.auth.signOut();
               window.location.href = 'index.html';
             } catch (error) {
-              console.error('Errore logout:', error);
               alert('Errore durante il logout');
             }
           }
@@ -1230,8 +1179,8 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('Service Worker registrato', reg))
-        .catch(err => console.error('Errore Service Worker', err));
+      
+      
         });
     }
   </script>

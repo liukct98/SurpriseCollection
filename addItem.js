@@ -1,7 +1,6 @@
 // =========================
 // INIZIALIZZAZIONE SUPABASE
 // =========================
-console.log("🚀 Script addItem.js caricato!");
 
 const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
@@ -22,7 +21,6 @@ async function checkAuth() {
     return null;
   }
 
-  console.log("✅ Utente loggato:", session.user.email);
   return session.user;
 }
 
@@ -43,12 +41,10 @@ async function setupSerieSelection() {
   
   if (serieIdFromUrl) {
     // Se abbiamo un ID della serie dall'URL, mostra il nome e crea un campo nascosto
-    console.log("🎯 Serie preselezionata dall'URL:", serieIdFromUrl);
     
     // Carica il nome della serie
     const { data: serie, error } = await supa.from("series").select("*").eq("id", serieIdFromUrl).single();
     if (error) {
-      console.error("❌ Errore caricamento serie:", error.message);
       alert("❌ Serie non trovata!");
       window.location.href = "./home.html";
       return false;
@@ -63,11 +59,9 @@ async function setupSerieSelection() {
     // Aggiorna il titolo della pagina
     document.querySelector('header').textContent = `Aggiungi Oggetto a: ${serie.nome}`;
     
-    console.log("✅ Serie automaticamente impostata:", serie.nome);
     return true;
   } else {
     // Se non abbiamo un ID, crea il select per scegliere la serie
-    console.log("🔄 Creazione select per selezione serie...");
     container.innerHTML = `
       <select id="serie_id" required>
         <option value="">Caricamento serie...</option>
@@ -83,27 +77,22 @@ async function setupSerieSelection() {
 async function loadSeriesOptions() {
   const select = document.getElementById("serie_id");
   if (!select) {
-    console.error("❌ Elemento select serie_id non trovato!");
     return;
   }
 
-  console.log("🔄 Caricamento serie...");
   const { data: series, error } = await supa.from("series").select("*");
   if (error) {
-    console.error("❌ Errore caricamento serie:", error.message);
     select.innerHTML = '<option value="">Errore caricamento serie</option>';
     return;
   }
 
   if (!series || series.length === 0) {
     select.innerHTML = '<option value="">Nessuna serie disponibile</option>';
-    console.log("⚠️ Nessuna serie trovata nel database");
     return;
   }
 
   select.innerHTML = '<option value="">Seleziona una serie...</option>' + 
     series.map(s => `<option value="${s.id}">${s.nome}</option>`).join("");
-  console.log(`✅ Caricate ${series.length} serie nel select`);
 }
 
 // =========================
@@ -117,7 +106,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const user_id = user.id;
-  console.log("👤 User ID:", user_id);
 
   // Imposta la selezione della serie (automatica o manuale)
   const serieSetupOk = await setupSerieSelection();
@@ -148,7 +136,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      console.log("📦 Dati da inserire:", { numero, nome, accessori, valore, serie_id, user_id });
+  
 
   let immagineRiferimentoUrl = null;
   const fotoInput = document.getElementById("foto");
@@ -161,10 +149,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           return;
         }
         
-        console.log("📤 Tentativo upload file:", file.name, "Dimensione:", (file.size / 1024 / 1024).toFixed(2) + " MB");
+    
         
         const filePath = `${user_id}/${Date.now()}_${file.name}`;
-        console.log("📂 Path upload:", filePath);
+    
         
         const { error: uploadError, data: uploadData } = await supa.storage
           .from("Foto")
@@ -174,15 +162,15 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
           
         if (uploadError) { 
-          console.error("❌ Dettagli errore upload:", uploadError);
+      
           alert(`❌ Errore upload: ${uploadError.message}\n\nPuoi comunque salvare l'oggetto senza foto.`); 
           return; 
         }
 
-        console.log("✅ Upload completato:", uploadData);
+    
         const { data } = supa.storage.from("Foto").getPublicUrl(filePath);
   immagineRiferimentoUrl = data.publicUrl;
-    console.log("🔗 URL immagine_riferimento:", immagineRiferimentoUrl);
+
       }
 
       const { error } = await supa.from("item").insert([

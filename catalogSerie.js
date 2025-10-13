@@ -6,13 +6,8 @@
 const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
 
-console.log("🔧 Tentativo di creare client Supabase...");
-console.log("Supabase global object:", typeof window.supabase !== 'undefined' ? window.supabase : "NON DEFINITO!");
-
 if (typeof window.supabase === 'undefined') {
-  console.error("❌ ERRORE: La libreria Supabase non è caricata!");
 } else {
-  console.log("✅ Libreria Supabase caricata correttamente");
 }
 
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -29,12 +24,12 @@ async function checkAdminAccess() {
     const { data: { user }, error } = await supabase.auth.getUser();
     
     if (error) {
-      console.error('Errore verifica utente:', error);
+  
       return false;
     }
     
     if (!user) {
-      console.log('Utente non autenticato - modalità sola lettura');
+  
       return false;
     }
     
@@ -42,18 +37,18 @@ async function checkAdminAccess() {
     const adminEmails = ['liukct@gmail.com', 'marcellink892@gmail.com', 'settegiallo@libero.it', 'antonio.marchi61@gmail.com'];
     
     if (adminEmails.includes(user.email) || adminEmails.includes(user.email.trim())) {
-      console.log('✅ Admin riconosciuto:', user.email);
+  
       isAdmin = true;
       showAdminSection();
       return true;
     } else {
-      console.log('👤 Utente normale:', user.email, '- modalità sola lettura');
+  
       isAdmin = false;
       hideAdminSection();
       return true; // Ritorna true perché può comunque vedere gli oggetti
     }
   } catch (error) {
-    console.error('Errore controllo admin:', error);
+
     return false;
   }
 }
@@ -63,7 +58,7 @@ function showAdminSection() {
   if (adminSection) {
     adminSection.style.display = 'block';
     adminSection.style.border = '3px solid green'; // Indicatore visivo
-    console.log('✅ Sezione admin mostrata');
+
   }
 }
 
@@ -71,7 +66,7 @@ function hideAdminSection() {
   const adminSection = document.querySelector('.admin-section');
   if (adminSection) {
     adminSection.style.display = 'none';
-    console.log('❌ Sezione admin nascosta');
+
   }
 }
 
@@ -159,7 +154,7 @@ async function loadSerieInfo() {
       document.title = `${serie.nome} - Catalogo`;
     }
   } catch (error) {
-    console.error('Errore caricamento serie:', error);
+
     alert('❌ Errore nel caricamento delle informazioni della serie');
   }
 }
@@ -219,7 +214,7 @@ async function loadItems() {
         `}
       </div>
     `).join('');  } catch (error) {
-    console.error('Errore caricamento oggetti:', error);
+
     container.innerHTML = `
       <div class="error-state">
         <h4>⚠️ Errore</h4>
@@ -250,7 +245,7 @@ async function deleteItem(itemId, itemName) {
     await loadItems();
     
   } catch (error) {
-    console.error('Errore eliminazione oggetto:', error);
+
     alert(`❌ Errore nell'eliminazione: ${error.message}`);
   }
 }
@@ -294,7 +289,7 @@ async function editItem(itemId) {
     showEditItemForm();
 
   } catch (error) {
-    console.error('Errore caricamento oggetto per modifica:', error);
+
     alert(`❌ Errore nel caricamento: ${error.message}`);
   }
 }
@@ -317,7 +312,7 @@ async function addItem(formData) {
         .upload(fileName, formData.immagineFile);
         
       if (uploadError) {
-        console.error('Errore upload immagine:', uploadError);
+    
         alert('⚠️ Errore nel caricamento dell\'immagine, procedo senza immagine');
       } else {
         // Ottieni l'URL pubblico dell'immagine
@@ -345,7 +340,7 @@ async function addItem(formData) {
     await loadItems();
     
   } catch (error) {
-    console.error('Errore aggiunta oggetto:', error);
+
     alert(`❌ Errore nell'aggiunta: ${error.message}`);
   }
 }
@@ -379,11 +374,9 @@ function handleFormSubmit(e) {
 // =================================
 
 window.addEventListener('load', async () => {
-  console.log('🚀 Pagina catalogSerie caricata, inizializzazione...');
   
   const params = getUrlParams();
   currentSerieId = params.id;
-  console.log('📋 Serie ID dal parametro URL:', currentSerieId);
   
   if (!currentSerieId) {
     alert('❌ ID serie non trovato nell\'URL');
@@ -394,11 +387,8 @@ window.addEventListener('load', async () => {
   // Controlla l'accesso (admin o utente normale)
   await checkAdminAccess();
   
-  console.log('📚 Caricamento informazioni serie...');
   await loadSerieInfo();
-  console.log('📦 Caricamento oggetti...');
   await loadItems();
-  console.log('✅ Inizializzazione completata!');
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -449,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .upload(fileName, formData.immagineFile);
             
           if (uploadError) {
-            console.error('Errore upload immagine:', uploadError);
+        
             alert('⚠️ Errore nel caricamento dell\'immagine, procedo senza modificare l\'immagine');
           } else {
             // Ottieni l'URL pubblico dell'immagine
@@ -472,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await loadItems();
         
       } catch (error) {
-        console.error('Errore modifica oggetto:', error);
+    
         alert(`❌ Errore nella modifica: ${error.message}`);
       }
     });

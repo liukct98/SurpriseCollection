@@ -2,7 +2,6 @@
 
 // Funzione per cercare utenti
 async function searchUsers(query) {
-  console.log('[DEBUG] searchUsers chiamata con query:', query);
   if (!query || query.length < 2) {
     document.getElementById('search-results').innerHTML = '';
     return;
@@ -23,7 +22,6 @@ async function searchUsers(query) {
     document.getElementById('search-results').innerHTML = '<div style="padding:18px;text-align:center;color:#888;background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(60,60,60,0.04);">Nessun utente trovato.</div>';
     return;
   }
-  console.log('[DEBUG] Utenti trovati:', data);
   document.getElementById('search-results').innerHTML = data.map(u => {
     return (
       '<div class="user-card" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;margin-bottom:12px;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(60,60,60,0.08);">' +
@@ -100,7 +98,6 @@ async function sendFriendRequest(targetUserId) {
   }
   // Inserisci richiesta nella tabella friend_requests
   const richiesta = { sender_id: senderId, receiver_id: targetUserId, status: 'pending', created_at: new Date().toISOString() };
-  console.log('[DEBUG] Inserimento friend_requests:', richiesta);
   const { error } = await supabase
     .from('friend_requests')
     .insert(richiesta);
@@ -116,7 +113,6 @@ async function sendFriendRequest(targetUserId) {
     data: new Date().toISOString(),
     letto: false
   };
-  console.log('[DEBUG] Inserimento notification:', notifica);
   await supabase.from('notification').insert(notifica);
   showStatus('Richiesta inviata!', 'success');
 }

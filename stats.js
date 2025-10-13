@@ -1,7 +1,6 @@
 // =========================
 // INIZIALIZZAZIONE SUPABASE
 // =========================
-console.log("📊 Script stats.js caricato!");
 
 const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
@@ -50,7 +49,7 @@ async function loadStats() {
     generateCharts(series, items);
     
   } catch (error) {
-    console.error("Errore caricamento statistiche:", error);
+  
   }
 }
 
@@ -202,7 +201,7 @@ function generateYearsChart(series) {
 // EVENT LISTENER DOMContentLoaded
 // =========================
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("📊 DOMContentLoaded - Pagina statistiche caricata!");
+
   
   // Verifica autenticazione
   const user = await checkAuth();

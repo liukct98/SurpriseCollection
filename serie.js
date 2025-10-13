@@ -2,8 +2,7 @@
 window.addEventListener("DOMContentLoaded", checkAuth);
 // =========================
 // INIZIALIZZAZIONE SUPABASE
-// =========================
-console.log("🚀 Script serie.js caricato!");
+// ========================
 
 const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
@@ -30,7 +29,6 @@ async function checkAuth() {
   } = await supa.auth.getSession();
 
   if (!session) {
-    console.warn("⚠️ Nessuna sessione attiva, redirect al login");
     const seriesList = document.getElementById("items-list");
     if (seriesList) seriesList.innerHTML = `<p style='color:red;'>❌ Devi effettuare il login per vedere la serie!</p>`;
     window.location.href = "./login.html";
@@ -39,7 +37,6 @@ async function checkAuth() {
 
   const serieId = getSerieIdFromUrl();
   if (!serieId) {
-    console.error("❌ Nessun serieId nell'URL");
     const seriesList = document.getElementById("items-list");
     if (seriesList) seriesList.innerHTML = `<p style='color:red;'>❌ ID serie mancante nell'URL!</p>`;
     return;
@@ -53,7 +50,6 @@ async function checkAuth() {
     .single();
 
   if (error || !serie) {
-    console.error("❌ Errore caricamento serie:", error);
     const seriesList = document.getElementById("items-list");
     if (seriesList) seriesList.innerHTML = `<p style='color:red;'>❌ Serie non trovata!</p>`;
     return;
@@ -90,7 +86,7 @@ async function checkAuth() {
   // if (addLink) {
   //   addLink.href = `./addItem.html?serie_id=${serieId}`;
   // } else {
-  //   console.error("❌ Link ./addItem.html non trovato!");
+
   // }
 
   // Carica la collezione dopo aver caricato la serie
@@ -231,7 +227,6 @@ async function loadCollection() {
   // Dopo il rendering, attiva i checkbox
   setupItemCheckboxes();
   // Dopo il rendering, attiva i checkbox wishlist
-  console.log('[DEBUG] Numero di wishlist-checkbox:', document.querySelectorAll('.wishlist-checkbox').length);
   setupWishlistCheckboxes();
   // Dopo il rendering, attiva i doppione input
   setupDoppioneInputs();
@@ -262,7 +257,6 @@ function setupDoppioneInputs() {
   });
 }
   } catch (error) {
-    console.error("Errore durante il caricamento della collezione:", error);
   }
 }
 
@@ -294,7 +288,6 @@ async function deleteSerie() {
     alert("Serie eliminata correttamente!");
     window.location.href = "./series.html"; // pagina elenco
   } catch (error) {
-    console.error("❌ Errore eliminazione:", error);
     alert("❌ Errore durante l'eliminazione: " + error.message);
   }
 }
@@ -378,7 +371,6 @@ function setupItemCheckboxes() {
           // DEBUG: mostra itemId prima di ogni update
           const { data: itemRow, error: itemFetchError } = await supa.from("item").select("*").eq("id", itemId).single();
           if (!itemRow) {
-            console.warn('[DEBUG] Nessuna riga trovata nella tabella item per questo itemId:', itemId);
           } else {
             const { data: { user: authUser } } = await supa.auth.getUser();
             const { data: userRow, error: userError } = await supa
@@ -421,7 +413,6 @@ function setupItemCheckboxes() {
           }
         }
       } catch (err) {
-        console.error("Errore aggiornamento stato:", err);
         checkbox.checked = !checkbox.checked; // rollback
         alert("❌ Errore nell'aggiornamento: " + err.message);
       }
@@ -447,7 +438,6 @@ function setupSingleWishlistCheckbox(checkbox) {
     const itemId = checkbox.dataset.itemId;
     const itemName = checkbox.dataset.itemName;
     const isInWishlist = checkbox.checked;
-    console.log('[DEBUG] Click wishlist:', { itemId, itemName, isInWishlist });
 
     try {
       // Recupera l'id reale dalla tabella users tramite email
@@ -471,11 +461,11 @@ function setupSingleWishlistCheckbox(checkbox) {
           estimated_price: null,
           purchase_url: null,
         });
-        if (wishlistInsertError) console.error("Errore insert wishlist:", wishlistInsertError);
+      
       } else {
         await supa.from("item").update({ wishlist: false }).eq("id", itemId);
         const { error: wishlistDeleteError } = await supa.from("wishlist").delete().eq("user_id", realUserId).eq("item_id", itemId);
-        if (wishlistDeleteError) console.error("Errore delete wishlist:", wishlistDeleteError);
+      
       }
 
       if (wishlistText) {
@@ -483,9 +473,7 @@ function setupSingleWishlistCheckbox(checkbox) {
         wishlistText.style.color = isInWishlist ? "#e74c3c" : "";
       }
 
-      console.log(`${isInWishlist ? "Aggiunto" : "Rimosso"} "${itemName}" ${isInWishlist ? "alla" : "dalla"} wishlist`);
     } catch (err) {
-      console.error("Errore gestione wishlist:", err);
       checkbox.checked = !checkbox.checked; // rollback
       alert("❌ Errore aggiornamento wishlist: " + err.message);
     }

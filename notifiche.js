@@ -17,7 +17,6 @@ async function aggiungiNotificaCatalogo(tipo, nomeSerie) {
   // Recupera tutti gli utenti
   const { data: utenti, error: utentiError } = await supabase.from('users').select('id');
   if (utentiError) {
-    console.error('Errore caricamento utenti per notifica:', utentiError);
     return;
   }
 
@@ -33,7 +32,6 @@ async function aggiungiNotificaCatalogo(tipo, nomeSerie) {
   // Inserisci tutte le notifiche
   const { error: insertError } = await supabase.from('notification').insert(notifiche);
   if (insertError) {
-    console.error('Errore inserimento notifiche:', insertError);
   }
 }
 

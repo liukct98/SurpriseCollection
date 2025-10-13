@@ -1,18 +1,13 @@
 // =========================
 // INIZIALIZZAZIONE SUPABASE
 // =========================
-console.log("📖 Catalog.js caricato!");
 
 const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
 
-console.log("🔧 Tentativo di creare client Supabase...");
-console.log("Supabase global object:", typeof window.supabase !== 'undefined' ? window.supabase : "NON DEFINITO!");
 
 if (typeof window.supabase === 'undefined') {
-  console.error("❌ ERRORE: La libreria Supabase non è caricata!");
 } else {
-  console.log("✅ Libreria Supabase caricata correttamente");
 }
 
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -39,14 +34,12 @@ async function checkAuth() {
     }
     return user;
   } catch (error) {
-    console.error("Errore autenticazione:", error);
     window.location.href = "index.html";
     return null;
   }
 }
 
 async function loadCatalog() {
-  console.log("📖 Caricamento catalogo...");
   
   try {
     // Carica tutte le serie del catalogo
@@ -150,7 +143,6 @@ window.showSubcategoriesForBrand = showSubcategoriesForBrand;
     displayFilteredCatalog();
     
   } catch (error) {
-    console.error("Errore caricamento catalogo:", error);
     document.getElementById("catalog-container").innerHTML = `
       <div class="error">
         <h3>⚠️ Errore caricamento</h3>
@@ -214,7 +206,6 @@ function displayCatalog(series) {
 
 async function addToCollection(catalogSeriesId) {
     // DEBUG: stampa info utente auth e id users
-    console.log('DEBUG Supabase Auth:', currentUser);
 
     // 2. Recupera l'id reale dalla tabella users tramite email
     const { data: userRow, error: userError } = await supabase
@@ -224,13 +215,10 @@ async function addToCollection(catalogSeriesId) {
       .single();
     if (userError || !userRow) {
       alert('Utente non trovato nella tabella users!');
-      console.log('DEBUG: userError', userError, 'userRow', userRow, 'currentUser.email', currentUser.email);
       return;
     }
     const realUserId = userRow.id;
-    console.log('DEBUG: user_id usato per insert:', realUserId, '| email auth:', currentUser.email, '| mail users:', userRow.mail);
   try {
-    console.log("➕ Aggiunta serie alla collezione...");
 
     // 1. Prendi i dettagli della serie dal catalogo
     const { data: catalogSerie, error: catalogError } = await supabase
@@ -325,7 +313,6 @@ async function addToCollection(catalogSeriesId) {
     alert(`✅ Serie "${catalogSerie.nome}" aggiunta alla collezione! \n \n🔄 La serie si aggiornerà automaticamente quando vengono modificati i dati nel catalogo generale.`);
 
   } catch (error) {
-    console.error("Errore aggiunta serie:", error);
     alert(`❌ Errore: ${error.message}`);
   }
 }
@@ -339,13 +326,11 @@ function viewDetails(catalogSeriesId) {
 // =============================================
 
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("🚀 Inizializzazione catalog.js...");
   
   // Verifica autenticazione
   currentUser = await checkAuth();
   if (!currentUser) return;
 
-  console.log("✅ Utente autenticato:", currentUser.email);
 
   // Carica il catalogo
   await loadCatalog();

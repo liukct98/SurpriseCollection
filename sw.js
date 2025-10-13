@@ -7,11 +7,9 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
-  console.log('Service Worker installato');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Cache aperta');
         return cache.addAll(urlsToCache);
       })
   );
@@ -19,13 +17,11 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  console.log('Service Worker attivato');
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
         keys.map(key => {
           if (key !== CACHE_NAME) {
-            console.log('Cache vecchia eliminata:', key);
             return caches.delete(key);
           }
         })

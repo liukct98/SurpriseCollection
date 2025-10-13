@@ -50,10 +50,6 @@
         const type = hashParams.get('type') || urlParams.get('type')
         const token = urlParams.get('token') || hashParams.get('token')
         
-        console.log('URL completo:', window.location.href)
-        console.log('Access token:', accessToken)
-        console.log('Type:', type)
-        console.log('Token:', token)
         
         if (accessToken && (type === 'signup' || type === 'email' || type === 'confirmation')) {
           // Imposta la sessione con i token ricevuti
@@ -63,7 +59,7 @@
           })
           
           if (error) {
-            console.error('Errore durante la conferma:', error)
+  
             statusDiv.innerHTML = `
               <h1>❌ Errore di conferma</h1>
               <p>Si è verificato un errore durante la conferma dell'account.</p>
@@ -71,7 +67,7 @@
               <button onclick="location.href='index.html'" class="btn-primary">🔙 Torna al Login</button>
             `
           } else {
-            console.log('Conferma riuscita:', data)
+  
             statusDiv.innerHTML = `
               <h1>✅ Account confermato!</h1>
               <p>Il tuo account è stato confermato con successo.</p>
@@ -113,7 +109,6 @@
           `
         }
       } catch (error) {
-        console.error('Errore imprevisto:', error)
         statusDiv.innerHTML = `
           <h1>❌ Errore</h1>
           <p>Si è verificato un errore imprevisto.</p>
