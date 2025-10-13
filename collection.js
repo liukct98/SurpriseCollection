@@ -97,29 +97,58 @@ async function loadCollectionSeries() {
   // Nascondi le serie all'avvio
   window.currentBrandFilter = null;
 // fine loadCollectionSeries
-// Filtro per marca
+// Filtro per marca e sottocategoria
 window.currentBrandFilter = null;
+window.currentSubcategoryFilter = null;
+
 window.filterByBrand = function(brand) {
   window.currentBrandFilter = brand;
-  // Nascondi la vetrina marche, mostra le serie della marca
+  window.currentSubcategoryFilter = null;
+  
+  // Nascondi la vetrina marche
   const brandShowcase = document.getElementById('brand-showcase');
   if (brandShowcase) brandShowcase.style.display = 'none';
-  displayFilteredSeries();
-  // Mostra pulsante indietro
+  
+  // Mostra le sottocategorie della marca
+  window.showSubcategoriesForBrand(brand);
+}
+
+window.showSubcategoriesForBrand = function(brand) {
   const seriesList = document.getElementById('series-list');
-  if (seriesList && !document.getElementById('back-to-brands')) {
-    const backBtn = document.createElement('button');
-    backBtn.id = 'back-to-brands';
-    backBtn.className = 'clear-btn';
-    backBtn.innerHTML = '← Marche';
-    backBtn.style.margin = '16px 0 12px 0';
-    backBtn.onclick = showBrandShowcase;
-    seriesList.prepend(backBtn);
-  }
+  const seriesForBrand = allSeries.filter(s => s.marca === brand);
+  const subcategories = [...new Set(seriesForBrand.map(s => s.sottocategoria || 'Senza Categoria').filter(Boolean))].sort();
+  
+  let backBtnHtml = `<div><button id="back-to-brands" class="back-btn static-back-btn" onclick="window.showBrandShowcase()"><span class="back-arrow">&#8592;</span> Marche</button></div>`;
+  
+  seriesList.innerHTML = backBtnHtml + `
+    <h2 style="margin: 20px 0; color: #3498db;">📦 ${brand} - Sottocategorie</h2>
+    <div class="subcategory-grid">
+      ${subcategories.map(subcategory => {
+        const serieCount = seriesForBrand.filter(s => (s.sottocategoria || 'Senza Categoria') === subcategory).length;
+        return `
+          <div class="serie fade-in" onclick="window.filterBySubcategory('${brand}', '${subcategory}')" style="cursor:pointer;">
+            <div>
+              <h2>${subcategory}</h2>
+              <div class="serie-info">
+                <p><strong>🎯 Serie:</strong> ${serieCount}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+window.filterBySubcategory = function(brand, subcategory) {
+  window.currentBrandFilter = brand;
+  window.currentSubcategoryFilter = subcategory;
+  displayFilteredSeries();
 }
 
 window.showBrandShowcase = function() {
   window.currentBrandFilter = null;
+  window.currentSubcategoryFilter = null;
   const brandShowcase = document.getElementById('brand-showcase');
   if (brandShowcase) brandShowcase.style.display = '';
   const seriesList = document.getElementById('series-list');
@@ -154,9 +183,17 @@ function populateFilters() {
 // =========================
 function displayFilteredSeries() {
   let filteredSeries = [...allSeries];
+  
   // Filtro per marca
   if (window.currentBrandFilter) {
     filteredSeries = filteredSeries.filter(serie => serie.marca === window.currentBrandFilter);
+  }
+  
+  // Filtro per sottocategoria
+  if (window.currentSubcategoryFilter) {
+    filteredSeries = filteredSeries.filter(serie => 
+      (serie.sottocategoria || 'Senza Categoria') === window.currentSubcategoryFilter
+    );
   }
   
   // Filtro per ricerca
@@ -221,19 +258,27 @@ function displayFilteredSeries() {
     return;
   }
   
-  // Tasto indietro in alto a sinistra
+  // Breadcrumb per navigazione
   let backBtnHtml = '';
-  if (window.currentBrandFilter) {
-    backBtnHtml = `<div><button id=\"back-to-brands\" class=\"back-btn static-back-btn\" onclick=\"showBrandShowcase()\"><span class=\"back-arrow\">&#8592;</span> Marche</button></div>`;
+  let breadcrumbHtml = '';
+  
+  if (window.currentSubcategoryFilter && window.currentBrandFilter) {
+    // Siamo al livello delle serie, mostra breadcrumb completo
+    backBtnHtml = `<div><button class="back-btn static-back-btn" onclick="window.showSubcategoriesForBrand('${window.currentBrandFilter}')"><span class="back-arrow">&#8592;</span> ${window.currentBrandFilter}</button></div>`;
+    breadcrumbHtml = `<h2 style="margin: 20px 0; color: #3498db;">📦 ${window.currentBrandFilter} → ${window.currentSubcategoryFilter}</h2>`;
+  } else if (window.currentBrandFilter) {
+    // Siamo al livello delle sottocategorie (questo non dovrebbe mai essere raggiunto qui, ma per sicurezza)
+    backBtnHtml = `<div><button class="back-btn static-back-btn" onclick="window.showBrandShowcase()"><span class="back-arrow">&#8592;</span> Marche</button></div>`;
   }
-  seriesList.innerHTML = backBtnHtml + filteredSeries.map((serie, index) => `
+  seriesList.innerHTML = backBtnHtml + breadcrumbHtml + filteredSeries.map((serie, index) => `
     <div class="serie fade-in" style="animation-delay: ${0.1 * index}s;">
   <div onclick="window.sessionStorage.setItem('lastBrand', JSON.stringify('${window.currentBrandFilter || ''}')); window.location.href='./serie.html?id=${serie.id}'" style="cursor: pointer;">
         <h2>${serie.nome} (${serie.anno})</h2>
         <div class="serie-info">
           <p><strong>📍 Nazione:</strong> ${serie.nazione || 'Non specificata'}</p>
             <p><strong>🏭 Marca:</strong> ${getSerieMarca(serie)}</p>
-          <p><strong>�🎯 Numero pezzi:</strong> ${serie.n_pezzi || serie.n_oggetti || 0}</p>
+            ${serie.sottocategoria ? `<p><strong>📂 Sottocategoria:</strong> ${serie.sottocategoria}</p>` : ''}
+          <p><strong>🎯 Numero pezzi:</strong> ${serie.n_pezzi || serie.n_oggetti || 0}</p>
           <p><strong>📦 Oggetti posseduti:</strong> ${serie.itemCount}</p>
           ${serie.catalog_series_id ? `
             <div class="sync-indicator">

@@ -23,6 +23,9 @@
   <label for="marca">Marca</label>
   <input type="text" id="marca">
 
+  <label for="sottocategoria">Sottocategoria</label>
+  <input type="text" id="sottocategoria">
+
   <label for="n_pezzi">Numero di pezzi totali</label>
   <input type="number" id="n_pezzi" min="1" required>
 
@@ -90,6 +93,7 @@
   document.getElementById('anno').value = serie.anno || '';
   document.getElementById('nazione').value = serie.nazione || '';
   document.getElementById('marca').value = serie.marca || '';
+  document.getElementById('sottocategoria').value = serie.sottocategoria || '';
   document.getElementById('n_pezzi').value = serie.n_pezzi || serie.n_oggetti || '';
 
       } catch (error) {
@@ -116,6 +120,7 @@
           anno: parseInt(document.getElementById('anno').value),
           nazione: document.getElementById('nazione').value.trim(),
           marca: document.getElementById('marca').value.trim(),
+          sottocategoria: document.getElementById('sottocategoria').value.trim(),
           n_pezzi: parseInt(document.getElementById('n_pezzi').value)
         };
 

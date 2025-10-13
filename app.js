@@ -135,10 +135,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const n_pezzi = document.getElementById("n_pezzi").value;
       const nazione = document.getElementById("nazione").value;
       const marca = document.getElementById("marca").value;
+      const sottocategoria = document.getElementById("sottocategoria").value;
 
       const { error } = await supabase
         .from("series")
-        .insert([{ nome, anno, n_pezzi, nazione, marca }]);
+        .insert([{ nome, anno, n_pezzi, nazione, marca, sottocategoria }]);
 
       if (error) alert("❌ Errore inserimento serie: " + error.message);
       else {

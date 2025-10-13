@@ -366,6 +366,11 @@
             <label for="serie-marca">Marca *</label>
             <input type="text" id="serie-marca" required placeholder="es. Ferrero">
           </div>
+
+          <div class="form-group">
+            <label for="serie-sottocategoria">Sottocategoria</label>
+            <input type="text" id="serie-sottocategoria" placeholder="es. Kinder Joy, Kinder Merendero">
+          </div>
           
           <div class="form-group">
             <label for="serie-pezzi">Numero Pezzi</label>
@@ -412,6 +417,11 @@
           <div class="form-group">
             <label for="edit-serie-marca">Marca *</label>
             <input type="text" id="edit-serie-marca" required placeholder="es. Ferrero">
+          </div>
+
+          <div class="form-group">
+            <label for="edit-serie-sottocategoria">Sottocategoria</label>
+            <input type="text" id="edit-serie-sottocategoria" placeholder="es. Kinder Joy, Kinder Merendero">
           </div>
           
           <div class="form-group">
@@ -837,6 +847,7 @@
         document.getElementById('edit-serie-anno').value = serie.anno || '';
         document.getElementById('edit-serie-nazione').value = serie.nazione || '';
         document.getElementById('edit-serie-marca').value = serie.marca || '';
+        document.getElementById('edit-serie-sottocategoria').value = serie.sottocategoria || '';
         document.getElementById('edit-serie-pezzi').value = serie.n_pezzi || '';
 
         // Mostra info sull'immagine corrente
@@ -874,6 +885,7 @@
             anno: parseInt(document.getElementById('serie-anno').value) || null,
             nazione: document.getElementById('serie-nazione').value.trim() || null,
             marca: document.getElementById('serie-marca').value.trim() || null,
+            sottocategoria: document.getElementById('serie-sottocategoria').value.trim() || null,
             n_pezzi: parseInt(document.getElementById('serie-pezzi').value) || null,
             immagineFile: fileInput.files[0] || null
           };
@@ -959,6 +971,7 @@
             anno: parseInt(document.getElementById('edit-serie-anno').value) || null,
             nazione: document.getElementById('edit-serie-nazione').value.trim() || null,
             marca: document.getElementById('edit-serie-marca').value.trim() || null,
+            sottocategoria: document.getElementById('edit-serie-sottocategoria').value.trim() || null,
             n_pezzi: parseInt(document.getElementById('edit-serie-pezzi').value) || null,
             immagineFile: fileInput.files[0] || null
           };
@@ -978,6 +991,7 @@
               anno: formData.anno,
               nazione: formData.nazione,
               marca: formData.marca,
+              sottocategoria: formData.sottocategoria,
               n_pezzi: formData.n_pezzi
             };
 

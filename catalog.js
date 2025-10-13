@@ -85,29 +85,67 @@ async function loadCatalog() {
     }
 // Filtro per marca
 window.currentBrandFilter = null;
+window.currentSubcategoryFilter = null;
+
 function filterByBrand(brand) {
-  // Mostra le serie e nascondi la vetrina marche
-  document.getElementById('catalog-container').style.display = '';
-  document.getElementById('brand-showcase').style.display = 'none';
-  window.currentBrandFilter = brand;
-  displayFilteredCatalog();
-  // Aggiungi freccia indietro
+  // Mostra le sottocategorie della marca
   const container = document.getElementById('catalog-container');
-  if (container && !document.getElementById('back-to-brands')) {
-    const backDiv = document.createElement('div');
-    backDiv.style.marginBottom = '18px';
-    backDiv.innerHTML = `<button id="back-to-brands" class="back-btn static-back-btn" onclick="window.showBrandShowcaseCatalog()"><span class="back-arrow">&#8592;</span> Marche</button>`;
-    container.prepend(backDiv);
-  }
+  const brandShowcase = document.getElementById('brand-showcase');
+  
+  container.style.display = '';
+  brandShowcase.style.display = 'none';
+  
+  window.currentBrandFilter = brand;
+  window.currentSubcategoryFilter = null;
+  
+  // Trova tutte le sottocategorie per questa marca
+  const seriesForBrand = allCatalogSeries.filter(s => s.marca === brand);
+  const subcategories = [...new Set(seriesForBrand.map(s => s.sottocategoria || 'Senza Categoria').filter(Boolean))].sort();
+  
+  // Mostra le sottocategorie
+  let backBtnHtml = `<div><button class="back-btn static-back-btn" onclick="window.showBrandShowcaseCatalog()"><span class="back-arrow">&#8592;</span> Marche</button></div>`;
+  
+  container.innerHTML = backBtnHtml + `
+    <h2 style="margin: 20px 0; color: #3498db;">📦 ${brand} - Sottocategorie</h2>
+    <div class="subcategory-grid">
+      ${subcategories.map(subcategory => {
+        const serieCount = seriesForBrand.filter(s => (s.sottocategoria || 'Senza Categoria') === subcategory).length;
+        return `
+          <div class="serie fade-in" onclick="filterBySubcategory('${brand}', '${subcategory}')" style="cursor:pointer;">
+            <div>
+              <h2>${subcategory}</h2>
+              <div class="serie-info">
+                <p><strong>🎯 Serie:</strong> ${serieCount}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function filterBySubcategory(brand, subcategory) {
+  // Mostra le serie della sottocategoria
+  window.currentBrandFilter = brand;
+  window.currentSubcategoryFilter = subcategory;
+  displayFilteredCatalog();
 }
 
 window.showBrandShowcaseCatalog = function() {
   window.currentBrandFilter = null;
+  window.currentSubcategoryFilter = null;
   document.getElementById('brand-showcase').style.display = '';
   document.getElementById('catalog-container').style.display = 'none';
 };
 
+function showSubcategoriesForBrand(brand) {
+  filterByBrand(brand);
+}
+
 window.filterByBrand = filterByBrand;
+window.filterBySubcategory = filterBySubcategory;
+window.showSubcategoriesForBrand = showSubcategoriesForBrand;
     // Mostra le serie filtrate
     displayFilteredCatalog();
     
@@ -135,12 +173,19 @@ function displayCatalog(series) {
     return;
   }
 
-  // Se filtrato per marca, aggiungi la freccia in cima
+  // Breadcrumb per navigazione
   let backBtnHtml = '';
-  if (window.currentBrandFilter) {
-    backBtnHtml = `<div><button id="back-to-brands" class="back-btn static-back-btn" onclick="window.showBrandShowcaseCatalog()"><span class="back-arrow">&#8592;</span> Marche</button></div>`;
+  let breadcrumbHtml = '';
+  
+  if (window.currentSubcategoryFilter && window.currentBrandFilter) {
+    // Siamo al livello delle serie, mostra breadcrumb completo
+    backBtnHtml = `<div><button class="back-btn static-back-btn" onclick="showSubcategoriesForBrand('${window.currentBrandFilter}')"><span class="back-arrow">&#8592;</span> ${window.currentBrandFilter}</button></div>`;
+    breadcrumbHtml = `<h2 style="margin: 20px 0; color: #3498db;">📦 ${window.currentBrandFilter} → ${window.currentSubcategoryFilter}</h2>`;
+  } else if (window.currentBrandFilter) {
+    // Siamo al livello delle sottocategorie
+    backBtnHtml = `<div><button class="back-btn static-back-btn" onclick="window.showBrandShowcaseCatalog()"><span class="back-arrow">&#8592;</span> Marche</button></div>`;
   }
-  container.innerHTML = backBtnHtml + series.map((serie, index) => `
+  container.innerHTML = backBtnHtml + breadcrumbHtml + series.map((serie, index) => `
     <div class="serie fade-in" style="animation-delay: ${0.1 * index}s;">
       <div onclick="window.sessionStorage.setItem('lastBrandCatalog', JSON.stringify('${window.currentBrandFilter || ''}')); viewDetails('${serie.id}')" style="cursor: pointer;">
         <h2>${serie.nome} (${serie.anno || 'N/A'})</h2>
@@ -234,6 +279,7 @@ async function addToCollection(catalogSeriesId) {
         n_pezzi: catalogSerie.n_pezzi,
         immagine_copertina: catalogSerie.immagine_copertina,
         marca: catalogSerie.marca || null,
+        sottocategoria: catalogSerie.sottocategoria || null,
         user_id: realUserId,
         catalog_series_id: catalogSeriesId // 🔄 Collegamento per sincronizzazione automatica
       })
@@ -338,9 +384,17 @@ function populateFilters() {
 
 function displayFilteredCatalog() {
   let filteredSeries = [...allCatalogSeries];
+  
   // Filtro per marca
   if (window.currentBrandFilter) {
     filteredSeries = filteredSeries.filter(serie => serie.marca === window.currentBrandFilter);
+  }
+  
+  // Filtro per sottocategoria
+  if (window.currentSubcategoryFilter) {
+    filteredSeries = filteredSeries.filter(serie => 
+      (serie.sottocategoria || 'Senza Categoria') === window.currentSubcategoryFilter
+    );
   }
 
   // Filtro per ricerca
