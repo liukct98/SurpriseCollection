@@ -133,7 +133,10 @@
       }
       let html = `<div style='padding:12px 16px 8px 16px; border-bottom:1px solid #eee; display:flex; align-items:center; justify-content:space-between;'>
         <span style='font-weight:600;font-size:1.1em;'>Notifiche</span>
-        <button onclick="document.getElementById('notifiche-popup').style.display='none'" style='background:none;border:none;font-size:1.2em;cursor:pointer;'>&times;</button>
+        <div style='display:flex; gap:8px; align-items:center;'>
+          <button onclick="event.stopPropagation(); clearAllNotifications();" title='Cancella tutte' style='background:#f5f5f5;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:0.9em;'>Svuota</button>
+          <button onclick="document.getElementById('notifiche-popup').style.display='none'" style='background:none;border:none;font-size:1.2em;cursor:pointer;'>&times;</button>
+        </div>
       </div>`;
       if (!notifiche || notifiche.length === 0) {
         html += `<div style='padding:18px;text-align:center;color:#888;'>Nessuna notifica</div>`;
@@ -290,6 +293,54 @@
       // Ricarica popup
       const notifiche = await loadNotifichePersonali();
       showNotifichePopup(notifiche);
+    }
+
+    // Cancella tutte le notifiche (svuota):
+    // - Messaggi chat: segna tutti i messaggi ricevuti come letti
+    // - Notifiche classiche: elimina tutte le notifiche dell'utente
+    // Le richieste di amicizia restano (non vengono cancellate qui)
+    async function clearAllNotifications() {
+      // Conferma
+      if (!confirm('Sei sicuro di voler svuotare tutte le notifiche?\n\n- I messaggi non letti verranno segnati come letti\n- Le notifiche classiche verranno eliminate')) {
+        return;
+      }
+      if (!window.supabase) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Recupera users.id dal profilo
+      const { data: userRow } = await supabase
+        .from('users')
+        .select('id')
+        .eq('mail', user.email)
+        .single();
+      if (!userRow) return;
+      const userId = userRow.id;
+
+      // 1) Segna tutti i messaggi ricevuti come letti
+      try {
+        await supabase
+          .from('messages')
+          .update({ read: true })
+          .eq('receiver_id', userId)
+          .eq('read', false);
+      } catch (e) {}
+
+      // 2) Elimina tutte le notifiche standard
+      try {
+        await supabase
+          .from('notification')
+          .delete()
+          .eq('user_id', userId);
+      } catch (e) {}
+
+      // Aggiorna badge e popup
+      await updateNotificheBadge();
+      const notifiche = await loadNotifichePersonali();
+      showNotifichePopup(notifiche);
+      if (typeof showStatus === 'function') {
+        showStatus('Notifiche svuotate', 'success');
+      }
     }
 
     // Listener bottone notifiche
