@@ -18,24 +18,34 @@
   <script src="app.js?v=3.0&t=1725819700&bust=cache"></script>
 </head>
 <body>
-  <!-- Navbar Moderna -->
+ <!-- Navbar Moderna -->
   <nav class="navbar">
-    <div class="nav-container">
-      <div class="nav-brand">
-        <span class="nav-logo">🎁</span>
-        <span class="nav-title">Sorpresine</span>
+    <div class="nav-container" style="display: flex; align-items: center; justify-content: space-between;">
+      <!-- Colonna 1: Notifiche a sinistra -->
+      <div style="flex:1; display: flex; align-items: left;">
+        <button class="nav-notifiche" id="nav-notifiche-btn" title="Notifiche" style="margin-left:8px;">
+          <span class="notifiche-icon">🔔</span>
+          <span class="notifiche-badge" id="notifiche-badge">0</span>
+        </button>
       </div>
-      
-      <div class="nav-menu">
+      <!-- Colonna 2: Brand centrale -->
+      <div style="flex:2; display: flex; justify-content: center; align-items: center;">
+        <div class="nav-brand">
+          <span class="nav-logo">🎁</span>
+          <span class="nav-title">Catalogando</span>
+        </div>
+      </div>
+      <!-- Colonna 3: Profilo a destra -->
+      <div style="flex:1; display: flex; justify-content: flex-end; align-items: right;">
         <button class="nav-item" onclick="location.href='home.html'" title="Dashboard">
           <span class="nav-icon">🏠</span>
           <span class="nav-label">Home</span>
         </button>
-        <button class="nav-profile active" title="Il mio Profilo">
+        <button class="nav-profile" onclick="location.href='profile.html'" title="Il mio Profilo">
           <div class="profile-avatar">
             <span id="user-initials">?</span>
           </div>
-          <span class="profile-name" id="nav-user-name">Profilo</span>
+          <span class="profile-name" id="nav-user-name">Utente</span>
         </button>
       </div>
     </div>

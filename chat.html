@@ -11,16 +11,36 @@
   <script src="chat.js"></script>
 </head>
 <body>
+  <!-- Navbar Moderna -->
   <nav class="navbar">
-    <div class="nav-container">
-      <div class="nav-brand">
+    <div class="nav-container" style="display: flex; align-items: center; justify-content: space-between;">
+      <!-- Colonna 1: Notifiche a sinistra -->
+      <div style="flex:1; display: flex; align-items: left;">
+  <button class="nav-notifiche" id="nav-notifiche-btn" title="Notifiche" style="margin-left:8px;">
+          <span class="notifiche-icon">🔔</span>
+          <span class="notifiche-badge" id="notifiche-badge">0</span>
+        </button>
+      </div>
+      <!-- Colonna 2: Brand centrale -->
+      <div style="flex:2; display: flex; justify-content: center; align-items: center;">
+        <div class="nav-brand">
         <span class="nav-logo">💬</span>
-        <span class="nav-title">Chat</span>
+        <span class="nav-title" id="chat-title">Chat</span>
+      </div>
+      </div>
+      <!-- Colonna 3: Profilo a destra -->
+      <div style="flex:1; display: flex; justify-content: flex-end; align-items: right;">
+        <button class="nav-profile" onclick="location.href='profile.html'" title="Il mio Profilo">
+          <div class="profile-avatar">
+            <span id="user-initials">?</span>
+          </div>
+          <span class="profile-name" id="nav-user-name">Utente</span>
+        </button>
       </div>
     </div>
   </nav>
+  
   <div class="container" style="max-width:500px;margin:100px auto 0 auto;padding:20px 16px 100px 16px;">
-    <h1 id="chat-title">Chat</h1>
     <input type="text" id="chat-search" placeholder="Cerca nei messaggi..." style="width:100%;margin-bottom:12px;padding:9px 12px;border-radius:8px;border:1px solid #ccc;">
     <div id="chat-messages" style="min-height:300px;margin-bottom:30px;padding-bottom:20px;"></div>
      <form id="chat-form" style="display:flex;gap:8px;margin-top:20px;margin-bottom:30px;">
