@@ -185,9 +185,12 @@ function displayCatalog(series) {
           <p><strong>📍 Nazione:</strong> ${serie.nazione || 'Non specificata'}</p>
           <p><strong>🎯 Numero pezzi:</strong> ${serie.n_pezzi || 0}</p>
           ${serie.immagine_copertina ? `
-            <div class="serie-preview-image">
-              <img src="${serie.immagine_copertina}" alt="${serie.nome}" loading="lazy">
-            </div>
+            <img src="${serie.immagine_copertina}" 
+                 alt="${serie.nome}" 
+                 onclick="event.stopPropagation(); openLightbox('${serie.immagine_copertina}')"
+                 style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-lg); margin: var(--spacing-sm) 0; cursor: zoom-in;"
+                 onerror="this.style.display='none'"
+                 loading="lazy">
           ` : ''}
           <div class="sync-indicator">
             <small class="sync-info">📖 Aggiungi alla tua collezione per iniziare a collezionare</small>
@@ -320,6 +323,25 @@ async function addToCollection(catalogSeriesId) {
 function viewDetails(catalogSeriesId) {
   window.location.href = `catalogSerie.html?id=${catalogSeriesId}`;
 }
+
+// =============================================
+// LIGHTBOX PER IMMAGINI
+// =============================================
+function openLightbox(imageUrl) {
+  let lightbox = document.getElementById('catalog-lightbox');
+  if (!lightbox) {
+    lightbox = document.createElement('div');
+    lightbox.id = 'catalog-lightbox';
+    lightbox.className = 'lightbox';
+    lightbox.innerHTML = '<img id="catalog-lightbox-img" src="" alt="Immagine serie">';
+    lightbox.onclick = () => lightbox.classList.remove('active');
+    document.body.appendChild(lightbox);
+  }
+  document.getElementById('catalog-lightbox-img').src = imageUrl;
+  lightbox.classList.add('active');
+}
+
+window.openLightbox = openLightbox;
 
 // =============================================
 // INIZIALIZZAZIONE

@@ -210,7 +210,13 @@ async function loadCollection() {
             </div>
             <p>${cat.accessori || ""}</p>
             ${(cat.valore && cat.valore !== "") ? `<p>Valore: ${cat.valore}</p>` : ""}
-            ${cat.immagine_riferimento ? `<img src="${cat.immagine_riferimento}" alt="${cat.nome || ""}" class="item-foto" style="cursor:pointer;" data-img="${cat.immagine_riferimento}">` : ""}
+            ${cat.immagine_riferimento ? `
+              <img src="${cat.immagine_riferimento}" 
+                   alt="${cat.nome || ""}" 
+                   class="item-foto" 
+                   onclick="openLightbox('${cat.immagine_riferimento}')"
+                   style="cursor: zoom-in;">
+            ` : ""}
             <div class="item-doppione-field" style="margin:8px 0;">
               <label for="doppione-${cat.id}" style="font-size:0.95em;">Doppione:</label>
               <input type="number" min="0" class="doppione-input" id="doppione-${cat.id}" data-item-id="${userItem ? userItem.id : ''}" data-catalog-item-id="${cat.id}" value="${doppioneValue}" style="width:60px; margin-left:8px;">
@@ -259,6 +265,25 @@ function setupDoppioneInputs() {
   } catch (error) {
   }
 }
+
+// =========================
+// LIGHTBOX PER IMMAGINI
+// =========================
+function openLightbox(imageUrl) {
+  let lightbox = document.getElementById('serie-lightbox');
+  if (!lightbox) {
+    lightbox = document.createElement('div');
+    lightbox.id = 'serie-lightbox';
+    lightbox.className = 'lightbox';
+    lightbox.innerHTML = '<img id="serie-lightbox-img" src="" alt="Immagine oggetto">';
+    lightbox.onclick = () => lightbox.classList.remove('active');
+    document.body.appendChild(lightbox);
+  }
+  document.getElementById('serie-lightbox-img').src = imageUrl;
+  lightbox.classList.add('active');
+}
+
+window.openLightbox = openLightbox;
 
 // =========================
 // MODIFICA / ELIMINAZIONE SERIE

@@ -201,12 +201,11 @@ async function loadItems() {
         </div>
         ${item.accessori ? `<p class="item-accessori">🎁 ${item.accessori}</p>` : ''}
         ${item.immagine_riferimento ? `
-          <div class="item-image-container" onclick="showImageModal('${item.immagine_riferimento}', '${item.nome}', '${item.accessori || ''}')">
-            <img src="${item.immagine_riferimento}" alt="${item.nome}" class="item-image clickable">
-            <div class="image-overlay">
-              <span class="zoom-icon">🔍</span>
-            </div>
-          </div>
+          <img src="${item.immagine_riferimento}" 
+               alt="${item.nome}" 
+               class="item-image clickable" 
+               onclick="openLightbox('${item.immagine_riferimento}')"
+               style="cursor: zoom-in;">
         ` : `
           <div class="no-image-placeholder">
             📷 Nessuna immagine disponibile
@@ -470,37 +469,33 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =================================
-// IMAGE MODAL FUNCTIONS
+// IMAGE MODAL FUNCTIONS (NOW USING LIGHTBOX)
 // =================================
 
-function showImageModal(imageUrl, itemName, itemAccessories) {
-  const modal = document.getElementById('image-modal');
-  const modalImage = document.getElementById('modal-image');
-  const modalTitle = document.getElementById('modal-title');
-  const modalItemName = document.getElementById('modal-item-name');
-  const modalItemAccessories = document.getElementById('modal-item-accessories');
-  
-  // Imposta il contenuto del modal
-  modalImage.src = imageUrl;
-  modalTitle.textContent = `Immagine: ${itemName}`;
-  modalItemName.textContent = `📦 ${itemName}`;
-  
-  if (itemAccessories && itemAccessories !== 'null' && itemAccessories !== '') {
-    modalItemAccessories.textContent = `🎁 Accessori: ${itemAccessories}`;
-    modalItemAccessories.style.display = 'block';
-  } else {
-    modalItemAccessories.style.display = 'none';
+function openLightbox(imageUrl) {
+  let lightbox = document.getElementById('catalogserie-lightbox');
+  if (!lightbox) {
+    lightbox = document.createElement('div');
+    lightbox.id = 'catalogserie-lightbox';
+    lightbox.className = 'lightbox';
+    lightbox.innerHTML = '<img id="catalogserie-lightbox-img" src="" alt="Immagine oggetto">';
+    lightbox.onclick = () => lightbox.classList.remove('active');
+    document.body.appendChild(lightbox);
   }
-  
-  // Mostra il modal
-  modal.classList.remove('hidden');
-  document.body.style.overflow = 'hidden'; // Previene lo scroll della pagina
+  document.getElementById('catalogserie-lightbox-img').src = imageUrl;
+  lightbox.classList.add('active');
+}
+
+window.openLightbox = openLightbox;
+
+function showImageModal(imageUrl, itemName, itemAccessories) {
+  // Backward compatibility - redirect to lightbox
+  openLightbox(imageUrl);
 }
 
 function closeImageModal() {
-  const modal = document.getElementById('image-modal');
-  modal.classList.add('hidden');
-  document.body.style.overflow = 'auto'; // Ripristina lo scroll della pagina
+  const lightbox = document.getElementById('catalogserie-lightbox');
+  if (lightbox) lightbox.classList.remove('active');
 }
 
 // Chiudi il modal con il tasto ESC
