@@ -830,10 +830,13 @@
       const subcats = Object.keys(subcatMap).sort();
       
       container.innerHTML = `
-        <button onclick="resetAdminNavigation()" class="back-btn" style="margin-bottom: 20px;">
-          <span class="back-arrow">←</span> Marche
-        </button>
-        <h3 style="margin-bottom: 20px;">📦 ${currentAdminBrand} - Sottocategorie</h3>
+        <div style="margin-bottom: 20px;">
+          <button id="back-to-brands-btn" class="back-btn static-back-btn" style="position: relative; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s ease;">
+            <span class="back-arrow" style="font-size: 20px;">←</span>
+            <span>Torna alle Marche</span>
+          </button>
+        </div>
+        <h3 style="margin-bottom: 20px; color: #667eea;">📦 ${currentAdminBrand} - Sottocategorie</h3>
         <div class="brand-list">
           ${subcats.map(subcat => `
             <div class="serie" onclick="selectAdminSubcategory('${subcat}')" style="cursor: pointer;">
@@ -843,6 +846,25 @@
           `).join('')}
         </div>
       `;
+
+      // Aggiungi event listener al pulsante dopo che è stato creato
+      setTimeout(() => {
+        const backBtn = document.getElementById('back-to-brands-btn');
+        if (backBtn) {
+          backBtn.onclick = () => {
+            resetAdminNavigation();
+          };
+          // Aggiungi hover effect
+          backBtn.onmouseenter = function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+          };
+          backBtn.onmouseleave = function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+          };
+        }
+      }, 0);
     }
 
     function showAdminSeriesForSubcategory(series, container) {
@@ -852,10 +874,13 @@
       );
 
       container.innerHTML = `
-        <button onclick="backToAdminSubcategories()" class="back-btn" style="margin-bottom: 20px;">
-          <span class="back-arrow">←</span> ${currentAdminBrand}
-        </button>
-        <h3 style="margin-bottom: 20px;">📦 ${currentAdminBrand} → ${currentAdminSubcategory}</h3>
+        <div style="margin-bottom: 20px;">
+          <button id="back-to-subcats-btn" class="back-btn static-back-btn" style="position: relative; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s ease;">
+            <span class="back-arrow" style="font-size: 20px;">←</span>
+            <span>Torna a ${currentAdminBrand}</span>
+          </button>
+        </div>
+        <h3 style="margin-bottom: 20px; color: #667eea;">📦 ${currentAdminBrand} → ${currentAdminSubcategory}</h3>
         <div class="brand-list">
           ${filtered.map(serie => `
             <div class="serie-admin-card" data-id="${serie.id}" style="position: relative;">
@@ -885,6 +910,25 @@
           `).join('')}
         </div>
       `;
+
+      // Aggiungi event listener al pulsante dopo che è stato creato
+      setTimeout(() => {
+        const backBtn = document.getElementById('back-to-subcats-btn');
+        if (backBtn) {
+          backBtn.onclick = () => {
+            backToAdminSubcategories();
+          };
+          // Aggiungi hover effect
+          backBtn.onmouseenter = function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+          };
+          backBtn.onmouseleave = function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+          };
+        }
+      }, 0);
     }
 
     function selectAdminBrand(brand) {
