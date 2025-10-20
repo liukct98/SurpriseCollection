@@ -8,7 +8,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Home</title>
-  <link rel="stylesheet" href="style.css?v=3.0&t=20250912">
+  <link rel="stylesheet" href="style.css?v=4.0&t=20251020">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FF6B35">
   
@@ -693,6 +693,11 @@
     // =============================
     
     async function showCatalogManager() {
+      // Nascondi tutti gli altri pannelli
+      hideAddSerieForm();
+      hideEditSerieForm();
+      
+      // Mostra il catalog manager
       const manager = document.getElementById('catalog-manager');
       manager.classList.remove('hidden');
       await loadCatalogSeries();
@@ -703,6 +708,11 @@
     }
 
     function showAddSerieForm() {
+      // Nascondi tutti gli altri pannelli
+      hideCatalogManager();
+      hideEditSerieForm();
+      
+      // Mostra il form aggiungi
       document.getElementById('add-serie-form').classList.remove('hidden');
     }
 
@@ -712,6 +722,9 @@
     }
 
     function showEditSerieForm() {
+      hideCatalogManager();
+      hideAddSerieForm();
+
       document.getElementById('edit-serie-form').classList.remove('hidden');
     }
 
@@ -719,6 +732,10 @@
       document.getElementById('edit-serie-form').classList.add('hidden');
       document.getElementById('edit-catalog-serie-form').reset();
     }
+
+    // Variabili globali per la navigazione admin
+    let currentAdminBrand = null;
+    let currentAdminSubcategory = null;
 
     async function loadCatalogSeries() {
       const container = document.getElementById('catalog-series-list');
@@ -734,7 +751,7 @@
         const { data: series, error } = await supabase
           .from('catalog_series')
           .select('*')
-          .order('nome');
+          .order('marca', { ascending: true });
 
         if (error) throw error;
 
@@ -748,25 +765,17 @@
           return;
         }
 
-        container.innerHTML = series.map(serie => `
-          <div class="serie-admin-card" data-id="${serie.id}">
-            <div class="serie-admin-header">
-              <h4>${serie.nome}</h4>
-              <div class="serie-admin-actions">
-                <button onclick="editCatalogSerie('${serie.id}')" class="btn-edit" title="Modifica">✏️</button>
-                <button onclick="deleteCatalogSerie('${serie.id}', '${serie.nome}')" class="btn-delete" title="Elimina">🗑️</button>
-              </div>
-            </div>
-            <div class="serie-admin-info">
-              ${serie.anno ? `<span class="info-tag">📅 ${serie.anno}</span>` : ''}
-              ${serie.nazione ? `<span class="info-tag">🌍 ${serie.nazione}</span>` : ''}
-              ${serie.n_pezzi ? `<span class="info-tag">🧩 ${serie.n_pezzi} pezzi</span>` : ''}
-            </div>
-            <div class="serie-admin-stats">
-              <button onclick="manageCatalogItems('${serie.id}')" class="btn-items">📦 Gestisci Oggetti</button>
-            </div>
-          </div>
-        `).join('');
+        // Mostra la vista corretta in base allo stato di navigazione
+        if (!currentAdminBrand) {
+          // Mostra marche
+          showAdminBrands(series, container);
+        } else if (!currentAdminSubcategory) {
+          // Mostra sottocategorie della marca selezionata
+          showAdminSubcategories(series, container);
+        } else {
+          // Mostra serie della sottocategoria selezionata
+          showAdminSeriesForSubcategory(series, container);
+        }
 
       } catch (error) {
         container.innerHTML = `
@@ -777,6 +786,127 @@
           </div>
         `;
       }
+    }
+
+    function showAdminBrands(series, container) {
+      // Raggruppa per marca
+      const brandMap = {};
+      series.forEach(s => {
+        const marca = s.marca || 'Senza marca';
+        if (!brandMap[marca]) {
+          brandMap[marca] = 0;
+        }
+        brandMap[marca]++;
+      });
+
+      const brands = Object.keys(brandMap).sort();
+      
+      container.innerHTML = `
+        <h3 style="margin-bottom: 20px;">📦 Marche nel Catalogo</h3>
+        <div class="brand-list">
+          ${brands.map(brand => `
+            <div class="serie" onclick="selectAdminBrand('${brand}')" style="cursor: pointer;">
+              <h2>${brand}</h2>
+              <p>🎯 Serie disponibili: ${brandMap[brand]}</p>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function showAdminSubcategories(series, container) {
+      const filtered = series.filter(s => (s.marca || 'Senza marca') === currentAdminBrand);
+      
+      // Raggruppa per sottocategoria
+      const subcatMap = {};
+      filtered.forEach(s => {
+        const subcat = s.sottocategoria || 'Senza sottocategoria';
+        if (!subcatMap[subcat]) {
+          subcatMap[subcat] = 0;
+        }
+        subcatMap[subcat]++;
+      });
+
+      const subcats = Object.keys(subcatMap).sort();
+      
+      container.innerHTML = `
+        <button onclick="resetAdminNavigation()" class="back-btn" style="margin-bottom: 20px;">
+          <span class="back-arrow">←</span> Marche
+        </button>
+        <h3 style="margin-bottom: 20px;">📦 ${currentAdminBrand} - Sottocategorie</h3>
+        <div class="brand-list">
+          ${subcats.map(subcat => `
+            <div class="serie" onclick="selectAdminSubcategory('${subcat}')" style="cursor: pointer;">
+              <h2>${subcat}</h2>
+              <p>🎯 Serie: ${subcatMap[subcat]}</p>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function showAdminSeriesForSubcategory(series, container) {
+      const filtered = series.filter(s => 
+        (s.marca || 'Senza marca') === currentAdminBrand && 
+        (s.sottocategoria || 'Senza sottocategoria') === currentAdminSubcategory
+      );
+
+      container.innerHTML = `
+        <button onclick="backToAdminSubcategories()" class="back-btn" style="margin-bottom: 20px;">
+          <span class="back-arrow">←</span> ${currentAdminBrand}
+        </button>
+        <h3 style="margin-bottom: 20px;">📦 ${currentAdminBrand} → ${currentAdminSubcategory}</h3>
+        <div class="brand-list">
+          ${filtered.map(serie => `
+            <div class="serie-admin-card" data-id="${serie.id}" style="position: relative;">
+              ${serie.immagine_copertina ? `
+                <img src="${serie.immagine_copertina}" 
+                     alt="${serie.nome}" 
+                     onclick="event.stopPropagation(); openLightbox('${serie.immagine_copertina}')"
+                     style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-lg); margin-bottom: var(--spacing-md); cursor: zoom-in;"
+                     onerror="this.style.display='none'">
+              ` : ''}
+              <div class="serie-admin-header">
+                <h4>${serie.nome} ${serie.anno ? `(${serie.anno})` : ''}</h4>
+                <div class="serie-admin-actions">
+                  <button onclick="event.stopPropagation(); editCatalogSerie('${serie.id}')" class="btn-edit" title="Modifica">✏️</button>
+                  <button onclick="event.stopPropagation(); deleteCatalogSerie('${serie.id}', '${serie.nome}')" class="btn-delete" title="Elimina">🗑️</button>
+                </div>
+              </div>
+              <div class="serie-admin-info">
+                ${serie.anno ? `<span class="info-tag">📅 ${serie.anno}</span>` : ''}
+                ${serie.nazione ? `<span class="info-tag">🌍 ${serie.nazione}</span>` : ''}
+                ${serie.n_pezzi ? `<span class="info-tag">🧩 ${serie.n_pezzi} pezzi</span>` : ''}
+              </div>
+              <div class="serie-admin-stats">
+                <button onclick="event.stopPropagation(); manageCatalogItems('${serie.id}')" class="btn-items">📦 Gestisci Oggetti</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function selectAdminBrand(brand) {
+      currentAdminBrand = brand;
+      currentAdminSubcategory = null;
+      loadCatalogSeries();
+    }
+
+    function selectAdminSubcategory(subcat) {
+      currentAdminSubcategory = subcat;
+      loadCatalogSeries();
+    }
+
+    function backToAdminSubcategories() {
+      currentAdminSubcategory = null;
+      loadCatalogSeries();
+    }
+
+    function resetAdminNavigation() {
+      currentAdminBrand = null;
+      currentAdminSubcategory = null;
+      loadCatalogSeries();
     }
 
     async function refreshCatalogData() {
