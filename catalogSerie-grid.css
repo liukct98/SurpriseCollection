@@ -1,0 +1,73 @@
+/**
+ * Grid Layout solo per CatalogSerie
+ * Layout a 2 colonne con stile uguale a serie.html
+ */
+
+/* Allarga LEGGERMENTE il container solo per catalogSerie */
+.container {
+  max-width: 900px !important;
+}
+
+/* Grid a 2 colonne FISSE come serie.html */
+#items-list,
+.items-admin-list {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 1rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Stile card uguale a serie.html */
+#items-list .item-admin-card,
+.items-admin-list .item-admin-card {
+  background: white !important;
+  border: 2px solid #ddd !important;
+  border-radius: 12px !important;
+  padding: 1rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  min-height: 200px !important;
+}
+
+/* Header con più spazio */
+#items-list .item-admin-card .item-header,
+.items-admin-list .item-admin-card .item-header {
+  margin-bottom: 1rem !important;
+}
+
+/* Titolo più grande */
+#items-list .item-admin-card h4,
+.items-admin-list .item-admin-card h4 {
+  font-size: 1.1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Immagini più grandi */
+#items-list .item-admin-card img,
+.items-admin-list .item-admin-card img {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 300px !important;
+  object-fit: contain !important;
+  margin: 0.5rem 0 !important;
+}
+
+/* Card full-width per elementi speciali (loading, errori, ecc.) */
+#items-list .loading,
+#items-list .error-state,
+#items-list .empty-state,
+#items-list > button {
+  grid-column: 1 / -1 !important;
+}
+
+/* Responsive - torna a 1 colonna SOLO su mobile */
+@media (max-width: 768px) {
+  #items-list,
+  .items-admin-list {
+    grid-template-columns: 1fr !important;
+  }
+}
