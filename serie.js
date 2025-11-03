@@ -60,6 +60,16 @@ async function checkAuth() {
   const serieTitle = document.getElementById("serie-title");
   if (serieTitle) serieTitle.textContent = serie.nome;
 
+  // Mostra le note se presenti
+  if (serie.note && serie.note.trim() !== '') {
+    const noteDiv = document.getElementById("serie-note");
+    const noteText = document.getElementById("serie-note-text");
+    if (noteDiv && noteText) {
+      noteText.textContent = serie.note;
+      noteDiv.style.display = "block";
+    }
+  }
+
   // Mostra tasto indietro
   const backBtn = document.getElementById("back-to-series");
   if (backBtn) {

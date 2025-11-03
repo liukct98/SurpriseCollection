@@ -184,6 +184,11 @@ function displayCatalog(series) {
         <div class="serie-info">
           <p><strong>📍 Nazione:</strong> ${serie.nazione || 'Non specificata'}</p>
           <p><strong>🎯 Numero pezzi:</strong> ${serie.n_pezzi || 0}</p>
+          ${serie.note && serie.note.trim() !== '' ? `
+            <div style="background:#fff3cd; border-left:4px solid #ffc107; padding:8px 12px; margin:12px 0; border-radius:4px; font-size:0.9em;">
+              <strong>📝 Note:</strong> ${serie.note}
+            </div>
+          ` : ''}
           ${serie.immagine_copertina ? `
             <img src="${serie.immagine_copertina}" 
                  alt="${serie.nome}" 
@@ -271,6 +276,7 @@ async function addToCollection(catalogSeriesId) {
         immagine_copertina: catalogSerie.immagine_copertina,
         marca: catalogSerie.marca || null,
         sottocategoria: catalogSerie.sottocategoria || null,
+        note: catalogSerie.note || null,
         user_id: realUserId,
         catalog_series_id: catalogSeriesId // 🔄 Collegamento per sincronizzazione automatica
       })

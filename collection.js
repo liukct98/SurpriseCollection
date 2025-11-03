@@ -277,6 +277,11 @@ function displayFilteredSeries() {
             ${serie.sottocategoria ? `<p><strong>📂 Sottocategoria:</strong> ${serie.sottocategoria}</p>` : ''}
           <p><strong>🎯 Numero pezzi:</strong> ${serie.n_pezzi || serie.n_oggetti || 0}</p>
           <p><strong>📦 Oggetti posseduti:</strong> ${serie.itemCount}</p>
+          ${serie.note && serie.note.trim() !== '' ? `
+            <div style="background:#fff3cd; border-left:4px solid #ffc107; padding:8px 12px; margin:12px 0; border-radius:4px; font-size:0.9em;">
+              <strong>📝 Note:</strong> ${serie.note}
+            </div>
+          ` : ''}
           ${serie.immagine_copertina ? `
             <img src="${serie.immagine_copertina}" 
                  alt="${serie.nome}" 
