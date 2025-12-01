@@ -109,7 +109,7 @@
 }
 /* --- Card Marca Dettagliata --- */
 .brand-card {
-  background: linear-gradient(90deg, #ff6b35 0%, #3a86ff 100%);
+  background: linear-gradient(90deg, #6f47c9 0%, #4b2e97 100%);
   color: #fff;
   border-radius: 18px;
   padding: 32px 24px;
@@ -170,7 +170,7 @@
 }
 /* --- Blocco Marca Vetrina --- */
 .brand-block {
-  background: linear-gradient(90deg, #ff6b35 0%, #3a86ff 100%);
+  background: linear-gradient(90deg, #6f47c9 0%, #4b2e97 100%);
   color: #fff;
   border-radius: 18px;
   padding: 32px 24px;
@@ -201,7 +201,7 @@
 }
 /* --- Stile pagina serie --- */
 .main-header {
-  background: linear-gradient(90deg, #3a86ff 0%, #ff6b35 100%);
+  background: linear-gradient(90deg, #6f47c9 0%, #4b2e97 100%);
   color: #fff;
   padding: 24px 0 16px 0;
   text-align: center;
@@ -316,12 +316,13 @@
   left: 0;
   bottom: 0;
   width: 100%;
-  background: linear-gradient(90deg, #3a86ff 0%, #ff6b35 100%);
+  background: linear-gradient(135deg, #6f47c9, #4b2e97);
   display: flex;
   justify-content: center;
   gap: 24px;
   padding: 12px 0;
   z-index: 100;
+  box-shadow: 0 -4px 20px rgba(75,46,151,0.25);
 }
 .nav-btn {
   background: none;
@@ -374,7 +375,9 @@
 }
 
 body {
-  background: #f0f2f5;
+  background: radial-gradient(1200px 500px at 10% 20%, rgba(111,71,201,0.12), transparent 8%),
+              radial-gradient(1200px 500px at 90% 80%, rgba(75,46,151,0.14), transparent 8%),
+              linear-gradient(180deg, #f1f3ff 0%, #e9ecff 100%);
   color: #333;
   min-height: 100vh;
   padding-top: 70px; /* spazio per header fisso */
@@ -390,10 +393,10 @@ body {
   left: 0;
   width: 100%;
   height: 70px;
-  background: linear-gradient(135deg, #3498db 0%, #FF6B35 100%);
+  background: linear-gradient(135deg, #6f47c9, #4b2e97);
   color: white;
   z-index: 1000;
-  box-shadow: 0 2px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 20px rgba(75,46,151,0.25);
   backdrop-filter: blur(10px);
 }
 
@@ -422,8 +425,9 @@ body {
 }
 
 .nav-title {
-  color: white;
+  color: white !important;
   font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .nav-menu {
@@ -544,8 +548,8 @@ body {
 }
 
 .quick-btn {
-  background: linear-gradient(135deg, #fff 80%, #FF6B35 100%);
-  border: 1px solid #FF6B35;
+  background: linear-gradient(135deg, #fff 80%, #6f47c9 100%);
+  border: 1px solid #6f47c9;
   border-radius: 15px;
   padding: 20px;
   cursor: pointer;
@@ -579,7 +583,7 @@ body {
 }
 
 .quick-btn.primary::before {
-  background: linear-gradient(135deg, #3498db, #FF6B35);
+  background: linear-gradient(135deg, #6f47c9, #4b2e97);
 }
 
 .quick-btn.secondary::before {
@@ -644,7 +648,7 @@ body {
   align-items: center;
   gap: 20px;
   padding: 30px;
-  background: linear-gradient(135deg, #3498db 0%, #FF6B35 100%);
+  background: linear-gradient(135deg, #6f47c9 0%, #4b2e97 100%);
   border-radius: 20px;
   color: white;
   margin-bottom: 30px;
@@ -734,7 +738,7 @@ body {
 }
 
 .stat-card-profile.primary::before {
-  background: linear-gradient(135deg, #3498db, #FF6B35);
+  background: linear-gradient(135deg, #6f47c9, #4b2e97);
 }
 
 .stat-card-profile.secondary::before {
@@ -791,7 +795,7 @@ body {
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(135deg, #3498db, #FF6B35);
+  background: linear-gradient(135deg, #6f47c9, #4b2e97);
   width: 0%;
   border-radius: 3px;
   transition: width 1s ease-out 0.5s;
@@ -863,7 +867,7 @@ body {
 }
 
 .profile-action-btn.primary::before {
-  background: linear-gradient(135deg, #3498db, #FF6B35);
+  background: linear-gradient(135deg, #6f47c9, #4b2e97);
 }
 
 .profile-action-btn.secondary::before {
@@ -1063,7 +1067,7 @@ header {
   max-width: 480px;
   margin: 40px auto;
   padding: 20px;
-  background: linear-gradient(135deg, #fff 80%, #FF6B35 100%);
+  background: linear-gradient(135deg, #fff 80%, #4b2e97 100%);
   border-radius: 15px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
@@ -1074,7 +1078,7 @@ header {
 .search-filters {
   margin-bottom: 25px;
   padding: 20px;
-  background: linear-gradient(135deg, #f8f9fa 80%, #FF6B35 100%);
+  background: linear-gradient(135deg, #f8f9fa 80%, #4b2e97 100%);
   border-radius: 12px;
   box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
@@ -1398,7 +1402,7 @@ form input:focus, form select:focus {
 
 .btn-primary {
   width: 100% !important;
-  background: linear-gradient(135deg, #3498db, #FF6B35) !important;
+  background: linear-gradient(135deg, #6f47c9, #4b2e97) !important;
   color: white !important;
   border: none !important;
   padding: 14px 20px !important;
@@ -1411,9 +1415,9 @@ form input:focus, form select:focus {
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #2980b9, #21618c) !important;
+  background: linear-gradient(135deg, #4b2e97, #3a1f6b) !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 4px 15px rgba(52,152,219,0.3) !important;
+  box-shadow: 0 4px 15px rgba(111,71,201,0.3) !important;
 }
 
 .message {
@@ -1571,7 +1575,7 @@ form input:focus, form select:focus {
 
 .progress-fill-chart {
   height: 100%;
-  background: linear-gradient(90deg, #3498db, #FF6B35);
+  background: linear-gradient(90deg, #6f47c9, #4b2e97);
   border-radius: 4px;
   transition: width 0.8s ease;
 }
@@ -2170,7 +2174,7 @@ form input:focus, form select:focus {
 .profile-section {
   margin-bottom: 30px;
   padding: 20px;
-  background: linear-gradient(135deg, #3498db 0%, #FF6B35 100%);
+  background: linear-gradient(135deg, #6f47c9 0%, #4b2e97 100%);
   border-radius: 15px;
   color: white;
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
@@ -2324,7 +2328,7 @@ form input:focus, form select:focus {
    COLLEZIONE / CARDS
 ========================= */
 .serie {
-  background: linear-gradient(135deg, #fff 80%, #FF6B35 100%);
+  background: linear-gradient(135deg, #fff 80%, #4b2e97 100%);
   padding: 15px;
   margin: 15px 0;
   border-radius: 12px;
@@ -2397,7 +2401,7 @@ body.welcome {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #6dd5fa, #2980b9);
+  background: linear-gradient(135deg, #9b7dd1, #4b2e97);
   color: #fff;
 }
 
@@ -2442,13 +2446,14 @@ body.welcome h1 {
   left: 0;
   width: 100%;
   height: 70px;
-  background: linear-gradient(135deg, #3498db 0%, #FF6B35 100%);
+  background: linear-gradient(135deg, #6f47c9, #4b2e97);
   border-top: none;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 -4px 20px rgba(75,46,151,0.25);
   z-index: 1000;
+  backdrop-filter: blur(10px);
 }
 
 .nav-item {
@@ -2458,25 +2463,32 @@ body.welcome h1 {
   align-items: center;
   justify-content: space-between;
   font-size: 14px;
-  color: #555;
+  color: rgba(255,255,255,0.9);
   text-decoration: none;
   overflow: hidden;
   transition: color 0.2s;
+  padding: 8px 16px;
+  border-radius: 12px;
 }
 
-.nav-item .icon {
+.nav-item .icon,
+.nav-item .nav-icon {
   font-size: 24px;
   line-height: 1;
+  color: white;
 }
 
-.nav-item .label {
+.nav-item .label,
+.nav-item .nav-label {
   font-size: 12px;
   margin-top: 3px;
+  color: white;
 }
 
 .nav-item.active,
 .nav-item:hover {
-  color: #3498db;
+  color: white;
+  background: rgba(255,255,255,0.2);
 }
 
 /* =========================
@@ -2486,7 +2498,7 @@ body.welcome h1 {
   position: absolute;
   width: 100px;
   height: 100px;
-  background: rgba(52, 152, 219, 0.3);
+  background: rgba(111, 71, 201, 0.3);
   border-radius: 50%;
   transform: scale(0);
   opacity: 0;
@@ -2925,7 +2937,7 @@ body.welcome h1 {
     }
     
     .admin-section {
-      background: linear-gradient(135deg, #f8f9fa 80%, #FF6B35 100%);
+      background: linear-gradient(135deg, #f8f9fa 80%, #4b2e97 100%);
       border-radius: 12px;
       padding: 20px;
       margin-top: 40px;
@@ -2940,7 +2952,7 @@ body.welcome h1 {
     }
     
     .btn-admin {
-      background: linear-gradient(135deg, #3498db, #FF6B35);
+      background: linear-gradient(135deg, #6f47c9, #4b2e97);
       color: white;
       border: none;
       padding: 12px 16px;
@@ -2952,7 +2964,7 @@ body.welcome h1 {
     }
     
     .btn-admin:hover {
-      background: linear-gradient(135deg, #2980b9, #FF6B35);
+      background: linear-gradient(135deg, #4b2e97, #6f47c9);
       transform: translateY(-2px);
     }
     
@@ -3409,7 +3421,7 @@ body.welcome h1 {
 }
 
 .image-modal .modal-header {
-  background: linear-gradient(135deg, #FF6B35, #e55a2e);
+  background: linear-gradient(135deg, #6f47c9, #4b2e97);
   color: white;
   padding: 15px 20px;
   display: flex;
@@ -3704,7 +3716,7 @@ body.welcome h1 {
 
 /* Header styling */
 .header {
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  background: linear-gradient(135deg, #6f47c9, #4b2e97);
   color: white;
   padding: 30px 20px;
   text-align: center;
@@ -3810,14 +3822,14 @@ body.welcome h1 {
 }
 
 .serie-actions .btn-primary {
-  background: linear-gradient(135deg, #FF6B35, #e55a2e);
+  background: linear-gradient(135deg, #6f47c9, #4b2e97);
   color: white;
   flex: 1;
   min-width: 180px;
 }
 
 .serie-actions .btn-primary:hover {
-  background: linear-gradient(135deg, #e55a2e, #d44819);
+  background: linear-gradient(135deg, #4b2e97, #3a1f6b);
   transform: translateY(-2px);
 }
 

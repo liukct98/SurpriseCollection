@@ -14,10 +14,24 @@
 </head>
 <body>
   <nav class="navbar">
-    <div class="nav-container">
-      <div class="nav-brand">
-        <span class="nav-logo">🎁</span>
+    <div class="nav-container" style="display: flex; align-items: center; justify-content: space-between;">
+      <!-- Colonna 1: Spazio a sinistra -->
+      <div style="flex:1;"></div>
+      <!-- Colonna 2: Brand centrale -->
+      <div style="flex:2; display: flex; justify-content: center; align-items: center;">
+        <div class="nav-brand">
+          <span class="nav-logo">🎁</span>
           <span class="nav-title">Catalogando</span>
+        </div>
+      </div>
+      <!-- Colonna 3: Profilo a destra -->
+      <div style="flex:1; display: flex; justify-content: flex-end; align-items: right;">
+        <button class="nav-profile" onclick="location.href='profile.html'" title="Il mio Profilo">
+          <div class="profile-avatar">
+            <span id="user-initials">?</span>
+          </div>
+          <span class="profile-name" id="nav-user-name">Utente</span>
+        </button>
       </div>
     </div>
   </nav>
@@ -40,5 +54,60 @@
     </nav>
   <script src="title-animations.js"></script>
   <script src="component-animations.js"></script>
+  <script>
+    // Mostra username utente loggato
+    async function showUserName() {
+      // Aggiungi animazione di rotazione
+      const initialsEl = document.getElementById('user-initials');
+      if (initialsEl) {
+        initialsEl.style.display = 'inline-block';
+        initialsEl.style.animation = 'spin 1s linear infinite';
+      }
+      
+      if (!window.supabase) {
+        if (initialsEl) initialsEl.style.animation = '';
+        return;
+      }
+      
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data.user) return;
+      
+      try {
+        const { data: userProfile, error: profileError } = await supabase
+          .from('users')
+          .select('username')
+          .eq('mail', data.user.email)
+          .single();
+        
+        if (userProfile && userProfile.username) {
+          const username = userProfile.username;
+          const initials = username.slice(0, 2).toUpperCase();
+          document.getElementById('nav-user-name').textContent = username;
+          const initialsEl = document.getElementById('user-initials');
+          initialsEl.textContent = initials;
+          initialsEl.style.animation = '';
+        } else {
+          const displayName = data.user.email.split('@')[0];
+          const initials = displayName.slice(0, 2).toUpperCase();
+          document.getElementById('nav-user-name').textContent = displayName;
+          const initialsEl = document.getElementById('user-initials');
+          initialsEl.textContent = initials;
+          initialsEl.style.animation = '';
+        }
+      } catch (err) {
+        const displayName = data.user.email.split('@')[0];
+        const initials = displayName.slice(0, 2).toUpperCase();
+        document.getElementById('nav-user-name').textContent = displayName;
+        const initialsEl = document.getElementById('user-initials');
+        initialsEl.textContent = initials;
+        initialsEl.style.animation = '';
+      }
+    }
+    
+    // Carica username quando la pagina è pronta
+    window.addEventListener('DOMContentLoaded', () => {
+      showUserName();
+    });
+  </script>
 </body>
 </html>

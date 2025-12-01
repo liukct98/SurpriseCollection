@@ -1,70 +1,107 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - Catalogo Collezioni</title>
-  <link rel="stylesheet" href="style.css?v=3.0&t=20250912">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Login / Registrazione - Catalogando</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF6B35">
 
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#FF6B35">
-  
-  <!-- Apple PWA Meta Tags -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Sorpresine">
-  <link rel="apple-touch-icon" href="icon-180.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<!-- Apple PWA Meta Tags -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sorpresine">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<link rel="stylesheet" href="login.css">
 </head>
 <body>
-  <header>Catalogo Collezioni</header>
-  <div class="container">
-    <div class="auth-container">
-      <h1>🔐 Accedi al tuo catalogo</h1>
-      <p class="auth-subtitle">Inserisci le tue credenziali per continuare</p>
-      
-      <form id="login-form" class="auth-form">
-        <div class="form-group">
-          <label for="username">👤 Username o Email</label>
-          <input type="text" id="username" autocomplete="username" placeholder="Inserisci username o email" required>
-        </div>
 
-        <div class="form-group">
-          <label for="password">🔒 Password</label>
-          <input type="password" id="password" autocomplete="current-password" placeholder="Inserisci la password" required>
-        </div>
+<div class="card" id="card">
+  <!-- LEFT: Sign In form (default view) -->
+  <div class="panel-left">
+    <div class="signin-only" style="max-width:360px;">
+      <h2>🔐 Accedi</h2>
+      <p class="lead">Inserisci username o email e password</p>
 
-        <button type="submit" class="btn-primary">🚀 Accedi</button>
+      <form id="loginForm">
+        <input class="input" id="login-username" placeholder="Username o Email" autocomplete="username" required />
+        <div class="password-field">
+          <input class="input" id="login-password" placeholder="Password" type="password" autocomplete="current-password" required />
+          <button type="button" class="password-toggle" onclick="togglePassword('login-password', this)" aria-label="Mostra password">
+            <svg viewBox="0 0 24 24">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top:14px">🚀 Accedi</button>
       </form>
-
-      <div id="login-message" class="message"></div>
-
-      <div class="auth-link">
-        <p>Non hai un account? <a href="./register.html" class="link-primary">📝 Registrati</a></p>
-      </div>
+      
+      <div id="login-message" class="message" style="display:none;"></div>
     </div>
   </div>
 
-  <script>
-    /*
-    // Service Worker temporaneamente disabilitato per debug
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('Service Worker registrato', reg))
-        .catch(err => console.error('Errore Service Worker', err));
-        });
-    }
-    */
-  </script>
+  <!-- RIGHT: Create Account form (shown when register mode) -->
+  <div class="panel-right">
+    <div class="register-only" style="max-width:360px;">
+      <h2>📝 Registrati</h2>
+      <p class="lead">Crea il tuo account per iniziare</p>
 
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="login.js"></script>
-  <script src="title-animations.js"></script>
-  <script src="component-animations.js"></script>
+      <form id="signupForm">
+        <input class="input" id="register-username" placeholder="Username" autocomplete="username" required />
+        <input class="input" id="register-email" placeholder="Email" type="email" autocomplete="email" required />
+        <div class="password-field">
+          <input class="input" id="register-password" placeholder="Password" type="password" autocomplete="new-password" required />
+          <button type="button" class="password-toggle" onclick="togglePassword('register-password', this)" aria-label="Mostra password">
+            <svg viewBox="0 0 24 24">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+        <div class="password-field">
+          <input class="input" id="register-confirm-password" placeholder="Conferma Password" type="password" autocomplete="new-password" required />
+          <button type="button" class="password-toggle" onclick="togglePassword('register-confirm-password', this)" aria-label="Mostra password">
+            <svg viewBox="0 0 24 24">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+        <button type="submit" class="btn btn-primary">📝 Crea Account</button>
+      </form>
+      
+      <div id="register-message" class="message" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- The sliding purple panel -->
+  <div class="slider" id="slider">
+    <div class="inner">
+      <div class="signup-msg">
+        <h3>Ciao! 👋</h3>
+        <p>Registrati con i tuoi dati per iniziare a catalogare le tue collezioni.</p>
+        <button class="toggle-ghost" id="btnSwitchToSignup">📝 Registrati</button>
+      </div>
+      <div class="signin-msg">
+        <h3>Bentornato! 🎉</h3>
+        <p>Accedi al tuo account per continuare a catalogare.</p>
+        <button class="toggle-ghost" id="btnSwitchToSignin">🔐 Accedi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="login.js"></script>
+<script src="title-animations.js"></script>
+<script src="component-animations.js"></script>
+
 </body>
 </html>

@@ -64,5 +64,60 @@
 </nav>
   <script src="title-animations.js"></script>
   <script src="component-animations.js"></script>
+  <script>
+    // Mostra username utente loggato
+    async function showUserName() {
+      // Aggiungi animazione di rotazione
+      const initialsEl = document.getElementById('user-initials');
+      if (initialsEl) {
+        initialsEl.style.display = 'inline-block';
+        initialsEl.style.animation = 'spin 1s linear infinite';
+      }
+      
+      if (!window.supabase) {
+        if (initialsEl) initialsEl.style.animation = '';
+        return;
+      }
+      
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data.user) return;
+      
+      try {
+        const { data: userProfile, error: profileError } = await supabase
+          .from('users')
+          .select('username')
+          .eq('mail', data.user.email)
+          .single();
+        
+        if (userProfile && userProfile.username) {
+          const username = userProfile.username;
+          const initials = username.slice(0, 2).toUpperCase();
+          document.getElementById('nav-user-name').textContent = username;
+          const initialsEl = document.getElementById('user-initials');
+          initialsEl.textContent = initials;
+          initialsEl.style.animation = '';
+        } else {
+          const displayName = data.user.email.split('@')[0];
+          const initials = displayName.slice(0, 2).toUpperCase();
+          document.getElementById('nav-user-name').textContent = displayName;
+          const initialsEl = document.getElementById('user-initials');
+          initialsEl.textContent = initials;
+          initialsEl.style.animation = '';
+        }
+      } catch (err) {
+        const displayName = data.user.email.split('@')[0];
+        const initials = displayName.slice(0, 2).toUpperCase();
+        document.getElementById('nav-user-name').textContent = displayName;
+        const initialsEl = document.getElementById('user-initials');
+        initialsEl.textContent = initials;
+        initialsEl.style.animation = '';
+      }
+    }
+    
+    // Carica username quando la pagina è pronta
+    window.addEventListener('DOMContentLoaded', () => {
+      showUserName();
+    });
+  </script>
 </body>
 </html>

@@ -9,6 +9,7 @@
   <meta http-equiv="Expires" content="0">
   <title>Home</title>
   <link rel="stylesheet" href="style.css?v=4.0&t=20251020">
+  <!-- <link rel="stylesheet" href="home-modern.css"> -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FF6B35">
   
@@ -576,8 +577,16 @@
     // Mostra username utente loggato - VERSIONE INLINE
     async function showUserName() {
       
+      // Aggiungi animazione di rotazione
+      const initialsEl = document.getElementById('user-initials');
+      if (initialsEl) {
+        initialsEl.style.display = 'inline-block';
+        initialsEl.style.animation = 'spin 1s linear infinite';
+      }
+      
       // Verifica che Supabase sia disponibile
       if (!window.supabase) {
+        if (initialsEl) initialsEl.style.animation = '';
         return;
       }
       
@@ -599,20 +608,26 @@
             const username = userProfile.username;
             const initials = username.slice(0, 2).toUpperCase();
             document.getElementById('nav-user-name').textContent = username;
-            document.getElementById('user-initials').textContent = initials;
+            const initialsEl = document.getElementById('user-initials');
+            initialsEl.textContent = initials;
+            initialsEl.style.animation = '';
           } else {
             // Fallback: usa la parte prima della @ dell'email
             const displayName = data.user.email.split('@')[0];
             const initials = displayName.slice(0, 2).toUpperCase();
             document.getElementById('nav-user-name').textContent = displayName;
-            document.getElementById('user-initials').textContent = initials;
+            const initialsEl = document.getElementById('user-initials');
+            initialsEl.textContent = initials;
+            initialsEl.style.animation = '';
           }
         } catch (err) {
           // Fallback: usa la parte prima della @ dell'email
           const displayName = data.user.email.split('@')[0];
           const initials = displayName.slice(0, 2).toUpperCase();
           document.getElementById('nav-user-name').textContent = displayName;
-          document.getElementById('user-initials').textContent = initials;
+          const initialsEl = document.getElementById('user-initials');
+          initialsEl.textContent = initials;
+          initialsEl.style.animation = '';
         }
         
         // Controlla se è admin e mostra sezione gestione catalogo
