@@ -310,39 +310,49 @@
     if (filterToggle && filtersContainer) {
       // Imposta stato iniziale
       filtersContainer.style.display = 'none';
-      filtersContainer.style.height = 'auto';
-      filtersContainer.style.opacity = '1';
+      filtersContainer.style.overflow = 'hidden';
       
       filterToggle.addEventListener('click', function() {
         const isHidden = filtersContainer.style.display === 'none';
-        console.log("Filter toggle clicked, isHidden:", isHidden);
         
         if (isHidden) {
           // Mostra filtri
           filtersContainer.style.display = 'grid';
           filtersContainer.style.height = 'auto';
-          filtersContainer.style.opacity = '1';
+          
+          // Ottieni l'altezza reale del contenuto
+          const targetHeight = filtersContainer.scrollHeight;
+          
+          // Resetta a 0 per l'animazione
+          filtersContainer.style.height = '0px';
+          filtersContainer.style.opacity = '0';
+          
           filterToggle.textContent = '🔧 Nascondi Filtri';
           filterToggle.classList.add('active');
-          console.log("Showing filters");
           
-          gsap.from(filtersContainer, {
-            height: 0,
-            opacity: 0,
+          // Anima verso l'altezza target
+          gsap.to(filtersContainer, {
+            height: targetHeight,
+            opacity: 1,
             duration: 0.4,
             ease: "power2.out",
-            clearProps: "height,opacity"
+            onComplete: () => {
+              filtersContainer.style.height = 'auto';
+            }
           });
         } else {
           // Nascondi filtri
           filterToggle.textContent = '🔧 Mostra Filtri';
           filterToggle.classList.remove('active');
-          console.log("Hiding filters");
+          
+          // Ottieni l'altezza attuale prima di animare
+          const currentHeight = filtersContainer.scrollHeight;
+          filtersContainer.style.height = currentHeight + 'px';
           
           gsap.to(filtersContainer, {
             height: 0,
             opacity: 0,
-            duration: 0.3,
+            duration: 0.35,
             ease: "power2.in",
             onComplete: () => {
               filtersContainer.style.display = 'none';
