@@ -304,15 +304,17 @@ async function addItem(formData) {
     
     // Se c'è un file immagine, caricalo su Supabase Storage
     if (formData.immagineFile) {
-      const fileName = `catalog_items/${currentSerieId}_${formData.numero}_${Date.now()}.${formData.immagineFile.name.split('.').pop()}`;
+      // Sanifica il nome del file rimuovendo caratteri speciali
+      const sanitizedNome = formData.nome.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const fileName = `catalog_items/${currentSerieId}_${sanitizedNome}_${Date.now()}.${formData.immagineFile.name.split('.').pop()}`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('Foto')
         .upload(fileName, formData.immagineFile);
         
       if (uploadError) {
-    
-        alert('⚠️ Errore nel caricamento dell\'immagine, procedo senza immagine');
+        console.error('Errore upload immagine item:', uploadError);
+        alert(`⚠️ Errore nel caricamento dell'immagine: ${uploadError.message}\nProcedo senza immagine`);
       } else {
         // Ottieni l'URL pubblico dell'immagine
         const { data: { publicUrl } } = supabase.storage
@@ -431,15 +433,16 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Se c'è un nuovo file immagine, caricalo
         if (formData.immagineFile) {
-          const fileName = `catalog_items/${currentSerieId}_${formData.numero}_${Date.now()}.${formData.immagineFile.name.split('.').pop()}`;
+          // Sanifica il nome del file rimuovendo caratteri speciali
+          const sanitizedNome = formData.nome.replace(/[^a-zA-Z0-9_-]/g, '_');
+          const fileName = `catalog_items/${currentSerieId}_${sanitizedNome}_${Date.now()}.${formData.immagineFile.name.split('.').pop()}`;
           
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from('Foto')
             .upload(fileName, formData.immagineFile);
             
           if (uploadError) {
-        
-            alert('⚠️ Errore nel caricamento dell\'immagine, procedo senza modificare l\'immagine');
+            alert(`⚠️ Errore nel caricamento dell'immagine: ${uploadError.message}\nProcedo senza modificare l'immagine`);
           } else {
             // Ottieni l'URL pubblico dell'immagine
             const { data: { publicUrl } } = supabase.storage
