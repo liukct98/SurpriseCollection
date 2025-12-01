@@ -481,27 +481,14 @@ function setupFilterListeners() {
   const resetBtn = document.getElementById("reset-filters");
   const toggleBtn = document.getElementById("toggle-filters");
   const filtersContainer = document.getElementById("filters-container");
+  
+  // Il toggle dei filtri è gestito in component-animations.js
+  
   // Filtro completamento
   if (completionFilter) {
     completionFilter.addEventListener("change", (e) => {
       currentCompletionFilter = e.target.value;
       displayFilteredCatalog();
-    });
-  }
-  
-  // Toggle filtri (stile collection)
-  if (toggleBtn && filtersContainer) {
-    toggleBtn.addEventListener("click", () => {
-      const isHidden = filtersContainer.style.display === "none";
-      if (isHidden) {
-        filtersContainer.style.display = "grid";
-        toggleBtn.textContent = "🔧 Nascondi Filtri";
-        toggleBtn.classList.add("active");
-      } else {
-        filtersContainer.style.display = "none";
-        toggleBtn.textContent = "🔧 Mostra Filtri";
-        toggleBtn.classList.remove("active");
-      }
     });
   }
   

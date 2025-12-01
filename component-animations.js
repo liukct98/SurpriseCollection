@@ -308,16 +308,37 @@
     const filtersContainer = document.querySelector('#filters-container');
     
     if (filterToggle && filtersContainer) {
+      // Imposta stato iniziale
+      filtersContainer.style.display = 'none';
+      filtersContainer.style.height = 'auto';
+      filtersContainer.style.opacity = '1';
+      
       filterToggle.addEventListener('click', function() {
-        if (filtersContainer.style.display === 'none' || !filtersContainer.style.display) {
+        const isHidden = filtersContainer.style.display === 'none';
+        console.log("Filter toggle clicked, isHidden:", isHidden);
+        
+        if (isHidden) {
+          // Mostra filtri
           filtersContainer.style.display = 'grid';
+          filtersContainer.style.height = 'auto';
+          filtersContainer.style.opacity = '1';
+          filterToggle.textContent = '🔧 Nascondi Filtri';
+          filterToggle.classList.add('active');
+          console.log("Showing filters");
+          
           gsap.from(filtersContainer, {
             height: 0,
             opacity: 0,
             duration: 0.4,
-            ease: "power2.out"
+            ease: "power2.out",
+            clearProps: "height,opacity"
           });
         } else {
+          // Nascondi filtri
+          filterToggle.textContent = '🔧 Mostra Filtri';
+          filterToggle.classList.remove('active');
+          console.log("Hiding filters");
+          
           gsap.to(filtersContainer, {
             height: 0,
             opacity: 0,

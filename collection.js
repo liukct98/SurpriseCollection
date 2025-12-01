@@ -333,22 +333,7 @@ function setupFilterListeners() {
   const toggleBtn = document.getElementById("toggle-filters");
   const filtersContainer = document.getElementById("filters-container");
   
-  // Toggle filtri
-  if (toggleBtn && filtersContainer) {
-    toggleBtn.addEventListener("click", () => {
-      const isHidden = filtersContainer.style.display === "none";
-      
-      if (isHidden) {
-        filtersContainer.style.display = "grid";
-        toggleBtn.textContent = "🔧 Nascondi Filtri";
-        toggleBtn.classList.add("active");
-      } else {
-        filtersContainer.style.display = "none";
-        toggleBtn.textContent = "🔧 Mostra Filtri";
-        toggleBtn.classList.remove("active");
-      }
-    });
-  }
+  // Il toggle dei filtri è gestito in component-animations.js
   
   // Ricerca in tempo reale
   if (searchInput) {
