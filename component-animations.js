@@ -398,6 +398,294 @@
       }
     });
 
+    // ===== 15. STATISTICS COUNTER ANIMATION =====
+    function animateCounter(element) {
+      const target = parseFloat(element.textContent);
+      const isPercentage = element.textContent.includes('%');
+      const isDecimal = element.textContent.includes('.');
+      
+      if (!isNaN(target)) {
+        gsap.from(element, {
+          textContent: 0,
+          duration: 2,
+          ease: "power2.out",
+          snap: { textContent: isDecimal ? 0.1 : 1 },
+          onUpdate: function() {
+            const value = parseFloat(element.textContent);
+            element.textContent = isDecimal ? value.toFixed(1) : Math.round(value);
+            if (isPercentage) element.textContent += '%';
+          }
+        });
+      }
+    }
+
+    // Selettori per numeri statistiche
+    const statNumbers = document.querySelectorAll('.stat-number, .stat-number-large, .completion-percentage, .count-text');
+    statNumbers.forEach(el => {
+      // Usa ScrollTrigger se disponibile, altrimenti anima subito
+      if (typeof ScrollTrigger !== 'undefined') {
+        ScrollTrigger.create({
+          trigger: el,
+          start: "top 80%",
+          once: true,
+          onEnter: () => animateCounter(el)
+        });
+      } else {
+        animateCounter(el);
+      }
+    });
+
+    // ===== 16. PROGRESS BAR FILL ANIMATION =====
+    const progressBars = document.querySelectorAll('.progress-fill, .progress-fill-chart');
+    
+    progressBars.forEach(bar => {
+      const targetWidth = bar.style.width || '0%';
+      bar.style.width = '0%';
+      
+      if (typeof ScrollTrigger !== 'undefined') {
+        ScrollTrigger.create({
+          trigger: bar,
+          start: "top 80%",
+          once: true,
+          onEnter: () => {
+            gsap.to(bar, {
+              width: targetWidth,
+              duration: 1.5,
+              ease: "power2.out"
+            });
+          }
+        });
+      } else {
+        gsap.to(bar, {
+          width: targetWidth,
+          duration: 1.5,
+          ease: "power2.out",
+          delay: 0.3
+        });
+      }
+    });
+
+    // ===== 17. EMPTY STATE FLOAT ANIMATION =====
+    const emptyIcons = document.querySelectorAll('.empty-icon, .empty-state .icon');
+    
+    emptyIcons.forEach(icon => {
+      gsap.to(icon, {
+        y: -15,
+        duration: 2,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: -1
+      });
+    });
+
+    // ===== 18. ERROR SHAKE ANIMATION =====
+    window.shakeElement = function(element) {
+      gsap.timeline()
+        .to(element, { x: -10, duration: 0.1 })
+        .to(element, { x: 10, duration: 0.1 })
+        .to(element, { x: -10, duration: 0.1 })
+        .to(element, { x: 10, duration: 0.1 })
+        .to(element, { x: 0, duration: 0.1 });
+    };
+
+    // Auto-shake su errori
+    const errorElements = document.querySelectorAll('.error, .error-message');
+    errorElements.forEach(el => {
+      if (el.textContent.trim()) {
+        window.shakeElement(el);
+      }
+    });
+
+    // ===== 19. STAGGER LIST ITEMS (slide from left/right alternating) =====
+    const lists = document.querySelectorAll('.brand-list, .series-list, .collection-section');
+    
+    lists.forEach(list => {
+      const items = list.children;
+      if (items.length > 0) {
+        Array.from(items).forEach((item, index) => {
+          const fromLeft = index % 2 === 0;
+          
+          if (typeof ScrollTrigger !== 'undefined') {
+            ScrollTrigger.create({
+              trigger: item,
+              start: "top 90%",
+              once: true,
+              onEnter: () => {
+                gsap.from(item, {
+                  x: fromLeft ? -100 : 100,
+                  opacity: 0,
+                  duration: 0.8,
+                  ease: "power2.out"
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+
+    // ===== 20. GLOW EFFECT FOR NEW ITEMS =====
+    window.highlightNewItem = function(element) {
+      const timeline = gsap.timeline();
+      
+      timeline
+        .to(element, {
+          boxShadow: "0 0 20px rgba(111, 71, 201, 0.6)",
+          duration: 0.3,
+          ease: "power2.out"
+        })
+        .to(element, {
+          boxShadow: "0 0 40px rgba(111, 71, 201, 0.8)",
+          duration: 0.5,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: 3
+        })
+        .to(element, {
+          boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+          duration: 0.5,
+          ease: "power2.out"
+        });
+    };
+
+    // ===== 21. SMOOTH SCROLL REVEAL =====
+    if (typeof ScrollTrigger !== 'undefined') {
+      const revealElements = document.querySelectorAll('.stat-card, .profile-section, .chart-container');
+      
+      revealElements.forEach(el => {
+        gsap.from(el, {
+          scrollTrigger: {
+            trigger: el,
+            start: "top 85%",
+            once: true
+          },
+          y: 50,
+          opacity: 0,
+          duration: 0.8,
+          ease: "power2.out"
+        });
+      });
+    }
+
+    // ===== 22. IMAGE BLUR-UP EFFECT =====
+    const itemImages = document.querySelectorAll('.item-foto, .item-image, .serie-preview-image');
+    
+    itemImages.forEach(img => {
+      if (!img.complete) {
+        img.style.filter = 'blur(10px)';
+        img.style.transform = 'scale(1.1)';
+        
+        img.addEventListener('load', function() {
+          gsap.to(this, {
+            filter: 'blur(0px)',
+            scale: 1,
+            duration: 0.6,
+            ease: "power2.out"
+          });
+        });
+      }
+    });
+
+    // ===== 23. CONFETTI CELEBRATION =====
+    window.celebrateCompletion = function() {
+      const colors = ['#6f47c9', '#4b2e97', '#f093fb', '#f5576c', '#43aa8b', '#ffd700'];
+      const confettiCount = 50;
+      
+      for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.position = 'fixed';
+        confetti.style.width = '10px';
+        confetti.style.height = '10px';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.top = '-20px';
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        confetti.style.zIndex = '10001';
+        confetti.style.pointerEvents = 'none';
+        
+        document.body.appendChild(confetti);
+        
+        gsap.to(confetti, {
+          y: window.innerHeight + 100,
+          x: (Math.random() - 0.5) * 400,
+          rotation: Math.random() * 720,
+          opacity: 0,
+          duration: 2 + Math.random() * 2,
+          ease: "power2.in",
+          onComplete: () => confetti.remove()
+        });
+      }
+    };
+
+    // ===== 24. CARD FLIP ANIMATION =====
+    window.flipCard = function(card) {
+      gsap.timeline()
+        .to(card, {
+          rotationY: 90,
+          duration: 0.3,
+          ease: "power2.in"
+        })
+        .to(card, {
+          rotationY: 0,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+    };
+
+    // ===== 25. BADGE ENTRANCE ANIMATION =====
+    const badges = document.querySelectorAll('.badge, .item-status, .priority-alta, .priority-media, .priority-bassa');
+    
+    badges.forEach((badge, index) => {
+      gsap.from(badge, {
+        scale: 0,
+        opacity: 0,
+        duration: 0.5,
+        ease: "back.out(2)",
+        delay: index * 0.1
+      });
+    });
+
+    // ===== 26. PARALLAX BACKGROUND =====
+    if (typeof ScrollTrigger !== 'undefined') {
+      const parallaxSections = document.querySelectorAll('.profile-section, .welcome-section');
+      
+      parallaxSections.forEach(section => {
+        gsap.to(section, {
+          backgroundPosition: "50% 100px",
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true
+          }
+        });
+      });
+    }
+
+    // ===== 27. NOTIFICATION SLIDE IN =====
+    const observer27 = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1) {
+            if (node.matches && node.matches('.notification-card, .message-item, .alert')) {
+              gsap.from(node, {
+                x: 100,
+                opacity: 0,
+                duration: 0.5,
+                ease: "back.out(1.7)"
+              });
+            }
+          }
+        });
+      });
+    });
+
+    observer27.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
   });
 
 })();
