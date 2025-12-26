@@ -4,19 +4,31 @@
 const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
 
-if (typeof window.supabase === 'undefined') {
-} else {
+// Inizializzazione robusta Supabase (compatibile v2)
+if (!window.supabase || !window.supabase.auth || typeof window.supabase.auth.getUser !== 'function') {
+  if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
+    window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  } else {
+    
+  }
 }
-
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+var supabase = window.supabase;
 
 // =========================
 // CONTROLLO SESSIONE ESISTENTE
 // =========================
 window.addEventListener('load', async () => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    window.location.href = 'home.html';
+  if (supabase && supabase.auth && typeof supabase.auth.getUser === 'function') {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        window.location.href = 'home.html';
+      }
+    } catch (err) {
+      console.error('Errore durante il controllo sessione:', err);
+    }
+  } else {
+    console.error('Supabase non inizializzato correttamente o auth non disponibile');
   }
 });
 
@@ -85,7 +97,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
           .select('mail')
           .eq('username', usernameOrEmail)
           .single();
-        
+          
+    
         if (profileError || !userProfile) {
           throw new Error("Username non trovato");
         }
@@ -115,6 +128,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   } catch (error) {
     let errorMessage = "❌ Errore login: ";
     
+  
     switch (error.message) {
       case "Invalid login credentials":
         errorMessage += "Username/email o password non corretti";
