@@ -4,10 +4,8 @@ window.addEventListener("DOMContentLoaded", checkAuth);
 // INIZIALIZZAZIONE SUPABASE
 // ========================
 
-const supabaseUrl = "https://ksypexyadycktzbfllfd.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzeXBleHlhZHlja3R6YmZsbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTYyMzEsImV4cCI6MjA3MjQ5MjIzMX0.INevNjooRZeLB--TM24JuIsq9EA47Zk3gBpIqjFyNGE";
-
-const supa = supabase.createClient(supabaseUrl, supabaseKey);
+// Usa il client globale creato in supabaseClient.js
+const supa = window.supabaseClient;
 window.supabase = supa;
 
 // =========================

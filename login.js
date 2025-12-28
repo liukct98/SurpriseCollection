@@ -8,9 +8,9 @@ const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 if (!window.supabase || !window.supabase.auth || typeof window.supabase.auth.getUser !== 'function') {
   if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
     window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
-  } else {
-    
   }
+  // Usa il client globale creato in supabaseClient.js
+  const supabase = window.supabaseClient;
 }
 var supabase = window.supabase;
 

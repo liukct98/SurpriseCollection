@@ -1,3 +1,11 @@
+if (!window.supabaseClient) {
+  throw new Error("Supabase client non inizializzato! Controlla l'ordine degli script in HTML.");
+}
+var supabase = window.supabaseClient;
+// Usa il client globale creato in supabaseClient.js
+if (typeof supabase === 'undefined') {
+  var supabase = window.supabaseClient;
+}
 // notifiche.js
 // Gestione notifiche globali (popup, badge) riutilizzabile in tutte le pagine
 
