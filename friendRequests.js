@@ -1,4 +1,10 @@
-// Usa window.supabase già inizializzato in app.js
+// =========================
+// INIZIALIZZAZIONE SUPABASE
+// =========================
+
+// Usa il client globale creato in supabaseClient.js
+window.supabase = window.supabaseClient;
+var supabase = window.supabase;
 
 // Carica richieste di amicizia ricevute
 async function loadFriendRequests() {

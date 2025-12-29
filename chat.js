@@ -1,5 +1,10 @@
-// Chat tra due utenti
-// Usa window.supabase già inizializzato in app.js
+// =========================
+// INIZIALIZZAZIONE SUPABASE
+// =========================
+
+// Usa il client globale creato in supabaseClient.js
+window.supabase = window.supabaseClient;
+var supa = window.supabase;
 
 // Ottieni l'id dell'amico dalla query string
 function getFriendIdFromUrl() {

@@ -3,7 +3,10 @@
 // =========================
 
 // Usa il client globale creato in supabaseClient.js
-const supabase = window.supabaseClient;
+// var supabase = window.supabaseClient || window.supabase;
+
+window.supabase = window.supabaseClient;
+var supabase = window.supabase;
 
 // =========================
 // VERIFICA SESSIONE
