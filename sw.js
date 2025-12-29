@@ -1,6 +1,7 @@
 const CACHE_NAME = 'sorpresine-v2'; // incrementa a ogni deploy
 const urlsToCache = [
   './',
+  './login.js',
   './index.html',
   './style.css',
   './manifest.json'
