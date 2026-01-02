@@ -345,6 +345,25 @@
       }
     }
 
+    // =============================================
+    // LIGHTBOX PER IMMAGINI
+    // =============================================
+    function openLightbox(imageUrl) {
+      let lightbox = document.getElementById('home-lightbox');
+      if (!lightbox) {
+        lightbox = document.createElement('div');
+        lightbox.id = 'home-lightbox';
+        lightbox.className = 'lightbox';
+        lightbox.innerHTML = '<img id="home-lightbox-img" src="" alt="Immagine serie">';
+        lightbox.onclick = () => lightbox.classList.remove('active');
+        document.body.appendChild(lightbox);
+      }
+      document.getElementById('home-lightbox-img').src = imageUrl;
+      lightbox.classList.add('active');
+    }
+
+    window.openLightbox = openLightbox;
+
     // Listener bottone notifiche
     document.addEventListener('DOMContentLoaded', () => {
       const btn = document.getElementById('nav-notifiche-btn');
@@ -1030,18 +1049,21 @@
               continue; // Continua con la prossima serie
             }
 
-            // 3b. Per ogni oggetto, elimina prima dalle wishlist
+            // 3b. Pulisci le wishlist: elimina solo le voci relative agli item di questa serie
             if (serieItems && serieItems.length > 0) {
               
-              for (const item of serieItems) {
-                const { error: wishlistError } = await supabase
-                  .from('wishlist')
-                  .delete()
-                  .eq('item_id', item.id);
-                
-                if (wishlistError) {
-                  // Non blocchiamo per questo errore
-                }
+              // Raccogli tutti gli ID degli item da pulire
+              const itemIds = serieItems.map(item => item.id);
+              
+              // Elimina dalla wishlist solo le voci relative a questi item
+              const { error: wishlistError } = await supabase
+                .from('wishlist')
+                .delete()
+                .in('item_id', itemIds);
+              
+              if (wishlistError) {
+                console.error('Errore durante la pulizia delle wishlist:', wishlistError);
+                // Continua comunque, potrebbe non esserci nulla da eliminare
               }
               
               // 3c. Ora elimina gli oggetti dalla collezione personale
@@ -1051,6 +1073,7 @@
                 .eq('serie_id', serie.id);
               
               if (deleteItemsError) {
+                console.error('Errore durante l\'eliminazione degli oggetti:', deleteItemsError);
                 throw deleteItemsError;
               }
             }

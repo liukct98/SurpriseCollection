@@ -310,17 +310,44 @@ async function deleteSerie() {
 
 
   try {
-    // elimina item
+    // 1. Prima trova tutti gli item della serie
+    const { data: serieItems, error: findItemsError } = await supa
+      .from('item')
+      .select('id')
+      .eq('serie_id', serieId);
+
+    if (findItemsError) {
+      console.error('Errore durante il recupero degli item:', findItemsError);
+      throw findItemsError;
+    }
+
+    // 2. Se ci sono item, elimina prima dalla wishlist le voci relative a questi item
+    if (serieItems && serieItems.length > 0) {
+      const itemIds = serieItems.map(item => item.id);
+      
+      const { error: wishlistError } = await supa
+        .from('wishlist')
+        .delete()
+        .in('item_id', itemIds);
+      
+      if (wishlistError) {
+        console.error('Errore durante la pulizia delle wishlist:', wishlistError);
+        // Continua comunque, potrebbe non esserci nulla da eliminare
+      }
+    }
+
+    // 3. Ora elimina gli item
     const { error: itemsError } = await supa.from("item").delete().eq("serie_id", serieId);
     if (itemsError) throw itemsError;
 
-    // elimina serie
-  const { error: serieError } = await supa.from("series").delete().eq("id", serieId);
+    // 4. Infine elimina la serie
+    const { error: serieError } = await supa.from("series").delete().eq("id", serieId);
     if (serieError) throw serieError;
 
     alert("Serie eliminata correttamente!");
-    window.location.href = "./series.html"; // pagina elenco
+    window.location.href = "./collection.html"; // pagina elenco
   } catch (error) {
+    console.error('Errore durante l\'eliminazione:', error);
     alert("❌ Errore durante l'eliminazione: " + error.message);
   }
 }
