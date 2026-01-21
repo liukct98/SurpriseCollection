@@ -782,6 +782,80 @@
     // Variabili globali per la navigazione admin
     let currentAdminBrand = null;
     let currentAdminSubcategory = null;
+    let adminSearchText = "";
+    let adminYearFilter = "";
+    let adminNationFilter = "";
+    let adminSortBy = "nome";
+    let allAdminSeries = []; // Cache delle serie caricate
+
+    // Funzione per aggiornare solo la lista delle serie (senza ri-renderizzare i filtri)
+    function updateAdminSeriesList() {
+      if (!allAdminSeries || allAdminSeries.length === 0) return;
+      
+      const seriesListContainer = document.getElementById('admin-series-grid');
+      if (!seriesListContainer) return;
+
+      let filtered = allAdminSeries.filter(s => 
+        (s.marca || 'Senza marca') === currentAdminBrand && 
+        (s.sottocategoria || 'Senza sottocategoria') === currentAdminSubcategory
+      );
+
+      // Applica filtri di ricerca
+      if (adminSearchText) {
+        filtered = filtered.filter(s => 
+          s.nome.toLowerCase().includes(adminSearchText.toLowerCase())
+        );
+      }
+      if (adminYearFilter) {
+        filtered = filtered.filter(s => s.anno && s.anno.toString() === adminYearFilter);
+      }
+      if (adminNationFilter) {
+        filtered = filtered.filter(s => s.nazione === adminNationFilter);
+      }
+
+      // Applica ordinamento
+      filtered.sort((a, b) => {
+        switch (adminSortBy) {
+          case "anno-cres":
+            return (a.anno || 0) - (b.anno || 0);
+          case "anno-desc":
+            return (b.anno || 0) - (a.anno || 0);
+          case "nazione":
+            return (a.nazione || "").localeCompare(b.nazione || "");
+          case "nome":
+          default:
+            return a.nome.localeCompare(b.nome);
+        }
+      });
+
+      // Aggiorna solo la griglia delle serie
+      seriesListContainer.innerHTML = filtered.map(serie => `
+        <div class="serie-admin-card" data-id="${serie.id}" style="position: relative;">
+          ${serie.immagine_copertina ? `
+            <img src="${serie.immagine_copertina}" 
+                 alt="${serie.nome}" 
+                 onclick="event.stopPropagation(); openLightbox('${serie.immagine_copertina}')"
+                 style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-lg); margin-bottom: var(--spacing-md); cursor: zoom-in;"
+                 onerror="this.style.display='none'">
+          ` : ''}
+          <div class="serie-admin-header">
+            <h4>${serie.nome} ${serie.anno ? `(${serie.anno})` : ''}</h4>
+            <div class="serie-admin-actions">
+              <button onclick="event.stopPropagation(); editCatalogSerie('${serie.id}')" class="btn-edit" title="Modifica">✏️</button>
+              <button onclick="event.stopPropagation(); deleteCatalogSerie('${serie.id}', '${serie.nome}')" class="btn-delete" title="Elimina">🗑️</button>
+            </div>
+          </div>
+          <div class="serie-admin-info">
+            ${serie.anno ? `<span class="info-tag">📅 ${serie.anno}</span>` : ''}
+            ${serie.nazione ? `<span class="info-tag">🌍 ${serie.nazione}</span>` : ''}
+            ${serie.n_pezzi ? `<span class="info-tag">🧩 ${serie.n_pezzi} pezzi</span>` : ''}
+          </div>
+          <div class="serie-admin-stats">
+            <button onclick="event.stopPropagation(); manageCatalogItems('${serie.id}')" class="btn-items">📦 Gestisci Oggetti</button>
+          </div>
+        </div>
+      `).join('');
+    }
 
     async function loadCatalogSeries() {
       const container = document.getElementById('catalog-series-list');
@@ -810,6 +884,12 @@
           `;
           return;
         }
+
+        // Salva le serie in cache
+        allAdminSeries = series;
+
+        // Salva le serie in cache
+        allAdminSeries = series;
 
         // Mostra la vista corretta in base allo stato di navigazione
         if (!currentAdminBrand) {
@@ -913,11 +993,115 @@
       }, 0);
     }
 
-    function showAdminSeriesForSubcategory(series, container) {
-      const filtered = series.filter(s => 
+    function updateAdminSeriesList() {
+      if (!allAdminSeries || allAdminSeries.length === 0) return;
+      
+      const seriesListContainer = document.getElementById('admin-series-grid');
+      if (!seriesListContainer) return;
+
+      let filtered = allAdminSeries.filter(s => 
         (s.marca || 'Senza marca') === currentAdminBrand && 
         (s.sottocategoria || 'Senza sottocategoria') === currentAdminSubcategory
       );
+
+      // Applica filtri di ricerca
+      if (adminSearchText) {
+        filtered = filtered.filter(s => 
+          s.nome.toLowerCase().includes(adminSearchText.toLowerCase())
+        );
+      }
+      if (adminYearFilter) {
+        filtered = filtered.filter(s => s.anno && s.anno.toString() === adminYearFilter);
+      }
+      if (adminNationFilter) {
+        filtered = filtered.filter(s => s.nazione === adminNationFilter);
+      }
+
+      // Applica ordinamento
+      filtered.sort((a, b) => {
+        switch (adminSortBy) {
+          case "anno-cres":
+            return (a.anno || 0) - (b.anno || 0);
+          case "anno-desc":
+            return (b.anno || 0) - (a.anno || 0);
+          case "nazione":
+            return (a.nazione || "").localeCompare(b.nazione || "");
+          case "nome":
+          default:
+            return a.nome.localeCompare(b.nome);
+        }
+      });
+
+      // Aggiorna solo la griglia delle serie
+      seriesListContainer.innerHTML = filtered.map(serie => `
+        <div class="serie-admin-card" data-id="${serie.id}" style="position: relative;">
+          ${serie.immagine_copertina ? `
+            <img src="${serie.immagine_copertina}" 
+                 alt="${serie.nome}" 
+                 onclick="event.stopPropagation(); openLightbox('${serie.immagine_copertina}')"
+                 style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-lg); margin-bottom: var(--spacing-md); cursor: zoom-in;"
+                 onerror="this.style.display='none'">
+          ` : ''}
+          <div class="serie-admin-header">
+            <h4>${serie.nome} ${serie.anno ? `(${serie.anno})` : ''}</h4>
+            <div class="serie-admin-actions">
+              <button onclick="event.stopPropagation(); editCatalogSerie('${serie.id}')" class="btn-edit" title="Modifica">✏️</button>
+              <button onclick="event.stopPropagation(); deleteCatalogSerie('${serie.id}', '${serie.nome}')" class="btn-delete" title="Elimina">🗑️</button>
+            </div>
+          </div>
+          <div class="serie-admin-info">
+            ${serie.anno ? `<span class="info-tag">📅 ${serie.anno}</span>` : ''}
+            ${serie.nazione ? `<span class="info-tag">🌍 ${serie.nazione}</span>` : ''}
+            ${serie.n_pezzi ? `<span class="info-tag">🧩 ${serie.n_pezzi} pezzi</span>` : ''}
+          </div>
+          <div class="serie-admin-stats">
+            <button onclick="event.stopPropagation(); manageCatalogItems('${serie.id}')" class="btn-items">📦 Gestisci Oggetti</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function showAdminSeriesForSubcategory(series, container) {
+      let filtered = series.filter(s => 
+        (s.marca || 'Senza marca') === currentAdminBrand && 
+        (s.sottocategoria || 'Senza sottocategoria') === currentAdminSubcategory
+      );
+
+      // Applica filtri di ricerca
+      if (adminSearchText) {
+        filtered = filtered.filter(s => 
+          s.nome.toLowerCase().includes(adminSearchText.toLowerCase())
+        );
+      }
+      if (adminYearFilter) {
+        filtered = filtered.filter(s => s.anno && s.anno.toString() === adminYearFilter);
+      }
+      if (adminNationFilter) {
+        filtered = filtered.filter(s => s.nazione === adminNationFilter);
+      }
+
+      // Applica ordinamento
+      filtered.sort((a, b) => {
+        switch (adminSortBy) {
+          case "anno-cres":
+            return (a.anno || 0) - (b.anno || 0);
+          case "anno-desc":
+            return (b.anno || 0) - (a.anno || 0);
+          case "nazione":
+            return (a.nazione || "").localeCompare(b.nazione || "");
+          case "nome":
+          default:
+            return a.nome.localeCompare(b.nome);
+        }
+      });
+
+      // Ottieni anni e nazioni uniche per i filtri
+      const allSeriesInSubcat = series.filter(s => 
+        (s.marca || 'Senza marca') === currentAdminBrand && 
+        (s.sottocategoria || 'Senza sottocategoria') === currentAdminSubcategory
+      );
+      const years = [...new Set(allSeriesInSubcat.map(s => s.anno).filter(Boolean))].sort((a, b) => b - a);
+      const nations = [...new Set(allSeriesInSubcat.map(s => s.nazione).filter(Boolean))].sort();
 
       container.innerHTML = `
         <div style="margin-bottom: 20px;">
@@ -927,7 +1111,33 @@
           </button>
         </div>
         <h3 style="margin-bottom: 20px; color: #667eea;">📦 ${currentAdminBrand} → ${currentAdminSubcategory}</h3>
-        <div class="brand-list">
+        
+        <!-- Filtri di ricerca -->
+        <div class="search-filters" style="margin-bottom: 20px;">
+          <div class="search-bar" style="position: relative; margin-bottom: 10px;">
+            <input type="text" id="admin-search-input" placeholder="🔍 Cerca serie..." value="${adminSearchText}" 
+              style="width: 100%; padding: 12px 40px 12px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px;">
+            <button id="admin-clear-search" class="clear-btn" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 20px; cursor: pointer; color: #999; display: ${adminSearchText ? 'block' : 'none'};">✕</button>
+          </div>
+          <button id="admin-toggle-filters" class="filter-toggle" style="width: 100%; padding: 10px; background: #f5f5f5; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 10px;">🔧 Filtri</button>
+          <div class="filters" id="admin-filters-container" style="display: none; gap: 10px;">
+            <select id="admin-filter-year" class="filter-select" style="padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+              <option value="">Tutti gli anni</option>
+              ${years.map(y => `<option value="${y}" ${adminYearFilter === y.toString() ? 'selected' : ''}>${y}</option>`).join('')}
+            </select>
+            <select id="admin-filter-nation" class="filter-select" style="padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+              <option value="">Tutte le nazioni</option>
+              ${nations.map(n => `<option value="${n}" ${adminNationFilter === n ? 'selected' : ''}>${n}</option>`).join('')}
+            </select>
+            <select id="admin-sort-by" class="filter-select" style="padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+              <option value="nome" ${adminSortBy === 'nome' ? 'selected' : ''}>Ordina per nome</option>
+              <option value="anno-cres" ${adminSortBy === 'anno-cres' ? 'selected' : ''}>Ordina per anno crescente</option>
+              <option value="anno-desc" ${adminSortBy === 'anno-desc' ? 'selected' : ''}>Ordina per anno decrescente</option>
+              <option value="nazione" ${adminSortBy === 'nazione' ? 'selected' : ''}>Ordina per nazione</option>
+            </select>
+          </div>
+        </div>
+        <div class="brand-list" id="admin-series-grid">
           ${filtered.map(serie => `
             <div class="serie-admin-card" data-id="${serie.id}" style="position: relative;">
               ${serie.immagine_copertina ? `
@@ -974,6 +1184,61 @@
             this.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
           };
         }
+
+        // Event listeners per i filtri
+        const searchInput = document.getElementById('admin-search-input');
+        const clearBtn = document.getElementById('admin-clear-search');
+        const toggleFiltersBtn = document.getElementById('admin-toggle-filters');
+        const filtersContainer = document.getElementById('admin-filters-container');
+        const yearFilter = document.getElementById('admin-filter-year');
+        const nationFilter = document.getElementById('admin-filter-nation');
+        const sortBy = document.getElementById('admin-sort-by');
+
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            adminSearchText = e.target.value;
+            clearBtn.style.display = adminSearchText ? 'block' : 'none';
+            updateAdminSeriesList();
+          });
+        }
+
+        if (clearBtn) {
+          clearBtn.addEventListener('click', () => {
+            adminSearchText = '';
+            if (searchInput) searchInput.value = '';
+            clearBtn.style.display = 'none';
+            updateAdminSeriesList();
+          });
+        }
+
+        if (toggleFiltersBtn && filtersContainer) {
+          toggleFiltersBtn.addEventListener('click', () => {
+            const isHidden = filtersContainer.style.display === 'none';
+            filtersContainer.style.display = isHidden ? 'flex' : 'none';
+            filtersContainer.style.flexDirection = 'column';
+          });
+        }
+
+        if (yearFilter) {
+          yearFilter.addEventListener('change', (e) => {
+            adminYearFilter = e.target.value;
+            updateAdminSeriesList();
+          });
+        }
+
+        if (nationFilter) {
+          nationFilter.addEventListener('change', (e) => {
+            adminNationFilter = e.target.value;
+            updateAdminSeriesList();
+          });
+        }
+
+        if (sortBy) {
+          sortBy.addEventListener('change', (e) => {
+            adminSortBy = e.target.value;
+            updateAdminSeriesList();
+          });
+        }
       }, 0);
     }
 
@@ -990,12 +1255,22 @@
 
     function backToAdminSubcategories() {
       currentAdminSubcategory = null;
+      // Resetta i filtri quando si torna indietro
+      adminSearchText = "";
+      adminYearFilter = "";
+      adminNationFilter = "";
+      adminSortBy = "nome";
       loadCatalogSeries();
     }
 
     function resetAdminNavigation() {
       currentAdminBrand = null;
       currentAdminSubcategory = null;
+      // Resetta i filtri
+      adminSearchText = "";
+      adminYearFilter = "";
+      adminNationFilter = "";
+      adminSortBy = "nome";
       loadCatalogSeries();
     }
 

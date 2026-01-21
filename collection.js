@@ -14,7 +14,7 @@ let currentSearch = "";
 let currentYearFilter = "";
 let currentNationFilter = "";
 let currentCompletionFilter = "";
-let currentSort = "nome";
+let currentSort = "anno-desc";
 
 // =========================
 // SINCRONIZZAZIONE CON IL CATALOGO
