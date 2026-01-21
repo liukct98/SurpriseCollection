@@ -17,6 +17,81 @@ let currentCompletionFilter = "";
 let currentSort = "nome";
 
 // =========================
+// SINCRONIZZAZIONE CON IL CATALOGO
+// =========================
+async function syncSeriesWithCatalog(userSeries) {
+  // Trova tutte le serie che hanno un catalog_series_id
+  const seriesToSync = userSeries.filter(s => s.catalog_series_id);
+  
+  if (seriesToSync.length === 0) return;
+  
+  // Carica tutte le serie dal catalogo in una volta sola
+  const catalogIds = seriesToSync.map(s => s.catalog_series_id);
+  const { data: catalogSeries, error } = await supa
+    .from("catalog_series")
+    .select("id, immagine_copertina, nome, anno, nazione, n_pezzi, marca, sottocategoria, note")
+    .in("id", catalogIds);
+  
+  if (error || !catalogSeries) return;
+  
+  // Crea una mappa per accesso veloce
+  const catalogMap = new Map(catalogSeries.map(s => [s.id, s]));
+  
+  // Aggiorna le serie che hanno dati diversi nel catalogo
+  const updates = [];
+  for (const userSerie of seriesToSync) {
+    const catalogSerie = catalogMap.get(userSerie.catalog_series_id);
+    if (!catalogSerie) continue;
+    
+    // Controlla se ci sono differenze nei campi che vogliamo sincronizzare
+    const needsUpdate = 
+      userSerie.immagine_copertina !== catalogSerie.immagine_copertina ||
+      userSerie.nome !== catalogSerie.nome ||
+      userSerie.anno !== catalogSerie.anno ||
+      userSerie.nazione !== catalogSerie.nazione ||
+      userSerie.n_pezzi !== catalogSerie.n_pezzi ||
+      userSerie.marca !== catalogSerie.marca ||
+      userSerie.sottocategoria !== catalogSerie.sottocategoria ||
+      userSerie.note !== catalogSerie.note;
+    
+    if (needsUpdate) {
+      updates.push({
+        id: userSerie.id,
+        immagine_copertina: catalogSerie.immagine_copertina,
+        nome: catalogSerie.nome,
+        anno: catalogSerie.anno,
+        nazione: catalogSerie.nazione,
+        n_pezzi: catalogSerie.n_pezzi,
+        marca: catalogSerie.marca,
+        sottocategoria: catalogSerie.sottocategoria,
+        note: catalogSerie.note
+      });
+    }
+  }
+  
+  // Esegui gli aggiornamenti in batch
+  if (updates.length > 0) {
+    console.log(`🔄 Sincronizzazione di ${updates.length} serie dal catalogo...`);
+    for (const update of updates) {
+      await supa
+        .from("series")
+        .update({
+          immagine_copertina: update.immagine_copertina,
+          nome: update.nome,
+          anno: update.anno,
+          nazione: update.nazione,
+          n_pezzi: update.n_pezzi,
+          marca: update.marca,
+          sottocategoria: update.sottocategoria,
+          note: update.note
+        })
+        .eq("id", update.id);
+    }
+    console.log(`✅ Sincronizzazione completata!`);
+  }
+}
+
+// =========================
 // CARICAMENTO COLLEZIONI (SOLO SERIE)
 // =========================
 async function loadCollectionSeries() {
@@ -42,6 +117,9 @@ async function loadCollectionSeries() {
     seriesList.innerHTML = `<p>Nessuna collezione presente. <a href="add.html">Aggiungi la prima collezione!</a></p>`;
     return;
   }
+
+  // 🔄 Sincronizzazione automatica con il catalogo
+  await syncSeriesWithCatalog(series);
 
   // Carichiamo il conteggio degli oggetti per ogni serie
   const seriesWithCounts = await Promise.all(

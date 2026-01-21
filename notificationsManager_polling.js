@@ -23,13 +23,14 @@ class ChatNotificationsManager {
       // Crea sempre il badge, indipendentemente dall'autenticazione
       this.createNotificationBadge();
       
-      // Verifica che Supabase client sia disponibile (già configurato in app.js)
-      if (typeof supabase === 'undefined') {
+      // Verifica che Supabase client sia disponibile
+      // Supporta sia 'supabase' che 'window.supabaseClient'
+      if (typeof supabase === 'undefined' && !window.supabaseClient) {
         return false;
       }
 
-      // Usa il client Supabase già configurato
-      this.supabase = supabase;
+      // Usa il client Supabase già configurato (supporta entrambe le varianti)
+      this.supabase = typeof supabase !== 'undefined' ? supabase : window.supabaseClient;
 
       // Ottieni l'utente corrente
       const { data: { user } } = await this.supabase.auth.getUser();
@@ -375,16 +376,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   const maxRetries = 10;
   
   const waitForSupabase = async () => {
-    if (typeof supabase !== 'undefined') {
+    // Supporta sia 'supabase' che 'window.supabaseClient'
+    if (typeof supabase !== 'undefined' || window.supabaseClient) {
       const success = await window.notificationsManager.init();
       if (success) {
+        console.log('✅ Notifiche attivate');
       } else {
+        console.log('⚠️ Notifiche non disponibili (utente non autenticato o errore)');
       }
     } else {
       retries++;
       if (retries < maxRetries) {
         setTimeout(waitForSupabase, 500);
       } else {
+        console.warn('⚠️ Supabase client non trovato dopo', maxRetries, 'tentativi');
       }
     }
   };
