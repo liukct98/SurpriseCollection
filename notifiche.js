@@ -1,17 +1,16 @@
-if (!window.supabaseClient) {
-  throw new Error("Supabase client non inizializzato! Controlla l'ordine degli script in HTML.");
-}
-var supabase = window.supabaseClient;
+// =========================
+// INIZIALIZZAZIONE SUPABASE
+// =========================
+
 // Usa il client globale creato in supabaseClient.js
-if (typeof supabase === 'undefined') {
-  var supabase = window.supabaseClient;
-}
+window.supabase = window.supabaseClient;
+var supabase = window.supabase;
 // notifiche.js
 // Gestione notifiche globali (popup, badge) riutilizzabile in tutte le pagine
 
 // Funzione per aggiungere una notifica per tutti gli utenti
-async function aggiungiNotificaCatalogo(tipo, nomeSerie) {
-  if (!window.supabase) return;
+window.aggiungiNotificaCatalogo = async function aggiungiNotificaCatalogo(tipo, nomeSerie) {
+
   let titolo = 'Catalogo aggiornato';
   let messaggio = '';
   if (tipo === 'aggiunta') {
@@ -38,9 +37,7 @@ async function aggiungiNotificaCatalogo(tipo, nomeSerie) {
   }));
 
   // Inserisci tutte le notifiche
-  const { error: insertError } = await supabase.from('notification').insert(notifiche);
-  if (insertError) {
-  }
+  await supabase.from('notification').insert(notifiche);
 }
 
 // Esempio di utilizzo:
@@ -52,7 +49,7 @@ async function aggiungiNotificaCatalogo(tipo, nomeSerie) {
 // Evita ridefinizioni se alcune pagine hanno già versioni inline
 if (!window.loadNotifichePersonali) {
   window.loadNotifichePersonali = async function loadNotifichePersonali() {
-    if (!window.supabase) return [];
+    if (!supabase) return [];
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
     // Recupera users.id tramite email
@@ -67,7 +64,7 @@ if (!window.loadNotifichePersonali) {
     // Messaggi chat non letti
     const { data: unreadMessages } = await supabase
       .from('messages')
-      .select('id, sender_id, content, created_at, sender:sender_id(username, mail)')
+      .select('id, sender_id, content, created_at, read, sender:sender_id(username, mail)')
       .eq('receiver_id', userId)
       .eq('read', false)
       .order('created_at', { ascending: false });
@@ -208,7 +205,7 @@ if (!window.archiviaNotifica) {
   window.archiviaNotifica = async function archiviaNotifica(id) {
     if (id.startsWith('message-')) {
       const messageId = id.replace('message-', '');
-      await supabase.from('messages').update({ read: true }).eq('id', messageId);
+      await supabase.from('messages').delete().eq('id', messageId);
     } else if (id.startsWith('friendreq-')) {
       return; // gestita altrove
     } else {
@@ -232,12 +229,13 @@ if (!window.clearAllNotifications) {
       .single();
     if (!userRow) return;
     const userId = userRow.id;
-    try {
-      await supabase.from('messages').update({ read: true }).eq('receiver_id', userId).eq('read', false);
-    } catch (e) {}
-    try {
-      await supabase.from('notification').delete().eq('user_id', userId);
-    } catch (e) {}
+    
+    // Cancella messaggi
+    await supabase.from('messages').delete().eq('receiver_id', userId).eq('read', false);
+    
+    // Cancella notifiche catalogo
+    await supabase.from('notification').delete().eq('user_id', userId);
+    
     await window.updateNotificheBadge();
     const notifiche = await window.loadNotifichePersonali();
     window.showNotifichePopup(notifiche);

@@ -1501,8 +1501,8 @@
 
 
             // Notifica globale
-            if (typeof aggiungiNotificaCatalogo === 'function') {
-              await aggiungiNotificaCatalogo('aggiunta', formData.nome);
+            if (typeof window.aggiungiNotificaCatalogo === 'function') {
+              await window.aggiungiNotificaCatalogo('aggiunta', formData.nome);
             }
 
             alert(`✅ Serie "${formData.nome}" aggiunta al catalogo!`);
@@ -1589,8 +1589,8 @@
 
 
             // Notifica globale
-            if (typeof aggiungiNotificaCatalogo === 'function') {
-              await aggiungiNotificaCatalogo('modifica', formData.nome);
+            if (typeof window.aggiungiNotificaCatalogo === 'function') {
+              await window.aggiungiNotificaCatalogo('modifica', formData.nome);
             }
 
             alert(`✅ Serie "${formData.nome}" modificata con successo!`);
