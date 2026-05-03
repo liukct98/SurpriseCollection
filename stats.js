@@ -19,23 +19,74 @@ async function checkAuth() {
 }
 
 // =========================
+// UTILITY: fetch all rows bypassing Supabase 1000 row limit
+// =========================
+async function fetchAllRows(query) {
+  const PAGE_SIZE = 1000;
+  let allData = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await query.range(from, from + PAGE_SIZE - 1);
+    if (error) return { data: null, error };
+    allData = allData.concat(data || []);
+    if (!data || data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+  return { data: allData, error: null };
+}
+
+// =========================
 // CARICAMENTO STATISTICHE
 // =========================
 async function loadStats() {
   try {
-    // Carica tutte le serie
+    // Recupera l'utente autenticato
+    const { data: { user: authUser } } = await supa.auth.getUser();
+    if (!authUser) return;
+
+    // Recupera anche l'id interno dalla tabella users (usato da serie.js)
+    const { data: userRow } = await supa
+      .from('users')
+      .select('id')
+      .eq('mail', authUser.email)
+      .single();
+    const internalUserId = userRow?.id;
+
+    // Carica le serie (RLS filtra per auth UUID)
     const { data: series, error: seriesError } = await supa
       .from("series")
       .select("*");
-    
     if (seriesError) throw seriesError;
-    
-    // Carica tutti gli oggetti
-    const { data: items, error: itemsError } = await supa
-      .from("item")
-      .select("*");
-    
-    if (itemsError) throw itemsError;
+
+    const seriesIds = series.map(s => s.id);
+
+    // Carica items via serie_id (serie visibili tramite RLS)
+    const { data: itemsBySerie, error: err1 } = seriesIds.length > 0
+      ? await fetchAllRows(supa.from("item").select("*").in("serie_id", seriesIds))
+      : { data: [], error: null };
+    if (err1) throw err1;
+
+    // Carica items via user_id = auth UUID (addItem.js salva con auth UUID)
+    const { data: itemsByAuthId, error: err2 } = await fetchAllRows(
+      supa.from("item").select("*").eq("user_id", authUser.id)
+    );
+    if (err2) throw err2;
+
+    // Carica items via user_id = id interno (serie.js salva con id interno)
+    let itemsByInternalId = [];
+    if (internalUserId) {
+      const { data, error: err3 } = await fetchAllRows(
+        supa.from("item").select("*").eq("user_id", internalUserId)
+      );
+      if (err3) throw err3;
+      itemsByInternalId = data || [];
+    }
+
+    // Unisci e deduplica per id
+    const allItemsMap = new Map();
+    [...(itemsBySerie || []), ...(itemsByAuthId || []), ...itemsByInternalId]
+      .forEach(item => allItemsMap.set(item.id, item));
+    const items = Array.from(allItemsMap.values());
     
     // Calcola statistiche
     const stats = calculateStats(series, items);
@@ -47,7 +98,7 @@ async function loadStats() {
     generateCharts(series, items);
     
   } catch (error) {
-  
+    console.error('Errore caricamento statistiche:', error);
   }
 }
 
