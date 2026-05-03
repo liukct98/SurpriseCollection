@@ -60,11 +60,17 @@ async function loadStats() {
 
     const seriesIds = series.map(s => s.id);
 
-    // Carica items via serie_id (serie visibili tramite RLS)
-    const { data: itemsBySerie, error: err1 } = seriesIds.length > 0
-      ? await fetchAllRows(supa.from("item").select("*").in("serie_id", seriesIds))
-      : { data: [], error: null };
-    if (err1) throw err1;
+    // Carica items via serie_id in batch da 100 (evita limiti URL di Supabase)
+    let itemsBySerie = [];
+    const BATCH = 100;
+    for (let i = 0; i < seriesIds.length; i += BATCH) {
+      const batchIds = seriesIds.slice(i, i + BATCH);
+      const { data: batchData, error: batchErr } = await fetchAllRows(
+        supa.from("item").select("*").in("serie_id", batchIds)
+      );
+      if (batchErr) throw batchErr;
+      itemsBySerie = itemsBySerie.concat(batchData || []);
+    }
 
     // Carica items via user_id = auth UUID (addItem.js salva con auth UUID)
     const { data: itemsByAuthId, error: err2 } = await fetchAllRows(
@@ -106,8 +112,13 @@ function calculateStats(series, items) {
   const totalSeries = series.length;
   const totalExpectedItems = series.reduce((sum, serie) => sum + (serie.n_pezzi || serie.n_oggetti || 0), 0);
   const ownedItems = items.filter(item => !item.mancante).length;
-  const missingItems = items.filter(item => item.mancante).length;
-  const totalActualItems = items.length;
+
+  // Calcola i mancanti come differenza tra attesi e posseduti per serie (non conta duplicati o over-100%)
+  const missingItems = series.reduce((sum, serie) => {
+    const serieOwned = items.filter(item => item.serie_id === serie.id && !item.mancante).length;
+    const expected = serie.n_pezzi || serie.n_oggetti || 0;
+    return sum + Math.max(0, expected - serieOwned);
+  }, 0);
   
   // Calcola valore totale (solo oggetti posseduti con valore)
   const totalValue = items
@@ -123,7 +134,6 @@ function calculateStats(series, items) {
   return {
     totalSeries,
     totalExpectedItems,
-    totalActualItems,
     ownedItems,
     missingItems,
     totalValue,
@@ -176,7 +186,7 @@ function generateCompletionChart(series, items) {
         <span class="completion-text">${serie.completion.toFixed(1)}% (${serie.owned}/${serie.expected})</span>
       </div>
       <div class="progress-bar-chart">
-        <div class="progress-fill-chart" style="width: ${serie.completion}%"></div>
+        <div class="progress-fill-chart" style="width: ${Math.min(serie.completion, 100)}%"></div>
       </div>
     </div>
   `).join('');
@@ -197,6 +207,7 @@ function generateNationsChart(series) {
     .map(([nation, count]) => ({ nation, count }))
     .sort((a, b) => b.count - a.count);
   
+  if (nationsData.length === 0) { chartContainer.innerHTML = '<p>Nessun dato.</p>'; return; }
   const maxCount = Math.max(...nationsData.map(d => d.count));
   
   chartContainer.innerHTML = nationsData.map(data => `
@@ -231,6 +242,7 @@ function generateYearsChart(series) {
       return parseInt(b.year) - parseInt(a.year);
     });
   
+  if (yearsData.length === 0) { chartContainer.innerHTML = '<p>Nessun dato.</p>'; return; }
   const maxCount = Math.max(...yearsData.map(d => d.count));
   
   chartContainer.innerHTML = yearsData.map(data => `
