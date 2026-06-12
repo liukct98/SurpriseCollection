@@ -119,18 +119,16 @@
     // UPLOAD FOTO
     // =============================
     async function uploadFoto(file) {
-      const fileName = `${Date.now()}_${file.name}`;
-      const { data, error } = await supa.storage
-        .from('item-photos')
-        .upload(fileName, file);
-      
-      if (error) throw error;
-      
-      const { data: { publicUrl } } = supa.storage
-        .from('item-photos')
-        .getPublicUrl(fileName);
-      
-      return publicUrl;
+      const cloudData = new FormData();
+      cloudData.append('file', file);
+      cloudData.append('upload_preset', 'Catalogo');
+      const res = await fetch('https://api.cloudinary.com/v1_1/dq1io8iet/image/upload', {
+        method: 'POST',
+        body: cloudData,
+      });
+      if (!res.ok) throw new Error('Errore upload immagine');
+      const json = await res.json();
+      return json.secure_url;
     }
 
     // =============================
