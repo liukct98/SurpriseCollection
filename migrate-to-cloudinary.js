@@ -10,7 +10,7 @@
 // ============================================================
 
 const SUPABASE_URL = "https://ksypexyadycktzbfllfd.supabase.co";
-const SUPABASE_SERVICE_KEY = "INSERISCI_QUI_LA_SERVICE_ROLE_KEY"; // ← sostituisci questo
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "INSERISCI_QUI_LA_SERVICE_ROLE_KEY";
 
 const CLOUDINARY_CLOUD_NAME = "dq1io8iet";
 const CLOUDINARY_UPLOAD_PRESET = "Catalogo";
@@ -47,8 +47,8 @@ async function migrateTable({ table, urlColumn, filter }) {
   const queryUrl = `${SUPABASE_URL}/rest/v1/${table}?select=id,${urlColumn}&${urlColumn}=like.*supabase*`;
   const res = await fetch(queryUrl, { headers });
   if (!res.ok) {
-    console.error(`❌ Errore lettura ${table}: ${res.status} ${res.statusText}`);
-    return;
+    const errBody = await res.text();
+    throw new Error(`Errore lettura ${table}: ${res.status} ${res.statusText} - ${errBody}`);
   }
   const records = await res.json();
   console.log(`Trovati ${records.length} record con immagini Supabase`);
@@ -65,16 +65,23 @@ async function migrateTable({ table, urlColumn, filter }) {
 
       // Aggiorna il record nel DB
       const updateRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/${table}?id=eq.${record.id}`,
+        `${SUPABASE_URL}/rest/v1/${table}?id=eq.${record.id}&select=id`,
         {
           method: "PATCH",
-          headers,
+          headers: {
+            ...headers,
+            Prefer: "return=representation",
+          },
           body: JSON.stringify({ [urlColumn]: newUrl }),
         }
       );
       if (!updateRes.ok) {
         const err = await updateRes.text();
         throw new Error(`DB update error: ${err}`);
+      }
+      const updatedRows = await updateRes.json();
+      if (!Array.isArray(updatedRows) || updatedRows.length === 0) {
+        throw new Error("DB update blocked or no rows affected (controlla key/permessi RLS)");
       }
       console.log(`✅ OK`);
       ok++;
@@ -85,21 +92,32 @@ async function migrateTable({ table, urlColumn, filter }) {
   }
 
   console.log(`Completato: ${ok} migrati, ${fail} falliti`);
+  return { ok, fail, total: records.length };
 }
 
 async function main() {
   if (SUPABASE_SERVICE_KEY === "INSERISCI_QUI_LA_SERVICE_ROLE_KEY") {
-    console.error("❌ Inserisci la service_role key di Supabase nello script prima di eseguirlo.");
+    console.error("❌ Inserisci la service_role key o esporta SUPABASE_SERVICE_ROLE_KEY prima di eseguire lo script.");
     process.exit(1);
   }
 
   console.log("🚀 Avvio migrazione immagini Supabase → Cloudinary\n");
 
-  await migrateTable({ table: "item", urlColumn: "immagine_riferimento" });
-  await migrateTable({ table: "catalog_series", urlColumn: "immagine_copertina" });
+  const itemResult = await migrateTable({ table: "item", urlColumn: "immagine_riferimento" });
+  const catalogItemsResult = await migrateTable({ table: "catalog_items", urlColumn: "immagine_riferimento" });
+  const seriesResult = await migrateTable({ table: "catalog_series", urlColumn: "immagine_copertina" });
 
-  console.log("\n✅ Migrazione completata!");
-  console.log("Puoi ora eliminare tutti i file dai bucket Supabase Storage (Foto, item-photos).");
+  const migrated = itemResult.ok + catalogItemsResult.ok + seriesResult.ok;
+  const failed = itemResult.fail + catalogItemsResult.fail + seriesResult.fail;
+  const total = itemResult.total + catalogItemsResult.total + seriesResult.total;
+
+  if (failed > 0) {
+    console.error(`\n⚠️ Migrazione terminata con errori: ${migrated}/${total} migrati, ${failed} falliti.`);
+    process.exit(1);
+  }
+
+  console.log(`\n✅ Migrazione completata: ${migrated}/${total} migrati.`);
+  console.log("Puoi ora eliminare i file dai bucket Supabase Storage (Foto, item-photos). Prima verifica che le immagini puntino a Cloudinary.");
 }
 
 main().catch((e) => {

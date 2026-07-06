@@ -151,25 +151,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         
     
         
-        const filePath = `${user_id}/${Date.now()}_${file.name}`;
-    
-        
-        const { error: uploadError, data: uploadData } = await supa.storage
-          .from("Foto")
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
-          
-        if (uploadError) { 
-      
-          alert(`❌ Errore upload: ${uploadError.message}\n\nPuoi comunque salvare l'oggetto senza foto.`); 
-          return; 
+        const cloudData = new FormData();
+        cloudData.append("file", file);
+        cloudData.append("upload_preset", "Catalogo");
+        const cloudRes = await fetch("https://api.cloudinary.com/v1_1/dq1io8iet/image/upload", {
+          method: "POST",
+          body: cloudData,
+        });
+        if (!cloudRes.ok) {
+          alert("❌ Errore upload immagine su Cloudinary");
+          return;
         }
-
-    
-        const { data } = supa.storage.from("Foto").getPublicUrl(filePath);
-  immagineRiferimentoUrl = data.publicUrl;
+        const cloudJson = await cloudRes.json();
+  immagineRiferimentoUrl = cloudJson.secure_url;
 
       }
 

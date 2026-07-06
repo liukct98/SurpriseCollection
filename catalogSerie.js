@@ -301,25 +301,22 @@ async function addItem(formData) {
   try {
     let immagineUrl = null;
     
-    // Se c'è un file immagine, caricalo su Supabase Storage
+    // Se c'è un file immagine, caricalo su Cloudinary
     if (formData.immagineFile) {
-      // Sanifica il nome del file rimuovendo caratteri speciali
-      const sanitizedNome = formData.nome.replace(/[^a-zA-Z0-9_-]/g, '_');
-      const fileName = `catalog_items/${currentSerieId}_${sanitizedNome}_${Date.now()}.${formData.immagineFile.name.split('.').pop()}`;
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('Foto')
-        .upload(fileName, formData.immagineFile);
-        
-      if (uploadError) {
-        console.error('Errore upload immagine item:', uploadError);
-        alert(`⚠️ Errore nel caricamento dell'immagine: ${uploadError.message}\nProcedo senza immagine`);
+      const cloudData = new FormData();
+      cloudData.append('file', formData.immagineFile);
+      cloudData.append('upload_preset', 'Catalogo');
+      const cloudRes = await fetch('https://api.cloudinary.com/v1_1/dq1io8iet/image/upload', {
+        method: 'POST',
+        body: cloudData,
+      });
+
+      if (!cloudRes.ok) {
+        console.error('Errore upload immagine item');
+        alert('⚠️ Errore nel caricamento dell\'immagine\nProcedo senza immagine');
       } else {
-        // Ottieni l'URL pubblico dell'immagine
-        const { data: { publicUrl } } = supabase.storage
-          .from('Foto')
-          .getPublicUrl(fileName);
-        immagineUrl = publicUrl;
+        const cloudJson = await cloudRes.json();
+        immagineUrl = cloudJson.secure_url;
       }
     }
     
@@ -430,24 +427,21 @@ document.addEventListener('DOMContentLoaded', () => {
           valore: document.getElementById('edit-item-valore').value.trim() || null
         };
         
-        // Se c'è un nuovo file immagine, caricalo
+        // Se c'è un nuovo file immagine, caricalo su Cloudinary
         if (formData.immagineFile) {
-          // Sanifica il nome del file rimuovendo caratteri speciali
-          const sanitizedNome = formData.nome.replace(/[^a-zA-Z0-9_-]/g, '_');
-          const fileName = `catalog_items/${currentSerieId}_${sanitizedNome}_${Date.now()}.${formData.immagineFile.name.split('.').pop()}`;
-          
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('Foto')
-            .upload(fileName, formData.immagineFile);
-            
-          if (uploadError) {
-            alert(`⚠️ Errore nel caricamento dell'immagine: ${uploadError.message}\nProcedo senza modificare l'immagine`);
+          const cloudData = new FormData();
+          cloudData.append('file', formData.immagineFile);
+          cloudData.append('upload_preset', 'Catalogo');
+          const cloudRes = await fetch('https://api.cloudinary.com/v1_1/dq1io8iet/image/upload', {
+            method: 'POST',
+            body: cloudData,
+          });
+
+          if (!cloudRes.ok) {
+            alert('⚠️ Errore nel caricamento dell\'immagine\nProcedo senza modificare l\'immagine');
           } else {
-            // Ottieni l'URL pubblico dell'immagine
-            const { data: { publicUrl } } = supabase.storage
-              .from('Foto')
-              .getPublicUrl(fileName);
-  updateData.immagine_riferimento = publicUrl;
+            const cloudJson = await cloudRes.json();
+            updateData.immagine_riferimento = cloudJson.secure_url;
           }
         }
         
