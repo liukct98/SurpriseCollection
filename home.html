@@ -1564,15 +1564,6 @@
               cloudData.append('file', formData.immagineFile);
               cloudData.append('upload_preset', 'Catalogo');
 
-              alert(
-                'CLOUDINARY TEST\n\n' +
-                'Preset: ' + cloudData.get('upload_preset') + '\n' +
-                'File: ' + (cloudData.get('file')?.name || 'NESSUN FILE') + '\n' +
-                'MIME: ' + (cloudData.get('file')?.type || 'NESSUN MIME') + '\n' +
-                'Size: ' + (cloudData.get('file')?.size || '0') + ' byte\n\n' +
-                'Invio richiesta...'
-              );
-
               try {
                 const cloudRes = await fetch(
                   'https://api.cloudinary.com/v1_1/dq1io8iet/image/upload',
@@ -1583,12 +1574,6 @@
                 );
 
                 const responseText = await cloudRes.text();
-
-                alert(
-                  'RISPOSTA CLOUDINARY\n\n' +
-                  'Status: ' + cloudRes.status + '\n\n' +
-                  responseText
-                );
 
                 if (!cloudRes.ok) {
                   throw new Error(
@@ -1603,12 +1588,6 @@
                 updateData.immagine_copertina = cloudJson.secure_url;
 
               } catch (error) {
-                alert(
-                  'ERRORE FETCH APP\n\n' +
-                  'Nome: ' + error.name + '\n' +
-                  'Messaggio: ' + error.message
-                );
-
                 throw error;
               }
             }
