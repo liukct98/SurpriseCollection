@@ -305,7 +305,7 @@ async function addItem(formData) {
     if (formData.immagineFile) {
       const cloudData = new FormData();
       cloudData.append('file', formData.immagineFile);
-      cloudData.append('upload_preset', 'catalogo_test');
+      cloudData.append('upload_preset', 'Catalogo');
       const cloudRes = await fetch('https://api.cloudinary.com/v1_1/dq1io8iet/image/upload', {
         method: 'POST',
         body: cloudData,
@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (formData.immagineFile) {
           const cloudData = new FormData();
           cloudData.append('file', formData.immagineFile);
-          cloudData.append('upload_preset', 'catalogo_test');
+          cloudData.append('upload_preset', 'Catalogo');
           const cloudRes = await fetch('https://api.cloudinary.com/v1_1/dq1io8iet/image/upload', {
             method: 'POST',
             body: cloudData,
