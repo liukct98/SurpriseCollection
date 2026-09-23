@@ -1471,7 +1471,11 @@
                 body: cloudData,
               });
               if (!cloudRes.ok) {
-                alert(`⚠️ Errore nel caricamento dell'immagine\nProcedo senza immagine`);
+                const errorText = await cloudRes.text();
+
+                console.error('ERRORE CLOUDINARY:', cloudRes.status, errorText);
+
+                alert(`Errore Cloudinary:\n${cloudRes.status}\n${errorText}`);
               } else {
                 const cloudJson = await cloudRes.json();
                 immagineUrl = cloudJson.secure_url;
