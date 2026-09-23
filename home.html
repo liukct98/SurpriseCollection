@@ -1608,9 +1608,6 @@
 
                 throw error;
               }
-
-              const cloudJson = await cloudRes.json();
-              updateData.immagine_copertina = cloudJson.secure_url;
             }
 
             const { error } = await supabase
