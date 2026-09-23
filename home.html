@@ -1599,9 +1599,6 @@
                   );
                 }
 
-                const cloudJson = JSON.parse(responseText);
-                updateData.immagine_copertina = cloudJson.secure_url;
-
               } catch (error) {
                 alert(
                   'ERRORE FETCH APP\n\n' +
@@ -1777,13 +1774,17 @@
   </script>
 
   <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-      
-      
-        });
-    }
+   if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+
+        for (const registration of registrations) {
+            await registration.unregister();
+        }
+
+        console.log('Service Worker disattivato per test');
+    });
+}
   </script>
   <script src="title-animations.js"></script>
   <script src="component-animations.js"></script>
