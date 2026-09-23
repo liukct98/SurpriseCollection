@@ -156,54 +156,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   const fotoInput = document.getElementById("foto");
       if (fotoInput.files.length > 0) {
         const file = fotoInput.files[0];
-        alert(
-          'FILE APP\n\n' +
-          'Nome: ' + file.name + '\n' +
-          'MIME: ' + file.type + '\n' +
-          'Dimensione: ' + file.size + ' byte\n' +
-          'Ultima modifica: ' + file.lastModified
-        );
         const cloudData = new FormData();
         cloudData.append("file", file);
         cloudData.append("upload_preset", "Catalogo");
-        alert(
-          'FORMDATA APP\n\n' +
-          'file: ' + cloudData.get('file').name + '\n' +
-          'MIME: ' + cloudData.get('file').type + '\n' +
-          'size: ' + cloudData.get('file').size + '\n' +
-          'preset: ' + cloudData.get('upload_preset')
-        );
-        try {
-          const cloudRes = await fetch(
-            "https://api.cloudinary.com/v1_1/dq1io8iet/image/upload",
-            {
-              method: "POST",
-              body: cloudData,
-            }
-          );
-
-          const responseText = await cloudRes.text();
-
-          alert(
-            "RISPOSTA CLOUDINARY APP\n\n" +
-            "Status: " + cloudRes.status + "\n\n" +
-            responseText
-          );
-
-          if (!cloudRes.ok) {
-            return;
-          }
-
-          const cloudJson = JSON.parse(responseText);
-          immagineRiferimentoUrl = cloudJson.secure_url;
-
-        } catch (error) {
-          alert(
-            "ERRORE FETCH APP\n\n" +
-            "Nome: " + error.name + "\n" +
-            "Messaggio: " + error.message
-          );
+        const cloudRes = await fetch("https://api.cloudinary.com/v1_1/dq1io8iet/image/upload", {
+          method: "POST",
+          body: cloudData,
+        });
+        if (!cloudRes.ok) {
+          alert("❌ Errore upload immagine");
+          return;
         }
+        const cloudJson = await cloudRes.json();
+  immagineRiferimentoUrl = cloudJson.secure_url;
       }
 
       const { error } = await supabase

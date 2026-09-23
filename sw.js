@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sorpresine-v2';
+const CACHE_NAME = 'sorpresine-v3';
 
 const urlsToCache = [
   './',
