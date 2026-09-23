@@ -22,7 +22,7 @@
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('upload_preset', 'ml_default');
+      formData.append('upload_preset', 'Catalogo');
 
       alert(
         'Invio a Cloudinary\\n\\n' +
@@ -49,6 +49,14 @@
           'Status: ' + response.status + '\n\n' +
           'X-Cld-Error: ' + (cldError || 'NON PRESENTE') + '\n\n' +
           text
+        );
+
+        alert(
+          'FILE MOBILE\n\n' +
+          'Nome: ' + file.name + '\n' +
+          'Tipo MIME: ' + file.type + '\n' +
+          'Dimensione: ' + file.size + ' byte\n' +
+          'Ultima modifica: ' + file.lastModified
         );
 
       } catch (error) {
