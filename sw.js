@@ -1,4 +1,5 @@
-const CACHE_NAME = 'sorpresine-v2'; // incrementa a ogni deploy
+const CACHE_NAME = 'sorpresine-v2';
+
 const urlsToCache = [
   './',
   './login.js',
@@ -14,6 +15,7 @@ self.addEventListener('install', event => {
         return cache.addAll(urlsToCache);
       })
   );
+
   self.skipWaiting();
 });
 
@@ -29,10 +31,18 @@ self.addEventListener('activate', event => {
       )
     )
   );
+
   self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
+
+  // Non intercettare POST, PUT, DELETE ecc.
+  // Le richieste Cloudinary passano direttamente al browser.
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {
