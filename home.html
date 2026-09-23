@@ -1563,20 +1563,31 @@
               const cloudData = new FormData();
               cloudData.append('file', formData.immagineFile);
               cloudData.append('upload_preset', 'Catalogo');
-              const cloudRes = await fetch('https://api.cloudinary.com/v1_1/dq1io8iet/image/upload', {
-                method: 'POST',
-                body: cloudData,
-              });
+              alert(
+                'CLOUDINARY TEST\n' +
+                'Preset: ' + cloudData.get('upload_preset') + '\n' +
+                'File: ' + (cloudData.get('file')?.name || 'NESSUN FILE') + '\n' +
+                'URL: https://api.cloudinary.com/v1_1/dq1io8iet/image/upload'
+              );
+              const cloudRes = await fetch(
+                'https://api.cloudinary.com/v1_1/dq1io8iet/image/upload',
+                {
+                  method: 'POST',
+                  body: cloudData,
+                }
+              );
               if (!cloudRes.ok) {
-                 const errorText = await cloudRes.text();
-
-                console.error('ERRORE CLOUDINARY:', cloudRes.status, errorText);
-
-                alert(`Errore Cloudinary:\n${cloudRes.status}\n${errorText}`);
-              } else {
-                const cloudJson = await cloudRes.json();
-                updateData.immagine_copertina = cloudJson.secure_url;
+                const errorText = await cloudRes.text();
+                alert(
+                  'ERRORE CLOUDINARY\n\n' +
+                  'Status: ' + cloudRes.status + '\n' +
+                  errorText
+                );
+                throw new Error(`Errore Cloudinary ${cloudRes.status}: ${errorText}`);
               }
+
+              const cloudJson = await cloudRes.json();
+              updateData.immagine_copertina = cloudJson.secure_url;
             }
 
             const { error } = await supabase
