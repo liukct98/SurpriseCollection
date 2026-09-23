@@ -1568,8 +1568,11 @@
                 body: cloudData,
               });
               if (!cloudRes.ok) {
-                console.error('Errore upload immagine');
-                alert(`⚠️ Errore nel caricamento dell'immagine\nProcedo senza modificare l'immagine`);
+                 const errorText = await cloudRes.text();
+
+                console.error('ERRORE CLOUDINARY:', cloudRes.status, errorText);
+
+                alert(`Errore Cloudinary:\n${cloudRes.status}\n${errorText}`);
               } else {
                 const cloudJson = await cloudRes.json();
                 updateData.immagine_copertina = cloudJson.secure_url;
